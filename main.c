@@ -31,8 +31,8 @@ XFontStruct *font;
 XftFont *xftfont;
 XftColor xft_fg;
 #endif
-GC string_gc, border_gc, active_gc, inactive_gc;
-XColor fg, bg, fc, bd;
+GC string_gc, border_gc, active_gc, inactive_gc, menubar_gc, menusel_gc;
+XColor fg, bg, fc, bd, mb, sm;
 Cursor move_curs, resizestart_curs, resizeend_curs;
 Atom wm_state, wm_change_state, wm_protos, wm_delete, wm_cmapwins;
 #ifdef MWM_HINTS
@@ -45,9 +45,8 @@ char *opt_fg = DEF_FG;
 char *opt_bg = DEF_BG;
 char *opt_fc = DEF_FC;
 char *opt_bd = DEF_BD;
-char *opt_new1 = DEF_NEW1;
-char *opt_new2 = DEF_NEW2;
-char *opt_new3 = DEF_NEW3;
+char *opt_mb = DEF_MB;
+char *opt_sm = DEF_SM;
 int opt_bw = DEF_BW;
 #ifdef SHAPE
 Bool shape;
@@ -82,19 +81,17 @@ int main(int argc, char **argv)
 		OPT_STR("-bg", opt_bg)
 		OPT_STR("-fc", opt_fc)
 		OPT_STR("-bd", opt_bd)
+		OPT_STR("-mb", opt_mb)
+		OPT_STR("-sm", opt_sm)
 		OPT_INT("-bw", opt_bw)
-		OPT_STR("-new1", opt_new1)
-		OPT_STR("-new2", opt_new2)
-		OPT_STR("-new3", opt_new3)
 		if (strcmp(argv[i], "-version") == 0)
 		{
 			printf("windowlab: version " VERSION "\n");
 			exit(0);
 		}
-		/* shouldn't get here; must be a bad option */
+		// shouldn't get here; must be a bad option
 		err("usage: windowlab [options]\n"
-			"   options are: -fn <font>, -fg|-bg|-fc|-bd <color>\n"
-			"   -bw <width>, -new1|-new2|-new3 <cmd>");
+			"       options are: -fn <font>, -fg|-bg|-fc|-bd|-mb|-sm <color>, -bw <width>");
 		return 2;
 	}
 
@@ -106,6 +103,7 @@ int main(int argc, char **argv)
 	sigaction(SIGCHLD, &act, NULL);
 
 	setup_display();
+	get_menuitems();
 	head_client = 0;
 	make_taskbar();
 	scan_wins();
@@ -165,6 +163,8 @@ static void setup_display(void)
 	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_bg, &bg, &dummyc);
 	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_fc, &fc, &dummyc);
 	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_bd, &bd, &dummyc);
+	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_mb, &mb, &dummyc);
+	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_sm, &sm, &dummyc);
 
 	font = XLoadQueryFont(dpy, opt_font);
 	if (!font)
@@ -208,6 +208,12 @@ static void setup_display(void)
 
 	gv.foreground = fc.pixel;
 	inactive_gc = XCreateGC(dpy, root, GCFunction|GCForeground, &gv);
+
+	gv.foreground = mb.pixel;
+	menubar_gc = XCreateGC(dpy, root, GCFunction|GCForeground, &gv);
+
+	gv.foreground = sm.pixel;
+	menusel_gc = XCreateGC(dpy, root, GCFunction|GCForeground, &gv);
 
 	sattr.event_mask = ChildMask|ColormapChangeMask|ButtonMask;
 	XChangeWindowAttributes(dpy, root, CWEventMask, &sattr);

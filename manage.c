@@ -22,7 +22,7 @@
 
 static void drag(Client *);
 static void sweep(Client *);
-static void recalc_sweep(Client *, int, int, int, int, Rect *);
+static void recalc_sweep(Client *, int, int, Rect *);
 static int get_incsize(Client *, int *, int *, Rect *, int);
 
 Window resize_win;
@@ -100,9 +100,9 @@ void send_wm_delete(Client *c)
 static void drag(Client *c)
 {
 	XEvent ev;
-	int x1, y1;
 	int old_cx = c->x;
 	int old_cy = c->y;
+	int x1, y1;
 	Client *exposed_c;
 
 	int boundx, boundy, boundw, boundh, mousex, mousey, dw, dh;
@@ -160,12 +160,10 @@ static void drag(Client *c)
 static void sweep(Client *c)
 {
 	XEvent ev;
-	int old_cx = c->x;
-	int old_cy = c->y;
 	Client *exposed_c;
 	Rect newdims;
 
-	int boundx, boundy, boundw, boundh, mousex, mousey, dw, dh;
+	int boundx, boundy, boundw, boundh, mousex, mousey, dw, dh, minw, minh;
 	Window constraint_win;
 	XSetWindowAttributes pattr, resize_pattr;
 
@@ -191,34 +189,36 @@ static void sweep(Client *c)
 		XMaskEvent(dpy, MouseMask, &ev);
 		if (ev.type == ButtonPress)
 		{
-			get_mouse_position(&old_cx, &old_cy);
+			get_mouse_position(&newdims.x, &newdims.y);
 			break;
 		}
 	}
 
-	old_cx -= (BW(c) + 1);
-	old_cy -= (BW(c) + 1);
+	newdims.x -= (BW(c) + 1);
+	newdims.y -= (BW(c) + 1);
+	newdims.y += BARHEIGHT();
 
 	XUnmapWindow(dpy, constraint_win);
 	XDestroyWindow(dpy, constraint_win);
 
-	boundx = old_cx + MINWINWIDTH + BW(c);
-	boundw = dw - boundx - 1;
-	boundy = old_cy + MINWINHEIGHT + BW(c) + BARHEIGHT();
-	boundh = dh - boundy - 1;
+	minw = c->size->min_width > MINWINWIDTH ? c->size->min_width : MINWINWIDTH;
+	minh = c->size->min_height > MINWINHEIGHT ? c->size->min_height : MINWINHEIGHT;
 
-	if (boundx > dw)
+	recalc_sweep(c, newdims.x + minw, newdims.y + minh, &newdims);
+
+	if ((newdims.x + newdims.width) > dw)
 	{
-		old_cx = dw - MINWINWIDTH - BW(c);
-		boundx = dw - 1;
-		boundw = 1;
+		newdims.x = ((dw - newdims.width) - 1) - BW(c);
 	}
-	if (boundy > dh)
+	if ((newdims.y + newdims.height) > dh)
 	{
-		old_cy = dh - MINWINHEIGHT - BW(c) - BARHEIGHT();
-		boundy = dh - 1;
-		boundh = 1;
+		newdims.y = ((dh - newdims.height) - 1) - BW(c);
 	}
+
+	boundx = (newdims.x + newdims.width);
+	boundy = (newdims.y + newdims.height);
+	boundw = (dw - boundx);
+	boundh = (dh - boundy);
 
 	constraint_win = XCreateWindow(dpy, root, boundx, boundy, boundw, boundh, 0, CopyFromParent, InputOnly, CopyFromParent, 0, &pattr);
 	XMapWindow(dpy, constraint_win);
@@ -228,15 +228,13 @@ static void sweep(Client *c)
 		return;
 	}
 
-	recalc_sweep(c, old_cx, old_cy, ev.xmotion.x, ev.xmotion.y, &newdims);
-
 	// create and map resize window
 	resize_pattr.override_redirect = True;
 	resize_pattr.background_pixel = fc.pixel;
 	resize_pattr.border_pixel = bd.pixel;
 	resize_pattr.event_mask = ChildMask|ButtonPressMask|ExposureMask|EnterWindowMask;
 	resize_win = XCreateWindow(dpy, root,
-		newdims.x, newdims.y - BARHEIGHT(), newdims.width + BW(c), newdims.height + BARHEIGHT() + BW(c), DEF_BW,
+		newdims.x, newdims.y - BARHEIGHT(), newdims.width + 1, newdims.height + BARHEIGHT() + 1, DEF_BW,
 		DefaultDepth(dpy, screen), CopyFromParent, DefaultVisual(dpy, screen),
 		CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWEventMask, &resize_pattr);
 	XMapWindow(dpy, resize_win);
@@ -254,14 +252,14 @@ static void sweep(Client *c)
 				}
 				break;
 			case MotionNotify:
-				recalc_sweep(c, old_cx, old_cy, ev.xmotion.x, ev.xmotion.y, &newdims);
-				XMoveResizeWindow(dpy, resize_win, newdims.x, newdims.y - BARHEIGHT(), newdims.width, newdims.height + BARHEIGHT());
+				recalc_sweep(c, ev.xmotion.x, ev.xmotion.y, &newdims);
+				XMoveResizeWindow(dpy, resize_win, newdims.x, newdims.y - BARHEIGHT(), newdims.width + 1, newdims.height + BARHEIGHT() + 1);
 				break;
 			case ButtonRelease:
 				c->x = newdims.x;
 				c->y = newdims.y;
-				c->width = newdims.width;
-				c->height = newdims.height;
+				c->width = newdims.width + 1;
+				c->height = newdims.height + 1;
 				XUngrabServer(dpy);
 				ungrab();
 				XUnmapWindow(dpy, constraint_win);
@@ -273,12 +271,13 @@ static void sweep(Client *c)
 	}
 }
 
-static void recalc_sweep(Client *c, int x1, int y1, int x2, int y2, Rect *newdims)
+static void recalc_sweep(Client *c, int x2, int y2, Rect *newdims)
 {
-	newdims->width = abs(x1 - x2);
-	newdims->height = abs(y1 - y2);
-	newdims->height -= BARHEIGHT();
-
+	int dw, dh;
+	dw = DisplayWidth(dpy, screen);
+	dh = DisplayHeight(dpy, screen);
+	newdims->width = (x2 - newdims->x) - BW(c);
+	newdims->height = (y2 - newdims->y) - BW(c);
 	get_incsize(c, &newdims->width, &newdims->height, newdims, PIXELS);
 
 	if (c->size->flags & PMinSize)
@@ -314,9 +313,14 @@ static void recalc_sweep(Client *c, int x1, int y1, int x2, int y2, Rect *newdim
 		newdims->height = MINWINHEIGHT;
 	}
 
-	newdims->x = x1;
-	newdims->y = y1;
-	newdims->y += BARHEIGHT();
+	if (newdims->width > (dw - 1))
+	{
+		newdims->width = dw - 1;
+	}
+	if (newdims->height > dh - ((BARHEIGHT() * 2) + BW(c)) - 1)
+	{
+		newdims->height = dh - ((BARHEIGHT() * 2) + BW(c)) - 1;
+	}
 }
 
 /* If the window in question has a ResizeInc int, then it wants to be

@@ -321,6 +321,8 @@ void set_shape(Client *c)
 void check_focus(Client *c)
 {
 	Client *old_focused;
+	XSetInputFocus(dpy, c->window, RevertToPointerRoot, CurrentTime);
+	XInstallColormap(dpy, c->cmap);
 	if (c != last_focused_client)
 	{
 		old_focused = last_focused_client;
@@ -333,4 +335,5 @@ void check_focus(Client *c)
 		redraw_taskbar();
 	}
 }
+
 

@@ -34,13 +34,14 @@ CFLAGS   = -g -O2 -Wall
 
 BINDIR   = $(DESTDIR)$(XROOT)/bin
 MANDIR   = $(DESTDIR)$(XROOT)/man/man1
+CFGDIR   = $(DESTDIR)/etc/X11/windowlab
 INCLUDES = -I$(XROOT)/include
 LDPATH   = -L$(XROOT)/lib
 LIBS     = -lX11 $(EXTRA_LIBS)
 
 PROG     = windowlab
 MANPAGE  = windowlab.1x
-OBJS     = main.o events.o client.o new.o manage.o misc.o taskbar.o
+OBJS     = main.o events.o client.o new.o manage.o misc.o taskbar.o menufile.o
 HEADERS  = windowlab.h
 
 all: $(PROG)
@@ -55,6 +56,7 @@ install: all
 	install -s $(PROG) $(BINDIR)
 	install -m 644 $(MANPAGE) $(MANDIR)
 	gzip -9vf $(MANDIR)/$(MANPAGE)
+	mkdir -p $(CFGDIR) && cp menurc.sample $(CFGDIR)/menurc
 
 clean:
 	rm -f $(PROG) $(OBJS)

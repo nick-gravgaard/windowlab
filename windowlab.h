@@ -21,10 +21,11 @@
 #ifndef WINDOWLAB_H
 #define WINDOWLAB_H
 
-#define VERSION "1.3"
+#define VERSION "1.5"
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #ifdef SHAPE
@@ -37,7 +38,7 @@
 #include <X11/Xft/Xft.h>
 #endif
 
-/* Here are the default settings. Change to suit your taste.  If you
+/* Here are the default settings. Change to suit your taste. If you
  * aren't sure about DEF_FONT, change it to "fixed"; almost all X
  * installations will have that available. */
 
@@ -46,13 +47,14 @@
 #else
 #define DEF_FONT	"lucidasans-10"
 #endif
-#define DEF_FG		"black"
-#define DEF_BG		"gold" // focused
-#define DEF_FC		"darkgray"
-#define DEF_BD		"black"
-#define DEF_NEW1	""
-#define DEF_NEW2	""
-#define DEF_NEW3	"xterm"
+// use named colours, #rgb, #rrggbb or #rrrgggbbb format
+#define DEF_FG		"#000" // foreground
+#define DEF_BG		"#fd0" // active background
+#define DEF_FC		"#aaa" // inactive background
+#define DEF_BD		"#000" // borders
+#define DEF_MB		"#ddd" // menubar
+#define DEF_SM		"#aac" // selected menu item
+#define DEF_MENURC	"/etc/X11/windowlab/menurc"
 #define DEF_BW		2
 #define SPACE		3
 #define MINSIZE		15
@@ -66,7 +68,7 @@
 #define ButtonMask (ButtonPressMask|ButtonReleaseMask)
 #define MouseMask (ButtonMask|PointerMotionMask)
 
-/* Shorthand for wordy function calls */
+// Shorthand for wordy function calls
 
 #define setmouse(w, x, y) XWarpPointer(dpy, None, w, 0, 0, 0, 0, x, y)
 #define ungrab() XUngrabPointer(dpy, CurrentTime)
@@ -79,7 +81,7 @@
 #define lower_win(c) ((void) XLowerWindow(dpy, (c)->frame))
 #define raise_win(c) ((void) XRaiseWindow(dpy, (c)->frame))
 
-/* Border width accessor to handle hints/no hints */
+// Border width accessor to handle hints/no hints
 
 #ifdef MWM_HINTS
 #define BW(c) ((c)->has_border ? opt_bw : 0)
@@ -94,25 +96,32 @@
 #define BARHEIGHT() (font->ascent + font->descent + 2*SPACE + 1)
 #endif
 
-/* Multipliers for calling gravitate */
+// Multipliers for calling gravitate
 
 #define APPLY_GRAVITY 1
 #define REMOVE_GRAVITY -1
 
-/* Modes to call get_incsize with */
+// Modes to call get_incsize with
 
 #define PIXELS 0
 #define INCREMENTS 1
 
-/* Modes for find_client */
+// Modes for find_client
 
 #define WINDOW 0
 #define FRAME 1
 
-/* And finally modes for remove_client. */
+// Modes for remove_client
 
 #define WITHDRAW 0
 #define REMAP 1
+
+// Stuff for the menu file
+
+#define MAX_MENUITEMS 64
+#define STR_SIZE 64
+#define NO_MENU_LABEL "xterm"
+#define NO_MENU_COMMAND "xterm"
 
 /* This structure keeps track of top-level windows (hereinafter
  * 'clients'). The clients we know about (i.e. all that don't set
@@ -156,7 +165,15 @@ typedef struct _Rect Rect;
 
 struct _Rect
 {
-	int x, y, width, height;
+	unsigned int x, y, width, height;
+};
+
+typedef struct _MenuItem MenuItem;
+
+struct _MenuItem
+{
+	char *command, *label;
+	unsigned int x, width;
 };
 
 /* Below here are (mainly generated with cproto) declarations and
@@ -173,14 +190,14 @@ extern XFontStruct *font;
 extern XftFont *xftfont;
 extern XftColor xft_fg;
 #endif
-extern GC string_gc, border_gc, active_gc, inactive_gc;
+extern GC string_gc, border_gc, active_gc, inactive_gc, menubar_gc, menusel_gc;
 extern XColor fg, bg, fc, bd;
 extern Cursor move_curs, resizestart_curs, resizeend_curs;
 extern Atom wm_state, wm_change_state, wm_protos, wm_delete, wm_cmapwins;
 #ifdef MWM_HINTS
 extern Atom mwm_hints;
 #endif
-extern char *opt_font, *opt_fg, *opt_bg, *opt_fc, *opt_bd, *opt_new1, *opt_new2, *opt_new3;
+extern char *opt_font, *opt_fg, *opt_bg, *opt_fc, *opt_bd, *opt_mb, *opt_sm;
 extern int opt_bw;
 #ifdef SHAPE
 extern int shape, shape_event;
@@ -234,8 +251,15 @@ extern XftDraw *tbxftdraw;
 #endif
 extern void make_taskbar(void);
 extern void click_taskbar(unsigned int);
+extern void rclick_taskbar(void);
+extern void rclick_root(void);
 extern void redraw_taskbar(void);
 float get_button_width(void);
 
+//menufile.c
+extern MenuItem menuitems[MAX_MENUITEMS];
+extern unsigned int num_menuitems;
+extern void get_menuitems(void);
+extern void free_menuitems(void);
 #endif /* WINDOWLAB_H */
 

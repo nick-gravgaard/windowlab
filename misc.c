@@ -276,6 +276,8 @@ static void quit_nicely(void)
 	Window dummyw1, dummyw2, *wins;
 	Client *c;
 
+	free_menuitems();
+
 	XQueryTree(dpy, root, &dummyw1, &dummyw2, &wins, &nwins);
 	for (i = 0; i < nwins; i++)
 	{

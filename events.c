@@ -107,40 +107,48 @@ static void handle_button_press(XButtonEvent *e)
 #ifdef DEBUG
 		dump_clients();
 #endif
-		switch (e->button)
+		if (e->button == Button3)
 		{
-			case Button1:
-				fork_exec(opt_new1);
-				break;
-			case Button2:
-				fork_exec(opt_new2);
-				break;
-			case Button3:
-				fork_exec(opt_new3);
-				break;
+			rclick_root();
 		}
 	}
 	else
 	{
 		if (e->window == taskbar)
 		{
-			click_taskbar(e->x);
+			if (e->button == Button1)
+			{
+				click_taskbar(e->x);
+			}
+			else
+			{
+				if (e->button == Button3)
+				{
+					rclick_taskbar();
+				}
+			}
 		}
 		else
 		{
-			c = find_client(e->window, FRAME);
-			if (c)
+			XAllowEvents(dpy, ReplayPointer, CurrentTime); // pass event on
+			if (e->button == Button1)
 			{
-				check_focus(c);
-				//click-to-focus
-				XSetInputFocus(dpy, c->window, RevertToPointerRoot, CurrentTime);
-				XInstallColormap(dpy, c->cmap);
-
-				XAllowEvents(dpy, ReplayPointer, CurrentTime); // back on?
-
-				if (e->y < BARHEIGHT())
+				c = find_client(e->window, FRAME);
+				if (c)
 				{
-					handle_windowbar_click(e, c);
+					check_focus(c);
+					// click-to-focus
+					if (e->y < BARHEIGHT())
+					{
+						handle_windowbar_click(e, c);
+					}
+				}
+			}
+			else
+			{
+				if (e->button == Button3)
+				{
+					rclick_root();
 				}
 			}
 		}
@@ -209,7 +217,12 @@ static int box_clicked(Client *c, int x)
  *
  * Most of the assignments here are going to be garbage, but only the
  * ones that are masked in by e->value_mask will be looked at by the X
- * server. */
+ * server.
+ *
+ * I'm pretty tempted to ignore managed clients that want their z-order
+ * changed. From what I can remember, clients are supposed to have been
+ * written so that they are aware that their requirements may not be
+ * met by the window manager, so I may yet do this. */
 
 static void handle_configure_request(XConfigureRequestEvent *e)
 {
@@ -224,8 +237,7 @@ static void handle_configure_request(XConfigureRequestEvent *e)
 		if (e->value_mask & CWWidth) c->width = e->width;
 		if (e->value_mask & CWHeight) c->height = e->height;
 		gravitate(c, APPLY_GRAVITY);
-		/* configure the frame */
-		fix_position(c);
+		// configure the frame
 		wc.x = c->x;
 		wc.y = c->y - BARHEIGHT();
 		wc.width = c->width;
@@ -241,7 +253,7 @@ static void handle_configure_request(XConfigureRequestEvent *e)
 		}
 #endif
 		send_config(c);
-		/* start setting up the next call */
+		// start setting up the next call
 		wc.x = 0;
 		wc.y = BARHEIGHT();
 	}
