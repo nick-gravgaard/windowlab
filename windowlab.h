@@ -21,7 +21,7 @@
 #ifndef WINDOWLAB_H
 #define WINDOWLAB_H
 
-#define VERSION "1.24"
+#define VERSION "1.25"
 
 #include <limits.h>
 #include <stdio.h>
@@ -195,7 +195,7 @@ struct _MenuItem
 extern Display *dpy;
 extern Window root;
 extern int screen;
-extern Client *head_client, *last_focused_client, *fullscreen_client;
+extern Client *head_client, *last_focused_client, *topmost_client, *fullscreen_client;
 extern unsigned int in_taskbar, showing_taskbar;
 extern Rect fs_prevdims;
 extern XFontStruct *font;
@@ -244,21 +244,21 @@ extern void raise_lower(Client *);
 extern void resize(Client *);
 extern void hide(Client *);
 extern void unhide(Client *);
-void toggle_fullscreen(Client *);
+extern void toggle_fullscreen(Client *);
 extern void send_wm_delete(Client *);
 extern void write_titletext(Client *, Window);
 
 // misc.c
-void err(const char *, ...);
-void fork_exec(char *);
-void sig_handler(int);
-int handle_xerror(Display *, XErrorEvent *);
-int ignore_xerror(Display *, XErrorEvent *);
-int send_xmessage(Window, Atom, long);
-void get_mouse_position(int *, int *);
-void fix_position(Client *);
-void refix_position(Client *, XConfigureRequestEvent *);
-void copy_dims(Rect *, Rect *);
+extern void err(const char *, ...);
+extern void fork_exec(char *);
+extern void sig_handler(int);
+extern int handle_xerror(Display *, XErrorEvent *);
+extern int ignore_xerror(Display *, XErrorEvent *);
+extern int send_xmessage(Window, Atom, long);
+extern void get_mouse_position(int *, int *);
+extern void fix_position(Client *);
+extern void refix_position(Client *, XConfigureRequestEvent *);
+extern void copy_dims(Rect *, Rect *);
 #ifdef DEBUG
 extern void show_event(XEvent);
 extern void dump(Client *);

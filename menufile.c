@@ -22,7 +22,7 @@
 
 static int parseline(char *, char *, char *);
 
-MenuItem* menuitems = NULL;
+MenuItem *menuitems = NULL;
 unsigned int num_menuitems;
 #ifdef XFT
 XGlyphInfo extents;
@@ -35,7 +35,7 @@ void get_menuitems(void)
 	char defmenurc[STR_SIZE];
 
 	menuitems = malloc(MAX_MENUITEMS_SIZE);
-	memset(menuitems, '0', MAX_MENUITEMS_SIZE);
+	memset(menuitems, '\0', MAX_MENUITEMS_SIZE);
 
 	snprintf(defmenurc, sizeof defmenurc, "%s/.windowlab/menurc", getenv("HOME"));
 	if ((menufile = fopen(defmenurc, "r")) == NULL)
@@ -52,7 +52,7 @@ void get_menuitems(void)
 			fgets(menustr, STR_SIZE, menufile);
 			if (strlen(menustr) > 0)
 			{
-				if (strstr(menustr, "#") == NULL)
+				if (menustr[0] != '#')
 				{
 					char labelstr[STR_SIZE];
 					char commandstr[STR_SIZE];

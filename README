@@ -51,7 +51,7 @@ Before compiling, check the default (DEF_foo) options in windowlab.h, and the de
 
 "make" will compile everything, and "make install" will install it.
 
-To make WindowLab your default window manager, edit your ~/.xinitrc file and change the last line to "exec windowlab".
+To make WindowLab your default window manager, edit ~/.xinitrc (if you start X from the console by typing "startx") or ~/.xsession (if you start with a graphical login manager) and change the last line to "exec windowlab".
 
 If you use FreeBSD, you can get WindowLab from /usr/ports/x11-wm/windowlab/
 
@@ -59,7 +59,7 @@ If you use FreeBSD, you can get WindowLab from /usr/ports/x11-wm/windowlab/
 
 HOW DO I USE IT?
 
-WindowLab places a taskbar at the top of the screen and adds a bar to the top of each window. These bars consist of a draggable area, and three squares on the right hand side. From left to right, these squares:
+WindowLab places a taskbar at the top of the screen and adds a bar to the top of each window. These bars consist of a draggable area, and three icons on the right hand side. When clicked, these icons:
 
 * hide the window
 
@@ -112,6 +112,8 @@ I also wanted windows to act like the Amiga's screens (so that the title bar and
 
 
 TIPS AND TRICKS
+
+* It is not the window manager's job to set the root window's pointer cursor or background image but you can use "xsetroot -cursor_name top_left_arrow" to set the pointer and xv, xloadimage or xpmroot to set a background image.
 
 * Pierre Lambion has written a utility called GTK Monitor which is useful because it allows the current time and system load information to appear in WindowLab's taskbar.
 

@@ -23,12 +23,12 @@
 #include <X11/cursorfont.h>
 #include "windowlab.h"
 
-Display *dpy;
+Display *dpy = NULL;
 Window root;
 int screen;
-XFontStruct *font;
+XFontStruct *font = NULL;
 #ifdef XFT
-XftFont *xftfont;
+XftFont *xftfont = NULL;
 XftColor xft_detail;
 #endif
 GC string_gc, border_gc, text_gc, active_gc, depressed_gc, inactive_gc, menu_gc, selected_gc, empty_gc;
@@ -38,7 +38,7 @@ Atom wm_state, wm_change_state, wm_protos, wm_delete, wm_cmapwins;
 #ifdef MWM_HINTS
 Atom mwm_hints;
 #endif
-Client *head_client, *last_focused_client, *fullscreen_client;
+Client *head_client = NULL, *last_focused_client = NULL, *topmost_client = NULL, *fullscreen_client = NULL;
 unsigned int in_taskbar = 0; // actually, we don't know yet
 unsigned int showing_taskbar = 1;
 Rect fs_prevdims;
@@ -100,7 +100,6 @@ int main(int argc, char **argv)
 
 	setup_display();
 	get_menuitems();
-	head_client = NULL;
 	make_taskbar();
 	scan_wins();
 	do_event_loop();

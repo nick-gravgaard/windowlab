@@ -166,7 +166,7 @@ static void handle_button_press(XButtonEvent *e)
 			if (e->button == Button1)
 			{
 				c = find_client(e->window, FRAME);
-				if (c != NULL && c != fullscreen_client)
+				if (c != NULL)
 				{
 					// click-to-focus
 					check_focus(c);
@@ -296,15 +296,26 @@ static void draw_button(Client *c, GC *detail_gc, GC *background_gc, unsigned in
  * ones that are masked in by e->value_mask will be looked at by the X
  * server.
  *
- * We ignore managed clients that want their z-order changed. From what
- * I can remember, clients are supposed to have been written so that
- * they are aware that their requirements may not be met by the window
- * manager. */
+ * We ignore managed clients that want their z-order changed and
+ * managed fullscreen clients that want their size and/or position
+ * changed (except to update their size and/or position for when
+ * fullscreen mode is toggled off).  From what I can remember, clients
+ * are supposed to have been written so that they are aware that their
+ * requirements may not be met by the window manager. */
 
 static void handle_configure_request(XConfigureRequestEvent *e)
 {
 	Client *c = find_client(e->window, WINDOW);
 	XWindowChanges wc;
+
+	if (fullscreen_client != NULL && c == fullscreen_client)
+	{
+		if (e->value_mask & CWX) fs_prevdims.x = e->x;
+		if (e->value_mask & CWY) fs_prevdims.y = e->y;
+		if (e->value_mask & CWWidth) fs_prevdims.width = e->width;
+		if (e->value_mask & CWHeight) fs_prevdims.height = e->height;
+		return;
+	}
 
 	if (c != NULL)
 	{
@@ -443,6 +454,7 @@ static void handle_property_change(XPropertyEvent *e)
 				break;
 			case XA_WM_NORMAL_HINTS:
 				XGetWMNormalHints(dpy, c->window, c->size, &dummy);
+				break;
 		}
 	}
 }

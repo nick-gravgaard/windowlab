@@ -152,6 +152,7 @@ void make_new_client(Window w)
 	}
 
 	check_focus(c);
+	topmost_client = c;
 
 #ifdef DEBUG
 	dump(c);
@@ -172,14 +173,14 @@ static PropMwmHints *get_mwm_hints(Window w)
 	Atom real_type;
 	int real_format;
 	unsigned long items_read, items_left;
-	PropMwmHints *data;
+	unsigned char *data;
 
 	if (XGetWindowProperty(dpy, w, mwm_hints, 0L, 20L, False,
 		mwm_hints, &real_type, &real_format, &items_read, &items_left,
-		(unsigned char **) &data) == Success
+		&data) == Success
 		&& items_read >= PROP_MOTIF_WM_HINTS_ELEMENTS)
 	{
-		return data;
+		return (PropMwmHints *)data;
 	}
 	else
 	{
@@ -188,15 +189,12 @@ static PropMwmHints *get_mwm_hints(Window w)
 }
 #endif
 
-/* All toolkits suck. GTK sucks in particular, because if you even
- * -look- at it funny, it will put a PSize hint on your window, and
- * then gleefully leave it at the default setting of 200x200 until you
- * change it. So PSize is pretty useless for us these days.
- *
- * Note that c->x, c->y, c->width, and c->height actually start out
- * with values in them (whatever the client passed to XCreateWindow).
- * Program-specified hints will override these, but anything set by
- * the program will be sanity-checked before it is used. User-
+/* Figure out where to map the window. c->x, c->y, c->width, and
+ * c->height actually start out with values in them (whatever the
+ * client passed to XCreateWindow).  Program-specified hints will
+ * override these, but anything set by the program will be
+ * sanity-checked before it is used. PSize is ignored completely,
+ * because GTK sets it to 200x200 for almost everything. User-
  * specified hints will of course override anything the program says.
  *
  * If we can't find a reasonable position hint, we make up a position

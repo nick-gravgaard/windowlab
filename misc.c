@@ -103,16 +103,16 @@ int ignore_xerror(Display *dpy, XErrorEvent *e)
 
 int send_xmessage(Window w, Atom a, long x)
 {
-	XEvent e;
+	XClientMessageEvent e;
 
 	e.type = ClientMessage;
-	e.xclient.window = w;
-	e.xclient.message_type = a;
-	e.xclient.format = 32;
-	e.xclient.data.l[0] = x;
-	e.xclient.data.l[1] = CurrentTime;
+	e.window = w;
+	e.message_type = a;
+	e.format = 32;
+	e.data.l[0] = x;
+	e.data.l[1] = CurrentTime;
 
-	return XSendEvent(dpy, w, False, NoEventMask, &e);
+	return XSendEvent(dpy, w, False, NoEventMask, (XEvent *)&e);
 }
 
 void get_mouse_position(int *x, int *y)
@@ -180,8 +180,8 @@ void fix_position(Client *c)
 void refix_position(Client *c, XConfigureRequestEvent *e)
 {
 	Rect olddims;
-	olddims.x = c->x;
-	olddims.y = c->y;
+	olddims.x = c->x - BORDERWIDTH(c);
+	olddims.y = c->y - BORDERWIDTH(c);
 	olddims.width = c->width;
 	olddims.height = c->height;
 	fix_position(c);

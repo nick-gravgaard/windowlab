@@ -1,3 +1,18 @@
+1.25 (2004-12-23)
+
+* integrated changes from Matt Borkowski (thanks!):
+	* some Z ordering bugs were fixed
+* integrated more changes from David Lawrence Ramsey:
+	* click-to-focus was made to work on fullscreen windows that have lost focus
+	* size changes are applied to the original non-fullscreen coordinates of fullscreen windows
+	* all of the function prototypes were made consistent
+	* windows that reconfigure themselves without changing positions no longer move
+	* the shortcut keys behavior changed
+	* some gcc 3.3.x warnings were fixed (ported from aewm)
+	* the switch statement in handle_property_change() is no longer missing a break (ported from aewm)
+	* send_xmessage() now uses an XClientMessageEvent instead of a generic XEvent (ported from aewm)
+
+
 1.24 (2004-05-29)
 
 * holding down the Windows key on it's own now brings the current window to the front, after which dragging against the window's edge with any mouse button depressed resizes it

@@ -1,3 +1,4 @@
+# make sure each line ends in LF not CRLF!
 xterm:xterm
 nedit:nedit
 XFTree:xftree

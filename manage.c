@@ -25,10 +25,10 @@ static int get_incsize(Client *, unsigned int *, unsigned int *, Rect *, int);
 
 void raise_lower(Client *c)
 {
-	static Client *topmost_client;
 	if (c->iconic)
 	{
 		unhide(c);
+		topmost_client = c;
 	}
 	else
 	{
@@ -299,7 +299,7 @@ void resize(Client *c)
 					break;
 			}
 		}
-		while ((ev.type != ButtonPress) && (ev.type != KeyPress) && (ev.type != KeyRelease));
+		while (ev.type != ButtonPress && ev.type != KeyPress && ev.type != KeyRelease);
 
 		// should we stop resizing or start a drag?
 		if (ev.type == ButtonPress) // they've started dragging
@@ -311,7 +311,7 @@ void resize(Client *c)
 			continue;
 		}
 
-		while ((ev.type != ButtonRelease) && (ev.type != KeyPress) && (ev.type != KeyRelease))
+		while (ev.type != ButtonRelease && ev.type != KeyPress && ev.type != KeyRelease)
 		{
 			XMaskEvent(dpy, ExposureMask|MouseMask|KeyMask, &ev);
 			switch (ev.type)
@@ -454,7 +454,7 @@ void resize(Client *c)
 			}
 		}
 	}
-	while ((ev.type != KeyPress) && (ev.type != KeyRelease));
+	while (ev.type != KeyPress && ev.type != KeyRelease);
 
 	XUngrabServer(dpy);
 	ungrab();

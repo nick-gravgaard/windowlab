@@ -81,14 +81,15 @@ long get_wm_state(Client *c)
 {
 	Atom real_type;
 	int real_format;
+	long state = WithdrawnState;
 	unsigned long items_read, items_left;
-	long *data, state = WithdrawnState;
+	unsigned char *data;
 
 	if (XGetWindowProperty(dpy, c->window, wm_state, 0L, 2L, False,
 		wm_state, &real_type, &real_format, &items_read, &items_left,
-		(unsigned char **) &data) == Success && items_read)
+		&data) == Success && items_read)
 	{
-		state = *data;
+		state = *(long *)data;
 		XFree(data);
 	}
 	return state;

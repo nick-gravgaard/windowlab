@@ -121,7 +121,7 @@ void lclick_taskbar(unsigned int x)
 
 		do
 		{
-			XMaskEvent(dpy, ExposureMask|MouseMask, &ev);
+			XMaskEvent(dpy, ExposureMask|MouseMask|KeyMask, &ev);
 			switch (ev.type)
 			{
 				case Expose:
@@ -141,9 +141,12 @@ void lclick_taskbar(unsigned int x)
 						check_focus(c);
 					}
 					break;
+				case KeyPress:
+					XPutBackEvent(dpy, &ev);
+					break;
 			}
 		}
-		while (ev.type != ButtonPress && ev.type != ButtonRelease);
+		while (ev.type != ButtonPress && ev.type != ButtonRelease && ev.type != KeyPress);
 
 		XUnmapWindow(dpy, constraint_win);
 		XDestroyWindow(dpy, constraint_win);
@@ -180,7 +183,7 @@ void rclick_taskbar(unsigned int x)
 	current_item = update_menuitem(x);
 	do
 	{
-		XMaskEvent(dpy, MouseMask, &ev);
+		XMaskEvent(dpy, MouseMask|KeyMask, &ev);
 		switch (ev.type)
 		{
 			case MotionNotify:
@@ -192,9 +195,12 @@ void rclick_taskbar(unsigned int x)
 					fork_exec(menuitems[current_item].command);
 				}
 				break;
+			case KeyPress:
+				XPutBackEvent(dpy, &ev);
+				break;
 		}
 	}
-	while (ev.type != ButtonPress && ev.type != ButtonRelease);
+	while (ev.type != ButtonPress && ev.type != ButtonRelease && ev.type != KeyPress);
 
 	redraw_taskbar();
 	XUnmapWindow(dpy, constraint_win);
@@ -212,18 +218,23 @@ void rclick_root(void)
 	draw_menubar();
 	do
 	{
-		XMaskEvent(dpy, MouseMask, &ev);
-		if (ev.type == MotionNotify)
+		XMaskEvent(dpy, MouseMask|KeyMask, &ev);
+		switch (ev.type)
 		{
-			if (ev.xmotion.y < BARHEIGHT())
-			{
-				ungrab();
-				rclick_taskbar(ev.xmotion.x);
-				return;
-			}
+			case MotionNotify:
+				if (ev.xmotion.y < BARHEIGHT())
+				{
+					ungrab();
+					rclick_taskbar(ev.xmotion.x);
+					return;
+				}
+				break;
+			case KeyPress:
+				XPutBackEvent(dpy, &ev);
+				break;
 		}
 	}
-	while (ev.type != ButtonRelease);
+	while (ev.type != ButtonRelease && ev.type != KeyPress);
 
 	redraw_taskbar();
 	ungrab();
