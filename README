@@ -61,15 +61,17 @@ HOW DO I USE IT?
 
 WindowLab places a taskbar at the top of the screen and adds a bar to the top of each window. These bars consist of a draggable area, and three squares on the right hand side. From left to right, these squares:
 
-* start to resize the window (after clicking the gadget, drag inside the window to push the windows edges outwards or drag outside the window to push the windows edges inwards). To finish resizing the window click the right mouse button
+* hide the window
 
 * toggle the windows Z order Amiga style (if it's not at the front, bring it to the front, otherwise send it to the back)
 
 * close the window
 
-Window titlebars must always be fully on-screen and cannot overlap the taskbar at the top of the screen (so if you want to get rid of a window quickly and don't want to send it to the back you should drag it downwards).
+Window titlebars must always be fully on-screen and cannot overlap the taskbar at the top of the screen.
 
 The taskbar should list all windows currently in use. Clicking on a windows taskbar item will give that window focus and act as a click on that windows middle-gadget - ie toggle that windows Z order (depth).
+
+To resize the active window hold down the middle mouse button and push against the windows edges.
 
 If you right click outside a client window, WindowLabs taskbar becomes a menubar. Releasing the right mouse button over a selected menu item will start a corresponding external program. The menu labels and commands are defined in either ~/.windowlab/menurc or /etc/X11/windowlab/menurc if the first file cannot be opened.
 

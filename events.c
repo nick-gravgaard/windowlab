@@ -127,53 +127,73 @@ static void handle_button_press(XButtonEvent *e)
 {
 	Client *c;
 
-	if (e->window == root)
+	if (e->button == Button2)
 	{
-#ifdef DEBUG
-		dump_clients();
-#endif
-		if (e->button == Button3)
+		if (last_focused_client != NULL)
 		{
-			rclick_root();
+			if (e->window == last_focused_client->frame)
+			{
+				// dragging from inside the window, outwards
+				resize(last_focused_client, 1);
+			}
+			else
+			{
+				// dragging from outside the window, inwards
+				resize(last_focused_client, 0);
+			}
 		}
 	}
 	else
 	{
-		if (e->window == taskbar)
+		if (e->window == root)
 		{
-			if (e->button == Button1)
+#ifdef DEBUG
+			dump_clients();
+#endif
+			if (e->button == Button3)
 			{
-				lclick_taskbar(e->x);
-			}
-			else
-			{
-				if (e->button == Button3)
-				{
-					rclick_taskbar(e->x);
-				}
+				rclick_root();
 			}
 		}
 		else
 		{
-			XAllowEvents(dpy, ReplayPointer, CurrentTime); // pass event on
-			if (e->button == Button1)
+			if (e->window == taskbar)
 			{
-				c = find_client(e->window, FRAME);
-				if (c != NULL && c != fullscreen_client)
+				if (e->button == Button1)
 				{
-					check_focus(c);
-					// click-to-focus
-					if (e->y < BARHEIGHT())
+					lclick_taskbar(e->x);
+				}
+				else
+				{
+					if (e->button == Button3)
 					{
-						handle_windowbar_click(e, c);
+						rclick_taskbar(e->x);
 					}
 				}
 			}
 			else
 			{
-				if (e->button == Button3)
+				// pass event on
+				XAllowEvents(dpy, ReplayPointer, CurrentTime);
+				if (e->button == Button1)
 				{
-					rclick_root();
+					c = find_client(e->window, FRAME);
+					if (c != NULL && c != fullscreen_client)
+					{
+						check_focus(c);
+						// click-to-focus
+						if (e->y < BARHEIGHT())
+						{
+							handle_windowbar_click(e, c);
+						}
+					}
+				}
+				else
+				{
+					if (e->button == Button3)
+					{
+						rclick_root();
+					}
 				}
 			}
 		}
@@ -234,7 +254,7 @@ static void handle_windowbar_click(XButtonEvent *e, Client *c)
 					raise_lower(c);
 					break;
 				case 2:
-					resize(c);
+					hide(c);
 					break;
 			}
 		}
@@ -272,7 +292,7 @@ static void draw_button(Client *c, GC *detail_gc, GC *background_gc, unsigned in
 			draw_toggledepth_button(c, detail_gc, background_gc);
 			break;
 		case 2:
-			draw_resize_button(c, detail_gc, background_gc);
+			draw_hide_button(c, detail_gc, background_gc);
 			break;
 	}
 }

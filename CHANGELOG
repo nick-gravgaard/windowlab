@@ -1,3 +1,11 @@
+1.22 (2004-02-22)
+
+* the middle mouse button is now used to resize the active window
+* the resize button has become a hide button
+* a bug when making windows smaller was fixed
+* alt-F9/F10 now raises the window as well as changing focus
+
+
 1.21 (2004-01-17)
 
 * the 8½ style of window reshaping was dropped in favour of a completely new mechanism that allows users to change one or many different edges of the window independantly in one action

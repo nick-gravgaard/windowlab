@@ -21,7 +21,7 @@
 #ifndef WINDOWLAB_H
 #define WINDOWLAB_H
 
-#define VERSION "1.21"
+#define VERSION "1.22"
 
 #include <limits.h>
 #include <stdio.h>
@@ -226,7 +226,7 @@ extern void gravitate(Client *, int);
 extern void set_shape(Client *);
 #endif
 extern void check_focus(Client *);
-extern void draw_resize_button(Client *, GC *, GC *);
+extern void draw_hide_button(Client *, GC *, GC *);
 extern void draw_toggledepth_button(Client *, GC *, GC *);
 extern void draw_close_button(Client *, GC *, GC *);
 
@@ -236,7 +236,7 @@ extern void make_new_client(Window);
 // manage.c
 extern void move(Client *);
 extern void raise_lower(Client *);
-extern void resize(Client *);
+extern void resize(Client *, unsigned int);
 extern void hide(Client *);
 extern void unhide(Client *);
 void toggle_fullscreen(Client *);

@@ -65,6 +65,7 @@ void cycle_previous()
 			else c = c->next;
 		}
 		while (c->next != original_c);
+		raise_lower(c);
 		check_focus(c);
 	}
 }
@@ -76,6 +77,7 @@ void cycle_next()
 	{
 		if (c == NULL || c->next == NULL) c = head_client;
 		else c = c->next;
+		raise_lower(c);
 		check_focus(c);
 	}
 }
@@ -83,7 +85,8 @@ void cycle_next()
 void lclick_taskbar(unsigned int x)
 {
 	XEvent ev;
-	int boundx, boundy, boundw, boundh, mousex, mousey;
+	int mousex, mousey;
+	Rect bounddims;
 	Window constraint_win;
 	XSetWindowAttributes pattr;
 
@@ -94,12 +97,12 @@ void lclick_taskbar(unsigned int x)
 	{
 		get_mouse_position(&mousex, &mousey);
 
-		boundx = 0;
-		boundy = 0;
-		boundw = DisplayWidth(dpy, screen);
-		boundh = BARHEIGHT();
+		bounddims.x = 0;
+		bounddims.y = 0;
+		bounddims.width = DisplayWidth(dpy, screen);
+		bounddims.height = BARHEIGHT();
 
-		constraint_win = XCreateWindow(dpy, root, boundx, boundy, boundw, boundh, 0, CopyFromParent, InputOnly, CopyFromParent, 0, &pattr);
+		constraint_win = XCreateWindow(dpy, root, bounddims.x, bounddims.y, bounddims.width, bounddims.height, 0, CopyFromParent, InputOnly, CopyFromParent, 0, &pattr);
 		XMapWindow(dpy, constraint_win);
 
 		if (!(XGrabPointer(dpy, root, False, MouseMask, GrabModeAsync, GrabModeAsync, constraint_win, None, CurrentTime) == GrabSuccess))
@@ -112,8 +115,9 @@ void lclick_taskbar(unsigned int x)
 
 		button_clicked = (unsigned int)(x / button_width);
 		for (i = 0, c = head_client; i < button_clicked; i++) c = c->next;
-		check_focus(c);
+
 		raise_lower(c);
+		check_focus(c);
 
 		do
 		{
@@ -133,8 +137,8 @@ void lclick_taskbar(unsigned int x)
 					if (button_clicked != old_button_clicked)
 					{
 						for (i = 0, c = head_client; i < button_clicked; i++) c = c->next;
-						check_focus(c);
 						raise_lower(c);
+						check_focus(c);
 					}
 					break;
 			}
@@ -150,19 +154,20 @@ void lclick_taskbar(unsigned int x)
 void rclick_taskbar(unsigned int x)
 {
 	XEvent ev;
-	int boundx, boundy, boundw, boundh, mousex, mousey;
+	int mousex, mousey;
+	Rect bounddims;
 	unsigned int current_item = UINT_MAX;
 	Window constraint_win;
 	XSetWindowAttributes pattr;
 
 	get_mouse_position(&mousex, &mousey);
 
-	boundx = 0;
-	boundy = 0;
-	boundw = DisplayWidth(dpy, screen);
-	boundh = BARHEIGHT();
+	bounddims.x = 0;
+	bounddims.y = 0;
+	bounddims.width = DisplayWidth(dpy, screen);
+	bounddims.height = BARHEIGHT();
 
-	constraint_win = XCreateWindow(dpy, root, boundx, boundy, boundw, boundh, 0, CopyFromParent, InputOnly, CopyFromParent, 0, &pattr);
+	constraint_win = XCreateWindow(dpy, root, bounddims.x, bounddims.y, bounddims.width, bounddims.height, 0, CopyFromParent, InputOnly, CopyFromParent, 0, &pattr);
 	XMapWindow(dpy, constraint_win);
 
 	if (!(XGrabPointer(dpy, root, False, MouseMask, GrabModeAsync, GrabModeAsync, constraint_win, None, CurrentTime) == GrabSuccess))

@@ -232,13 +232,13 @@ void redraw(Client *c)
 	XFillRectangle(dpy, c->frame, border_gc, c->width - (BARHEIGHT() * 3), 0, BARHEIGHT() * 3, BARHEIGHT() - BORDERWIDTH(c));
 	if (c == last_focused_client)
 	{
-		draw_resize_button(c, &text_gc, &active_gc);
+		draw_hide_button(c, &text_gc, &active_gc);
 		draw_toggledepth_button(c, &text_gc, &active_gc);
 		draw_close_button(c, &text_gc, &active_gc);
 	}
 	else
 	{
-		draw_resize_button(c, &text_gc, &inactive_gc);
+		draw_hide_button(c, &text_gc, &inactive_gc);
 		draw_toggledepth_button(c, &text_gc, &inactive_gc);
 		draw_close_button(c, &text_gc, &inactive_gc);
 	}
@@ -326,7 +326,6 @@ void set_shape(Client *c)
 void check_focus(Client *c)
 {
 	Client *old_focused;
-	if (c->iconic) unhide(c); // deiconify
 	XSetInputFocus(dpy, c->window, RevertToNone, CurrentTime);
 	XInstallColormap(dpy, c->cmap);
 	if (c != last_focused_client)
@@ -342,14 +341,22 @@ void check_focus(Client *c)
 	}
 }
 
-void draw_resize_button(Client *c, GC *detail_gc, GC *background_gc)
+void draw_hide_button(Client *c, GC *detail_gc, GC *background_gc)
 {
 	unsigned int x, topleft_offset;
 	x = (c->width - (BARHEIGHT() * 3)) + BORDERWIDTH(c);
 	topleft_offset = (BARHEIGHT() / 2) - 5; // 5 being ~half of 9
 	XFillRectangle(dpy, c->frame, *background_gc, x, 0, BARHEIGHT() - BORDERWIDTH(c), BARHEIGHT() - BORDERWIDTH(c));
-	XDrawRectangle(dpy, c->frame, *detail_gc, x + topleft_offset, topleft_offset, 8, 8);
-	XDrawRectangle(dpy, c->frame, *detail_gc, x + topleft_offset, topleft_offset, 4, 4);
+
+	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 4, topleft_offset + 2, x + topleft_offset + 4, topleft_offset + 0);
+	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 6, topleft_offset + 2, x + topleft_offset + 7, topleft_offset + 1);
+	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 6, topleft_offset + 4, x + topleft_offset + 8, topleft_offset + 4);
+	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 6, topleft_offset + 6, x + topleft_offset + 7, topleft_offset + 7);
+	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 4, topleft_offset + 6, x + topleft_offset + 4, topleft_offset + 8);
+	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 2, topleft_offset + 6, x + topleft_offset + 1, topleft_offset + 7);
+	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 2, topleft_offset + 4, x + topleft_offset + 0, topleft_offset + 4);
+	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 2, topleft_offset + 2, x + topleft_offset + 1, topleft_offset + 1);
+
 }
 
 void draw_toggledepth_button(Client *c, GC *detail_gc, GC *background_gc)
@@ -358,6 +365,7 @@ void draw_toggledepth_button(Client *c, GC *detail_gc, GC *background_gc)
 	x = (c->width - (BARHEIGHT() * 2)) + BORDERWIDTH(c);
 	topleft_offset = (BARHEIGHT() / 2) - 6; // 6 being ~half of 11
 	XFillRectangle(dpy, c->frame, *background_gc, x, 0, BARHEIGHT() - BORDERWIDTH(c), BARHEIGHT() - BORDERWIDTH(c));
+
 	XDrawRectangle(dpy, c->frame, *detail_gc, x + topleft_offset, topleft_offset, 7, 7);
 	XDrawRectangle(dpy, c->frame, *detail_gc, x + topleft_offset + 3, topleft_offset + 3, 7, 7);
 }
@@ -368,6 +376,7 @@ void draw_close_button(Client *c, GC *detail_gc, GC *background_gc)
 	x = (c->width - (BARHEIGHT() * 1)) + BORDERWIDTH(c);
 	topleft_offset = (BARHEIGHT() / 2) - 5; // 5 being ~half of 9
 	XFillRectangle(dpy, c->frame, *background_gc, x, 0, BARHEIGHT() - BORDERWIDTH(c), BARHEIGHT() - BORDERWIDTH(c));
+
 	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 1, topleft_offset, x + topleft_offset + 8, topleft_offset + 7);
 	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 1, topleft_offset + 1, x + topleft_offset + 7, topleft_offset + 7);
 	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset, topleft_offset + 1, x + topleft_offset + 7, topleft_offset + 8);
