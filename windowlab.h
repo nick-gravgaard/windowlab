@@ -21,7 +21,7 @@
 #ifndef WINDOWLAB_H
 #define WINDOWLAB_H
 
-#define VERSION "1.6"
+#define VERSION "1.8"
 
 #include <stdio.h>
 #include <stdlib.h>

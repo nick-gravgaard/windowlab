@@ -24,6 +24,9 @@ static int parseline(char *, char *, char *);
 
 MenuItem menuitems[MAX_MENUITEMS];
 unsigned int num_menuitems;
+#ifdef XFT
+XGlyphInfo extents;
+#endif
 
 void get_menuitems(void)
 {
@@ -77,7 +80,12 @@ void get_menuitems(void)
 	for (i = 0; i < num_menuitems; i++)
 	{
 		menuitems[i].x = button_startx;
+#ifdef XFT
+		XftTextExtents8(dpy, xftfont, menuitems[i].label, strlen(menuitems[i].label), &extents);
+		menuitems[i].width = extents.width + (SPACE * 4);
+#else
 		menuitems[i].width = XTextWidth(font, menuitems[i].label, strlen(menuitems[i].label)) + (SPACE * 4);
+#endif
 		button_startx += menuitems[i].width + 1;
 	}
 }
@@ -136,4 +144,5 @@ void free_menuitems(void)
 		}
 	}
 }
+
 

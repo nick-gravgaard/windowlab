@@ -1,3 +1,10 @@
+1.8 (2003-03-30)
+
+* integrated more changes from David Lawrence Ramsey:
+	* the makefile now uses pkg-config (which XFree86 4.3.0 should include an entry for) to get the library and include directory information needed to compile properly (ported from aewm)
+	* menufile.c changed to use XftTextExtents8() to get the proper width of text when Xft is used
+
+
 1.7 (2003-03-30)
 
 * added title bar to the reshape window

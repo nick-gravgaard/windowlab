@@ -18,7 +18,8 @@ EXTRA_LIBS += -lXext
 # Uncomment to add freetype support (requires XFree86 4.0.2 or later)
 # This needs -lXext above, even if you have disabled shape support.
 #DEFINES += -DXFT
-#EXTRA_LIBS += -lXft -lXrender -lfreetype
+#EXTRA_INC += `pkg-config --cflags xft`
+#EXTRA_LIBS += `pkg-config --libs xft`
 
 # Uncomment for debugging info (abandon all hope, ye who enter here)
 #DEFINES += -DDEBUG
@@ -35,7 +36,7 @@ CFLAGS   = -g -O2 -Wall
 BINDIR   = $(DESTDIR)$(XROOT)/bin
 MANDIR   = $(DESTDIR)$(XROOT)/man/man1
 CFGDIR   = $(DESTDIR)/etc/X11/windowlab
-INCLUDES = -I$(XROOT)/include
+INCLUDES = -I$(XROOT)/include $(EXTRA_INC)
 LDPATH   = -L$(XROOT)/lib
 LIBS     = -lX11 $(EXTRA_LIBS)
 
@@ -62,5 +63,6 @@ clean:
 	rm -f $(PROG) $(OBJS)
 
 .PHONY: all install clean
+
 
 
