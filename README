@@ -71,7 +71,7 @@ Window titlebars must always be fully on-screen and cannot overlap the taskbar a
 
 The taskbar should list all windows currently in use. Clicking on a windows taskbar item will give that window focus and act as a click on that windows middle-gadget - ie toggle that windows Z order (depth).
 
-To resize the active window hold down the middle mouse button and push against the windows edges.
+To resize the active window hold down the middle mouse button and the left windows key and push against the windows edges (you can resize without using a modifier key by changing the value of RESIZE_USES_MOD in windowlab.h).
 
 If you right click outside a client window, WindowLabs taskbar becomes a menubar. Releasing the right mouse button over a selected menu item will start a corresponding external program. The menu labels and commands are defined in either ~/.windowlab/menurc or /etc/X11/windowlab/menurc if the first file cannot be opened.
 
@@ -83,9 +83,9 @@ WindowLab positions new windows (that don't specify their location) according to
 
 WindowLab has the following keyboard controls. Hold Alt and press:
 
-* F9 to give focus to the previous window
+* tab to give focus to the previous window
 
-* F10 to give focus to the next window
+* q to give focus to the next window
 
 * F11 to toggle fullscreen mode on and off for non transient windows
 

@@ -1,3 +1,17 @@
+1.23 (2004-03-12)
+
+* resizing now optionally uses a modifier key
+* a very serious bug in the resizing system was fixed
+* the button graphics were altered
+* the task switching keys were changed to alt-tab/alt-q
+* it's no longer possible to resize a fullscreen window
+* integrated more changes from David Lawrence Ramsey:
+	* a bug where resized windows lost focus was fixed
+	* a debugging statement was added
+	* a compiler warning was fixed
+	* an unnecessary get_mouse_position() call was removed
+
+
 1.22 (2004-02-22)
 
 * the middle mouse button is now used to resize the active window

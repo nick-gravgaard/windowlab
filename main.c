@@ -41,6 +41,7 @@ Atom mwm_hints;
 Client *head_client, *last_focused_client, *fullscreen_client;
 unsigned int in_taskbar = 0; // actually, we don't know yet
 unsigned int showing_taskbar = 1;
+unsigned int button2mod_down = 0;
 Rect fs_prevdims;
 char *opt_font = DEF_FONT;
 char *opt_border = DEF_BORDER;
@@ -258,6 +259,7 @@ static void setup_display(void)
 	XChangeWindowAttributes(dpy, root, CWEventMask, &sattr);
 
 	// change Mod1Mask to None to remove the need to hold down Alt
+	grab_keysym(root, None, KEY_BUTTON2MOD);
 	grab_keysym(root, Mod1Mask, KEY_CYCLEPREV);
 	grab_keysym(root, Mod1Mask, KEY_CYCLENEXT);
 	grab_keysym(root, Mod1Mask, KEY_FULLSCREEN);

@@ -21,7 +21,7 @@
 #ifndef WINDOWLAB_H
 #define WINDOWLAB_H
 
-#define VERSION "1.22"
+#define VERSION "1.23"
 
 #include <limits.h>
 #include <stdio.h>
@@ -40,7 +40,13 @@
 #include <X11/Xft/Xft.h>
 #endif
 
-// Here are the default settings. Change to suit your taste. If you aren't sure about DEF_FONT, change it to "fixed"; almost all X installations will have that available.
+// here are the default settings - change to suit your taste
+
+// change this value to 0 to allow resizing to work without the modifier key
+// this will however mean that the modifier key is needed to generate normal Button2 events
+#define RESIZE_USES_MOD 1
+
+// if you aren't sure about DEF_FONT, change it to "fixed"; almost all X installations will have that available
 #ifdef XFT
 #define DEF_FONT "-*-arial-medium-r-*-*-*-80-*-*-*-*-*-*"
 #else
@@ -60,8 +66,9 @@
 #define SPACE 3
 
 // keys may be used by other apps, so change them here
-#define KEY_CYCLEPREV XK_F9
-#define KEY_CYCLENEXT XK_F10
+#define KEY_BUTTON2MOD XK_Super_L // XK_Super_L is the left Windows key
+#define KEY_CYCLEPREV XK_Tab
+#define KEY_CYCLENEXT XK_q
 #define KEY_FULLSCREEN XK_F11
 #define KEY_TOGGLEZ XK_F12
 
@@ -191,7 +198,7 @@ extern Display *dpy;
 extern Window root;
 extern int screen;
 extern Client *head_client, *last_focused_client, *fullscreen_client;
-extern unsigned int in_taskbar, showing_taskbar;
+extern unsigned int in_taskbar, showing_taskbar, button2mod_down;
 extern Rect fs_prevdims;
 extern XFontStruct *font;
 #ifdef XFT

@@ -21,7 +21,8 @@
 #include <X11/Xatom.h>
 #include "windowlab.h"
 
-static void handle_key_event(XKeyEvent *);
+static void handle_key_press(XKeyEvent *);
+static void handle_key_release(XKeyEvent *);
 static void handle_button_press(XButtonEvent *);
 static void handle_windowbar_click(XButtonEvent *, Client *);
 static unsigned int box_clicked(Client *, unsigned int);
@@ -55,7 +56,10 @@ void do_event_loop(void)
 		switch (ev.type)
 		{
 			case KeyPress:
-				handle_key_event(&ev.xkey);
+				handle_key_press(&ev.xkey);
+				break;
+			case KeyRelease:
+				handle_key_release(&ev.xkey);
 				break;
 			case ButtonPress:
 				handle_button_press(&ev.xbutton);
@@ -98,11 +102,14 @@ void do_event_loop(void)
 	}
 }
 
-static void handle_key_event(XKeyEvent *e)
+static void handle_key_press(XKeyEvent *e)
 {
 	KeySym key = XKeycodeToKeysym(dpy, e->keycode, 0);
 	switch (key)
 	{
+		case KEY_BUTTON2MOD:
+			button2mod_down = 1;
+			break;
 		case KEY_CYCLEPREV:
 			cycle_previous();
 			break;
@@ -118,6 +125,17 @@ static void handle_key_event(XKeyEvent *e)
 	}
 }
 
+static void handle_key_release(XKeyEvent *e)
+{
+	KeySym key = XKeycodeToKeysym(dpy, e->keycode, 0);
+	switch (key)
+	{
+		case KEY_BUTTON2MOD:
+			button2mod_down = 0;
+			break;
+	}
+}
+
 /* Someone clicked a button. If it was on the root, we get the click
  * be default. If it's on a window frame, we get it as well. If it's
  * on a client window, it may still fall through to us if the client
@@ -129,7 +147,7 @@ static void handle_button_press(XButtonEvent *e)
 
 	if (e->button == Button2)
 	{
-		if (last_focused_client != NULL)
+		if (button2mod_down == RESIZE_USES_MOD && last_focused_client != NULL && last_focused_client != fullscreen_client)
 		{
 			if (e->window == last_focused_client->frame)
 			{
@@ -141,6 +159,11 @@ static void handle_button_press(XButtonEvent *e)
 				// dragging from outside the window, inwards
 				resize(last_focused_client, 0);
 			}
+		}
+		else
+		{
+			// pass event on
+			XAllowEvents(dpy, ReplayPointer, CurrentTime);
 		}
 	}
 	else
@@ -180,8 +203,8 @@ static void handle_button_press(XButtonEvent *e)
 					c = find_client(e->window, FRAME);
 					if (c != NULL && c != fullscreen_client)
 					{
-						check_focus(c);
 						// click-to-focus
+						check_focus(c);
 						if (e->y < BARHEIGHT())
 						{
 							handle_windowbar_click(e, c);
@@ -222,11 +245,11 @@ static void handle_windowbar_click(XButtonEvent *e, Client *c)
 		do
 		{
 			XMaskEvent(dpy, MouseMask, &ev);
-			in_box_up = box_clicked(c, ev.xbutton.x - c->x);
+			in_box_up = box_clicked(c, ev.xbutton.x - (c->x + DEF_BORDERWIDTH));
 			win_ypos = (ev.xbutton.y - c->y) + BARHEIGHT();
 			if (ev.type == MotionNotify)
 			{
-				if ((win_ypos <= BARHEIGHT()) && (win_ypos >= BORDERWIDTH(c)) && (in_box_up == in_box_down))
+				if ((win_ypos <= BARHEIGHT()) && (win_ypos >= DEF_BORDERWIDTH) && (in_box_up == in_box_down))
 				{
 					in_box = 1;
 					draw_button(c, &text_gc, &depressed_gc, in_box_down);
@@ -259,7 +282,7 @@ static void handle_windowbar_click(XButtonEvent *e, Client *c)
 			}
 		}
 	}
-	else
+	else if (in_box_down != UINT_MAX)
 	{
 		move(c);
 	}
@@ -270,14 +293,14 @@ static void handle_windowbar_click(XButtonEvent *e, Client *c)
 
 static unsigned int box_clicked(Client *c, unsigned int x)
 {
-        int pix_from_right = (c->width - x) + DEF_BORDERWIDTH;
+        int pix_from_right = c->width - x;
         if (pix_from_right < 0)
         {
                 return UINT_MAX; // outside window
         }
         else
         {
-                return (pix_from_right / BARHEIGHT());
+                return (pix_from_right / (BARHEIGHT() - DEF_BORDERWIDTH));
         }
 }
 
@@ -333,7 +356,7 @@ static void handle_configure_request(XConfigureRequestEvent *e)
 		wc.y = c->y - BARHEIGHT();
 		wc.width = c->width;
 		wc.height = c->height + BARHEIGHT();
-		wc.border_width = BORDERWIDTH(c);
+		wc.border_width = DEF_BORDERWIDTH;
 		//wc.sibling = e->above;
 		//wc.stack_mode = e->detail;
 		XConfigureWindow(dpy, c->frame, e->value_mask, &wc);

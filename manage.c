@@ -174,7 +174,7 @@ void move(Client *c)
 	XEvent ev;
 	int old_cx = c->x;
 	int old_cy = c->y;
-	int x1, y1, mousex, mousey, dw, dh;
+	int mousex, mousey, dw, dh;
 	Client *exposed_c;
 	Rect bounddims;
 	Window constraint_win;
@@ -192,6 +192,9 @@ void move(Client *c)
 	bounddims.height += c->height - ((BARHEIGHT() * 2) - DEF_BORDERWIDTH);
 
 	constraint_win = XCreateWindow(dpy, root, bounddims.x, bounddims.y, bounddims.width, bounddims.height, 0, CopyFromParent, InputOnly, CopyFromParent, 0, &pattr);
+#ifdef DEBUG
+	fprintf(stderr, "move() : constraint_win is (%d, %d)-(%d, %d)\n", bounddims.x, bounddims.y, bounddims.x + bounddims.width, bounddims.y + bounddims.height);
+#endif
 	XMapWindow(dpy, constraint_win);
 
 	if (!(XGrabPointer(dpy, root, False, MouseMask, GrabModeAsync, GrabModeAsync, constraint_win, moveresize_curs, CurrentTime) == GrabSuccess))
@@ -199,7 +202,6 @@ void move(Client *c)
 		XDestroyWindow(dpy, constraint_win);
 		return;
 	}
-	get_mouse_position(&x1, &y1);
 
 	do
 	{
@@ -214,8 +216,8 @@ void move(Client *c)
 				}
 				break;
 			case MotionNotify:
-				c->x = old_cx + (ev.xmotion.x - x1);
-				c->y = old_cy + (ev.xmotion.y - y1);
+				c->x = old_cx + (ev.xmotion.x - mousex);
+				c->y = old_cy + (ev.xmotion.y - mousey);
 				XMoveWindow(dpy, c->frame, c->x, c->y - BARHEIGHT());
 				send_config(c);
 				break;
@@ -384,7 +386,7 @@ void resize(Client *c, unsigned int dragging_outwards)
 						{
 							copy_dims(&newdims, &recalceddims);
 
-							if (get_incsize(c, &newwidth, &newheight, &recalceddims, PIXELS))
+							if (get_incsize(c, (unsigned int *)&newwidth, (unsigned int *)&newheight, &recalceddims, PIXELS))
 							{
 								if (leftedge_changed)
 								{
@@ -432,6 +434,8 @@ void resize(Client *c, unsigned int dragging_outwards)
 
 	// unhide real windows frame
 	XMapWindow(dpy, c->frame);
+
+	XSetInputFocus(dpy, c->window, RevertToNone, CurrentTime);
 
 	send_config(c);
 	XDestroyWindow(dpy, constraint_win);
