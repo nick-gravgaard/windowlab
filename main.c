@@ -18,10 +18,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "windowlab.h"
 #include <string.h>
 #include <signal.h>
 #include <X11/cursorfont.h>
+#include "windowlab.h"
 
 Display *dpy;
 Window root;
@@ -62,17 +62,17 @@ int main(int argc, char **argv)
 	int i;
 	struct sigaction act;
 
-#define OPT_STR(name, variable)				\
-	if (strcmp(argv[i], name) == 0 && i+1<argc)	\
-	{						\
-		variable = argv[++i];			\
-		continue;				\
+#define OPT_STR(name, variable)	 \
+	if (strcmp(argv[i], name) == 0 && i+1<argc) \
+	{ \
+		variable = argv[++i]; \
+		continue; \
 	}
-#define OPT_INT(name, variable)				\
-	if (strcmp(argv[i], name) == 0 && i+1<argc)	\
-	{						\
-		variable = atoi(argv[++i]);		\
-		continue;				\
+#define OPT_INT(name, variable) \
+	if (strcmp(argv[i], name) == 0 && i+1<argc) \
+	{ \
+		variable = atoi(argv[++i]); \
+		continue; \
 	}
 
 	for (i = 1; i < argc; i++)
@@ -174,7 +174,8 @@ static void setup_display(void)
 	font = XLoadQueryFont(dpy, opt_font);
 	if (!font)
 	{
-		err("font '%s' not found", opt_font); exit(1);
+		err("font '%s' not found", opt_font);
+		exit(1);
 	}
 
 #ifdef XFT
@@ -187,7 +188,8 @@ static void setup_display(void)
 	xftfont = XftFontOpenXlfd(dpy, DefaultScreen(dpy), opt_font);
 	if (!xftfont)
 	{
-		err("font '%s' not found", opt_font); exit(1);
+		err("font '%s' not found", opt_font);
+		exit(1);
 	}
 #endif
 
@@ -241,11 +243,9 @@ static void setup_display(void)
 	sattr.event_mask = ChildMask|ColormapChangeMask|ButtonMask;
 	XChangeWindowAttributes(dpy, root, CWEventMask, &sattr);
 
-	grab_keysym(root, None, KEY_FULLSCREEN);
+	// change Mod1Mask to None to remove the need to hold down Alt
+	grab_keysym(root, Mod1Mask, KEY_CYCLEPREV);
+	grab_keysym(root, Mod1Mask, KEY_CYCLENEXT);
+	grab_keysym(root, Mod1Mask, KEY_FULLSCREEN);
+	grab_keysym(root, Mod1Mask, KEY_TOGGLEZ);
 }
-
-
-
-
-
-

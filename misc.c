@@ -18,12 +18,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "windowlab.h"
 #include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include "windowlab.h"
 
 static void quit_nicely(void);
 
@@ -45,6 +45,7 @@ void fork_exec(char *cmd)
 	switch (pid)
 	{
 		case 0:
+			setsid();
 			execlp("/bin/sh", "sh", "-c", cmd, NULL);
 			err("exec failed, cleaning up child");
 			exit(1);
@@ -226,9 +227,13 @@ void refix_position(Client *c, XConfigureRequestEvent *e)
 /* Bleh, stupid macro names. I'm not feeling creative today. */
 
 #define SHOW_EV(name, memb) \
-	case name: s = #name; w = e.memb.window; break;
+	case name: \
+		s = #name; \
+		w = e.memb.window; \
+		break;
 #define SHOW(name) \
-	case name: return #name;
+	case name: \
+		return #name;
 
 void show_event(XEvent e)
 {
@@ -259,11 +264,13 @@ void show_event(XEvent e)
 		default:
 			if (shape && e.type == shape_event)
 			{
-				s = "ShapeNotify"; w = ((XShapeEvent *)&e)->window;
+				s = "ShapeNotify";
+				w = ((XShapeEvent *)&e)->window;
 			}
 			else
 			{
-				s = "unknown event"; w = None;
+				s = "unknown event";
+				w = None;
 			}
 			break;
 	}
@@ -368,6 +375,3 @@ static void quit_nicely(void)
 	XCloseDisplay(dpy);
 	exit(0);
 }
-
-
-

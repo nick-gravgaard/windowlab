@@ -1,6 +1,7 @@
 xterm:xterm
-KEdit:kedit
+gedit:gedit
+Nautilus:nautilus
+Mozilla:mozilla
 XMMS:xmms
 xv:xv
 The GIMP:gimp
-Mozilla:mozilla

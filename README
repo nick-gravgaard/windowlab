@@ -37,6 +37,10 @@ Before compiling, check the default (DEF_foo) options in windowlab.h, and the de
 
 "make" will compile everything, and "make install" will install it.
 
+To make WindowLab your default window manager, edit your ~/.xinitrc file and change the last line to:
+
+exec windowlab
+
 
 
 HOW DO I USE IT?
@@ -53,7 +57,11 @@ The GIMP:gimp
 
 WindowLab positions new windows (that don't specify their location) according to the coordinates of the mouse - the top-left hand corner of a new window is set to the location of the mouse pointer (if necessary the window will be moved to ensure that all of it is on the screen).
 
-Users can hit the F11 key to toggle fullscreen mode on and off for non transient windows. This may be useful for watching video applications.
+WindowLab has the following keyboard controls. Hold Alt and press:
+F9 to give focus to the previous window
+F10 to give focus to the next window
+F11 to toggle fullscreen mode on and off for non transient windows. This may be useful for watching video applications
+F12 to toggle the windows depth. This is the same as pressing a windows middle button
 
 
 
@@ -101,6 +109,3 @@ Portions of the code were based on 9wm, which contains this license:
 >         or shortcomings in the software, or damages caused by it.
 >
 > There is no warranty for this software.  Have a nice day.
-
-
-

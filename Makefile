@@ -61,4 +61,3 @@ clean:
 	rm -f $(PROG) $(OBJS)
 
 .PHONY: all install clean
-

@@ -1,3 +1,10 @@
+1.11 (2003-07-05)
+
+* fixed fullscreenmode so that no border is shown on screen
+* setsid() is now called in fork_exec() to prevent child processes from dying when WindowLab is killed or crashes
+* support added for toggling window depth and cycling between next and previous windows using the keyboard
+
+
 1.10 (2003-05-25)
 
 * added code to toggle fullscreen mode on non transient windows when the user hits F11

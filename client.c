@@ -18,8 +18,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "windowlab.h"
 #include <X11/Xmd.h>
+#include "windowlab.h"
 
 Client *find_client(Window w, int mode)
 {
@@ -79,7 +79,8 @@ void set_wm_state(Client *c, int state)
 
 long get_wm_state(Client *c)
 {
-	Atom real_type; int real_format;
+	Atom real_type;
+	int real_format;
 	unsigned long items_read, items_left;
 	long *data, state = WithdrawnState;
 
@@ -343,6 +344,3 @@ void check_focus(Client *c)
 		redraw_taskbar();
 	}
 }
-
-
-

@@ -169,7 +169,8 @@ void make_new_client(Window w)
 #ifdef MWM_HINTS
 static PropMwmHints *get_mwm_hints(Window w)
 {
-	Atom real_type; int real_format;
+	Atom real_type;
+	int real_format;
 	unsigned long items_read, items_left;
 	PropMwmHints *data;
 
@@ -279,6 +280,3 @@ static void reparent(Client *c)
 
 	send_config(c);
 }
-
-
-

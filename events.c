@@ -18,8 +18,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "windowlab.h"
 #include <X11/Xatom.h>
+#include "windowlab.h"
 
 static void handle_key_event(XKeyEvent *);
 static void handle_button_press(XButtonEvent *);
@@ -100,9 +100,20 @@ void do_event_loop(void)
 static void handle_key_event(XKeyEvent *e)
 {
 	KeySym key = XKeycodeToKeysym(dpy, e->keycode, 0);
-	if (key == KEY_FULLSCREEN)
+	switch (key)
 	{
-		toggle_fullscreen(last_focused_client);
+		case KEY_CYCLEPREV:
+			cycle_previous(last_focused_client);
+			break;
+		case KEY_CYCLENEXT:
+			cycle_next(last_focused_client);
+			break;
+		case KEY_FULLSCREEN:
+			toggle_fullscreen(last_focused_client);
+			break;
+		case KEY_TOGGLEZ:
+			raise_lower(last_focused_client);
+			break;
 	}
 }
 
@@ -496,15 +507,3 @@ static void handle_shape_change(XShapeEvent *e)
 	}
 }
 #endif
-
-
-
-
-
-
-
-
-
-
-
-

@@ -77,6 +77,76 @@ void click_taskbar(unsigned int x)
 	}
 }
 
+void cycle_previous(Client *c)
+{
+	Client *original_c = c;
+	Client *beforethis_c = c;
+	Client *lastnoniconic_c = c;
+	int stop = 0;
+	if (head_client != NULL && head_client->next != NULL)
+	{
+		if (c == head_client)
+		{
+			do
+			{
+				c = c->next;
+				if (!c->iconic)
+				{
+					lastnoniconic_c = c;
+				}
+			}
+			while (c->next != NULL);
+			c = lastnoniconic_c;
+		}
+		else
+		{
+			do
+			{
+				if (c->next == NULL)
+				{
+					c = head_client;
+				}
+				else
+				{
+					c = c->next;
+				}
+				if (c->next == beforethis_c && c->iconic)
+				{
+					beforethis_c = c;
+					if (beforethis_c == original_c)
+					{
+						stop = 1;
+					}
+				}
+			}
+			while (c->next != beforethis_c && !stop);
+		}
+		check_focus(c);
+	}
+}
+
+void cycle_next(Client *c)
+{
+	int looped = 0;
+	if (head_client && head_client->next != NULL)
+	{
+		do
+		{
+			if (c->next == NULL)
+			{
+				looped++;
+				c = head_client;
+			}
+			else
+			{
+				c = c->next;
+			}
+		}
+		while (c->iconic && looped < 2);
+		check_focus(c);
+	}
+}
+
 void rclick_taskbar(void)
 {
 	XEvent ev;
@@ -291,7 +361,3 @@ float get_button_width(void)
 	}
 	return (((float)DisplayWidth(dpy, screen)) / nwins);
 }
-
-
-
-

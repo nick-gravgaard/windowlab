@@ -101,8 +101,8 @@ void toggle_fullscreen(Client *c)
 			fs_prevdims.y = c->y;
 			fs_prevdims.width = c->width;
 			fs_prevdims.height = c->height;
-			c->x = 0;
-			c->y = 0;
+			c->x = 0 - BW(c);
+			c->y = 0 - BW(c);
 			c->width = DisplayWidth(dpy, screen);
 			c->height = DisplayHeight(dpy, screen);
 			XMoveResizeWindow(dpy, c->frame, c->x, c->y - BARHEIGHT(), c->width, c->height + BARHEIGHT());
@@ -440,4 +440,3 @@ void write_titletext(Client *c, Window bar_win)
 #endif
 	}
 }
-

@@ -144,6 +144,3 @@ void free_menuitems(void)
 		}
 	}
 }
-
-
-

@@ -21,7 +21,7 @@
 #ifndef WINDOWLAB_H
 #define WINDOWLAB_H
 
-#define VERSION "1.10"
+#define VERSION "1.11"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -61,8 +61,12 @@
 #define MINSIZE		15
 #define MINWINWIDTH	80
 #define MINWINHEIGHT	80
-// key may be used by other apps, so change the fullscreen toggle key here
+// keys may be used by other apps, so change them here
+#define KEY_CYCLEPREV	XK_F9
+#define KEY_CYCLENEXT	XK_F10
 #define KEY_FULLSCREEN	XK_F11
+#define KEY_TOGGLEZ	XK_F12
+
 
 /* A few useful masks made up out of X's basic ones. `ChildMask' is a
  * silly name, but oh well. */
@@ -75,19 +79,15 @@
 
 #define setmouse(w, x, y) XWarpPointer(dpy, None, w, 0, 0, 0, 0, x, y)
 #define ungrab() XUngrabPointer(dpy, CurrentTime)
-#define grab(w, mask, curs) (XGrabPointer(dpy, w, False, mask, \
-	GrabModeAsync, GrabModeAsync, None, curs, CurrentTime) == GrabSuccess)
+#define grab(w, mask, curs) \
+	(XGrabPointer(dpy, w, False, mask, GrabModeAsync, GrabModeAsync, None, curs, CurrentTime) == GrabSuccess)
 #define grab_keysym(w, mask, keysym) \
-	XGrabKey(dpy, XKeysymToKeycode(dpy, keysym), mask, w, True, \
-			GrabModeAsync, GrabModeAsync); \
-	XGrabKey(dpy, XKeysymToKeycode(dpy, keysym), LockMask|mask, w, True, \
-			GrabModeAsync, GrabModeAsync); \
-	if (numlockmask) { \
-		XGrabKey(dpy, XKeysymToKeycode(dpy, keysym), numlockmask|mask, \
-				w, True, GrabModeAsync, GrabModeAsync); \
-		XGrabKey(dpy, XKeysymToKeycode(dpy, keysym), \
-				numlockmask|LockMask|mask, w, True, \
-				GrabModeAsync, GrabModeAsync); \
+	XGrabKey(dpy, XKeysymToKeycode(dpy, keysym), mask, w, True, GrabModeAsync, GrabModeAsync); \
+	XGrabKey(dpy, XKeysymToKeycode(dpy, keysym), LockMask|mask, w, True, GrabModeAsync, GrabModeAsync); \
+	if (numlockmask) \
+	{ \
+		XGrabKey(dpy, XKeysymToKeycode(dpy, keysym), numlockmask|mask, w, True, GrabModeAsync, GrabModeAsync); \
+		XGrabKey(dpy, XKeysymToKeycode(dpy, keysym), numlockmask|LockMask|mask, w, True, GrabModeAsync, GrabModeAsync); \
 	}
 
 /* I wanna know who the morons who prototyped these functions as
@@ -195,7 +195,7 @@ struct _MenuItem
 /* Below here are (mainly generated with cproto) declarations and
  * prototypes for each file. */
 
-//main.c
+// main.c
 extern Display *dpy;
 extern Window root;
 extern int screen;
@@ -219,10 +219,10 @@ extern int shape, shape_event;
 #endif
 extern unsigned int numlockmask;
 
-//events.c
+// events.c
 extern void do_event_loop(void);
 
-//client.c
+// client.c
 extern Client *find_client(Window, int);
 extern void set_wm_state(Client *, int);
 extern long get_wm_state(Client *);
@@ -235,10 +235,10 @@ extern void set_shape(Client *);
 #endif
 extern void check_focus(Client *);
 
-//new.c
+// new.c
 extern void make_new_client(Window);
 
-//manage.c
+// manage.c
 extern void move(Client *);
 extern void raise_lower(Client *);
 extern void resize(Client *);
@@ -247,7 +247,7 @@ void toggle_fullscreen(Client *);
 extern void send_wm_delete(Client *);
 extern void write_titletext(Client *, Window);
 
-//misc.c
+// misc.c
 void err(const char *, ...);
 void fork_exec(char *);
 void sig_handler(int);
@@ -270,20 +270,16 @@ extern XftDraw *tbxftdraw;
 #endif
 extern void make_taskbar(void);
 extern void click_taskbar(unsigned int);
+extern void cycle_previous(Client *);
+extern void cycle_next(Client *);
 extern void rclick_taskbar(void);
 extern void rclick_root(void);
 extern void redraw_taskbar(void);
 float get_button_width(void);
 
-//menufile.c
+// menufile.c
 extern MenuItem menuitems[MAX_MENUITEMS];
 extern unsigned int num_menuitems;
 extern void get_menuitems(void);
 extern void free_menuitems(void);
 #endif /* WINDOWLAB_H */
-
-
-
-
-
-
