@@ -158,7 +158,7 @@ static void handle_button_press(XButtonEvent *e)
 			if (e->button == Button1)
 			{
 				c = find_client(e->window, FRAME);
-				if (c)
+				if (c && c != fullscreen_client)
 				{
 					check_focus(c);
 					// click-to-focus
@@ -433,10 +433,41 @@ static void handle_property_change(XPropertyEvent *e)
 
 static void handle_enter_event(XCrossingEvent *e)
 {
-	Client *c = find_client(e->window, FRAME);
-	if (c)
+	Client *c = NULL;
+	if (e->window == taskbar)
 	{
-		XGrabButton(dpy, AnyButton, AnyModifier, c->frame, False, ButtonMask, GrabModeSync, GrabModeSync, None, None);
+		in_taskbar = 1;
+		if (showing_taskbar == 0)
+		{
+			showing_taskbar = 1;
+			redraw_taskbar();
+		}
+	}
+	else
+	{
+		in_taskbar = 0;
+		if (fullscreen_client != NULL)
+		{
+			if (showing_taskbar == 1)
+			{
+				showing_taskbar = 0;
+				redraw_taskbar();
+			}
+		}
+		else // no fullscreen client
+		{
+			if (showing_taskbar == 0)
+			{
+				showing_taskbar = 1;
+				redraw_taskbar();
+			}
+		}
+
+		c = find_client(e->window, FRAME);
+		if (c)
+		{
+			XGrabButton(dpy, AnyButton, AnyModifier, c->frame, False, ButtonMask, GrabModeSync, GrabModeSync, None, None);
+		}
 	}
 }
 

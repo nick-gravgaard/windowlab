@@ -125,11 +125,17 @@ void get_mouse_position(int *x, int *y)
 		x, y, &win_x, &win_y, &mask);
 }
 
+/* If this is the fullscreen client we don't take BARHEIGHT() into account
+ * because the titlebar isn't being drawn on the window. */
+
 void fix_position(Client *c)
 {
 	unsigned int xmax = DisplayWidth(dpy, screen);
 	unsigned int ymax = DisplayHeight(dpy, screen);
-	c->y += BARHEIGHT();
+	unsigned int titlebarheight;
+	
+	if (fullscreen_client == c) titlebarheight = 0;
+	else titlebarheight = BARHEIGHT();
 
 	if (c->width < MINWINWIDTH)
 	{
@@ -144,18 +150,18 @@ void fix_position(Client *c)
 	{
 		c->width = xmax;
 	}
-	if (c->height + (BARHEIGHT() * 2) > ymax)
+	if (c->height + (BARHEIGHT() + titlebarheight) > ymax)
 	{
-		c->height = ymax - (BARHEIGHT() * 2);
+		c->height = ymax - (BARHEIGHT() + titlebarheight);
 	}
 
 	if (c->x < 0)
 	{
 		c->x = 0;
 	}
-	if (c->y < BARHEIGHT() + BORDERWIDTH(c))
+	if (c->y < BARHEIGHT())
 	{
-		c->y = BARHEIGHT() + BORDERWIDTH(c);
+		c->y = BARHEIGHT();
 	}
 
 	if (c->x + c->width + BORDERWIDTH(c) >= xmax)
@@ -164,68 +170,25 @@ void fix_position(Client *c)
 	}
 	if (c->y + c->height + BARHEIGHT() >= ymax)
 	{
-		c->y = ymax - c->height - BARHEIGHT();
+		c->y = (ymax - c->height) - BARHEIGHT();
 	}
 
 	c->x -= BORDERWIDTH(c);
 	c->y -= BORDERWIDTH(c);
 }
 
-/* If this is the fullscreen client we don't take BARHEIGHT() into account
- * because the titlebar isn't being drawn on the window. */
-
 void refix_position(Client *c, XConfigureRequestEvent *e)
 {
-	unsigned int xmax = DisplayWidth(dpy, screen);
-	unsigned int ymax = DisplayHeight(dpy, screen);
-	unsigned int has_decor = 1;
-
-	if (fullscreen_client == c) has_decor = 0;
-
-	if (c->width < MINWINWIDTH - BORDERWIDTH(c))
-	{
-		c->width = MINWINWIDTH - BORDERWIDTH(c);
-		e->value_mask |= CWWidth;
-	}
-	if (c->height < MINWINHEIGHT - BORDERWIDTH(c))
-	{
-		c->height = MINWINHEIGHT - BORDERWIDTH(c);
-		e->value_mask |= CWHeight;
-	}
-	
-	if (c->width + BORDERWIDTH(c) > xmax)
-	{
-		c->width = xmax;
-		e->value_mask |= CWWidth;
-	}
-	if (c->height + ((BARHEIGHT() * 2) * has_decor) + BORDERWIDTH(c) > ymax)
-	{
-		c->height = ymax - ((BARHEIGHT() * 2) * has_decor);
-		e->value_mask |= CWHeight;
-	}
-
-	if (c->x + BORDERWIDTH(c) < 0)
-	{
-		c->x = 0 - BORDERWIDTH(c);
-		e->value_mask |= CWX;
-	}
-	if (c->y < (BARHEIGHT() * 2) * has_decor)
-	{
-		c->y = (BARHEIGHT() * 2) * has_decor;
-		e->value_mask |= CWY;
-	}
-
-	if (c->x + c->width >= xmax)
-	{
-		c->x = xmax - c->width - BORDERWIDTH(c);
-		e->value_mask |= CWX;
-	}
-	// note that this next bit differs from fix_position() because here we ensure that the titlebar is visible as opposed to the whole window
-	if (c->y + (BARHEIGHT() * has_decor) >= ymax)
-	{
-		c->y = ymax - (BARHEIGHT() * has_decor) - BORDERWIDTH(c);
-		e->value_mask |= CWY;
-	}
+	Rect olddims;
+	olddims.x = c->x;
+	olddims.y = c->y;
+	olddims.width = c->width;
+	olddims.height = c->height;
+	fix_position(c);
+	if (olddims.x != c->x) e->value_mask |= CWX;
+	if (olddims.y != c->y) e->value_mask |= CWY;
+	if (olddims.width != c->width) e->value_mask |= CWWidth;
+	if (olddims.height != c->height) e->value_mask |= CWHeight;
 }
 
 #ifdef DEBUG
@@ -373,7 +336,7 @@ static void quit_nicely(void)
 	XFreeCursor(dpy, resizestart_curs);
 	XFreeCursor(dpy, resizeend_curs);
 	XFreeGC(dpy, border_gc);
-	XFreeGC(dpy, string_gc);
+	XFreeGC(dpy, text_gc);
 
 	XInstallColormap(dpy, DefaultColormap(dpy, screen));
 	XSetInputFocus(dpy, PointerRoot, RevertToNone, CurrentTime);

@@ -1,3 +1,12 @@
+1.14 (2003-08-17)
+
+* fullscreen mode now reserves space at the top of the screen for the taskbar/menubar which is only displayed when the mouse is over it (for users who want to watch fullscreen video without the wm showing)
+* created a new colour to cover the screen when a window in fullscreen mode is too small to fill the screen and reintroduced a separate colour for the text
+* rewrote refix_postion() to use fix_position()
+* reduced the height of the taskbar - it was previously BORDERWIDTH taller than the windows titlebars
+* WindowLab now reallocs memory unused by the menu options
+
+
 1.13 (2003-08-09)
 
 * depressed button colour is now derived from the active titlebar colour

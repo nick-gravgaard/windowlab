@@ -21,7 +21,7 @@
 #ifndef WINDOWLAB_H
 #define WINDOWLAB_H
 
-#define VERSION "1.13"
+#define VERSION "1.14"
 
 #include <limits.h>
 #include <stdio.h>
@@ -50,11 +50,13 @@
 #define DEF_FONT "lucidasans-10"
 #endif
 // use named colours, #rgb, #rrggbb or #rrrgggbbb format
-#define DEF_DETAIL "#000"
+#define DEF_BORDER "#000"
+#define DEF_TEXT "#000"
 #define DEF_ACTIVE "#fd0"
 #define DEF_INACTIVE "#aaa"
 #define DEF_MENU "#ddd"
 #define DEF_SELECTED "#aad"
+#define DEF_EMPTY "#000"
 #define DEF_BORDERWIDTH 2
 #define ACTIVE_SHADOW 0x2000 // eg #fff becomes #ddd
 #define SPACE 3
@@ -132,8 +134,8 @@
 
 // Stuff for the menu file
 
-#define MAX_MENUITEMS 64
-#define STR_SIZE 64
+#define MAX_MENUITEMS_SIZE sizeof(MenuItem) * 64
+#define STR_SIZE 128
 #define NO_MENU_LABEL "xterm"
 #define NO_MENU_COMMAND "xterm"
 
@@ -199,20 +201,21 @@ extern Display *dpy;
 extern Window root;
 extern int screen;
 extern Client *head_client, *last_focused_client, *fullscreen_client;
+extern unsigned int in_taskbar, showing_taskbar;
 extern Rect fs_prevdims;
 extern XFontStruct *font;
 #ifdef XFT
 extern XftFont *xftfont;
 extern XftColor xft_detail;
 #endif
-extern GC string_gc, border_gc, active_gc, depressed_gc, inactive_gc, menu_gc, selected_gc;
-extern XColor detail_col, active_col, depressed_col, inactive_col, menu_col, selected_col;
+extern GC border_gc, text_gc, active_gc, depressed_gc, inactive_gc, menu_gc, selected_gc, empty_gc;
+extern XColor border_col, text_col, active_col, depressed_col, inactive_col, menu_col, selected_col, empty_col;
 extern Cursor move_curs, resizestart_curs, resizeend_curs;
 extern Atom wm_state, wm_change_state, wm_protos, wm_delete, wm_cmapwins;
 #ifdef MWM_HINTS
 extern Atom mwm_hints;
 #endif
-extern char *opt_font, *opt_detail, *opt_active, *opt_inactive, *opt_menu, *opt_selected;
+extern char *opt_font, *opt_border, *opt_text, *opt_active, *opt_inactive, *opt_menu, *opt_selected, *opt_empty;
 extern int opt_borderwidth;
 #ifdef SHAPE
 extern int shape, shape_event;
@@ -279,7 +282,7 @@ extern void redraw_taskbar(void);
 float get_button_width(void);
 
 // menufile.c
-extern MenuItem menuitems[MAX_MENUITEMS];
+extern MenuItem* menuitems;
 extern unsigned int num_menuitems;
 extern void get_menuitems(void);
 extern void free_menuitems(void);

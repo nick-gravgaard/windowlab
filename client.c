@@ -203,11 +203,9 @@ void remove_client(Client *c, int mode)
 void redraw(Client *c)
 {
 #ifdef MWM_HINTS
-	if (!c->has_title)
-	{
-		return;
-	}
+	if (!c->has_title) return;
 #endif
+	if (c == fullscreen_client) return;
 	// clear text part of bar
 	if (c == last_focused_client)
 	{
@@ -224,7 +222,7 @@ void redraw(Client *c)
 			xftfont, SPACE, SPACE + xftfont->ascent,
 			c->name, strlen(c->name));
 #else
-		XDrawString(dpy, c->frame, string_gc,
+		XDrawString(dpy, c->frame, text_gc,
 			SPACE, SPACE + font->ascent,
 			c->name, strlen(c->name));
 #endif

@@ -34,11 +34,11 @@ void make_taskbar(void)
 	XSetWindowAttributes pattr;
 
 	pattr.override_redirect = True;
-	pattr.background_pixel = inactive_col.pixel;
-	pattr.border_pixel = detail_col.pixel;
+	pattr.background_pixel = empty_col.pixel;
+	pattr.border_pixel = border_col.pixel;
 	pattr.event_mask = ChildMask|ButtonPressMask|ExposureMask|EnterWindowMask;
 	taskbar = XCreateWindow(dpy, root,
-		0 - DEF_BORDERWIDTH, 0 - DEF_BORDERWIDTH, DisplayWidth(dpy, screen), BARHEIGHT(), DEF_BORDERWIDTH,
+		0 - DEF_BORDERWIDTH, 0 - DEF_BORDERWIDTH, DisplayWidth(dpy, screen), BARHEIGHT() - DEF_BORDERWIDTH, DEF_BORDERWIDTH,
 		DefaultDepth(dpy, screen), CopyFromParent, DefaultVisual(dpy, screen),
 		CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWEventMask, &pattr);
 
@@ -182,21 +182,23 @@ void redraw_taskbar(void)
 	button_width = get_button_width();
 	XClearWindow(dpy, taskbar);
 
+	if (!showing_taskbar) return;
+
 	for (c = head_client, i=0; c; c = c->next, i++)
 	{
 		button_startx = (unsigned int)(i * button_width);
-		button_iwidth = (unsigned int)(((i+1) * button_width) - button_startx);
+		button_iwidth = (unsigned int)(((i + 1) * button_width) - button_startx);
 		if (button_startx != 0)
 		{
-			XDrawLine(dpy, taskbar, border_gc, button_startx, 0, button_startx, BARHEIGHT());
+			XDrawLine(dpy, taskbar, border_gc, button_startx - 1, 0, button_startx - 1, BARHEIGHT() - DEF_BORDERWIDTH);
 		}
 		if (c == last_focused_client)
 		{
-			XFillRectangle(dpy, taskbar, active_gc, button_startx+1, 0, button_iwidth-2, BARHEIGHT());
+			XFillRectangle(dpy, taskbar, active_gc, button_startx, 0, button_iwidth, BARHEIGHT() - DEF_BORDERWIDTH);
 		}
 		else
 		{
-			XFillRectangle(dpy, taskbar, inactive_gc, button_startx+1, 0, button_iwidth-2, BARHEIGHT());
+			XFillRectangle(dpy, taskbar, inactive_gc, button_startx, 0, button_iwidth, BARHEIGHT() - DEF_BORDERWIDTH);
 		}
 		if (!c->trans && c->name)
 		{
@@ -205,7 +207,7 @@ void redraw_taskbar(void)
 				xftfont, button_startx + SPACE + (DEF_BORDERWIDTH/2), SPACE + xftfont->ascent,
 				c->name, strlen(c->name));
 #else
-			XDrawString(dpy, taskbar, string_gc,
+			XDrawString(dpy, taskbar, text_gc,
 				button_startx + SPACE + (DEF_BORDERWIDTH/2), SPACE + font->ascent,
 				c->name, strlen(c->name));
 #endif
@@ -217,7 +219,7 @@ void draw_menubar(void)
 {
 	unsigned int i, dw;
 	dw = DisplayWidth(dpy, screen);
-	XFillRectangle(dpy, taskbar, menu_gc, 0, 0, dw, BARHEIGHT());
+	XFillRectangle(dpy, taskbar, menu_gc, 0, 0, dw, BARHEIGHT() - DEF_BORDERWIDTH);
 
 	for (i = 0; i < num_menuitems; i++)
 	{
@@ -228,7 +230,7 @@ void draw_menubar(void)
 				menuitems[i].x + (SPACE * 2), xftfont->ascent + SPACE,
 				menuitems[i].label, strlen(menuitems[i].label));
 #else
-			XDrawString(dpy, taskbar, string_gc,
+			XDrawString(dpy, taskbar, text_gc,
 				menuitems[i].x + (SPACE * 2), font->ascent + SPACE,
 				menuitems[i].label, strlen(menuitems[i].label));
 #endif
@@ -275,18 +277,18 @@ void draw_menuitem(unsigned int index, unsigned int active)
 {
 	if (active)
 	{
-		XFillRectangle(dpy, taskbar, selected_gc, menuitems[index].x, 0, menuitems[index].width, BARHEIGHT());
+		XFillRectangle(dpy, taskbar, selected_gc, menuitems[index].x, 0, menuitems[index].width, BARHEIGHT() - DEF_BORDERWIDTH);
 	}
 	else
 	{
-		XFillRectangle(dpy, taskbar, menu_gc, menuitems[index].x, 0, menuitems[index].width, BARHEIGHT());
+		XFillRectangle(dpy, taskbar, menu_gc, menuitems[index].x, 0, menuitems[index].width, BARHEIGHT() - DEF_BORDERWIDTH);
 	}
 #ifdef XFT
 	XftDrawString8(tbxftdraw, &xft_detail, xftfont,
 		menuitems[index].x + (SPACE * 2), xftfont->ascent + SPACE,
 		menuitems[index].label, strlen(menuitems[index].label));
 #else
-	XDrawString(dpy, taskbar, string_gc,
+	XDrawString(dpy, taskbar, text_gc,
 		menuitems[index].x + (SPACE * 2), font->ascent + SPACE,
 		menuitems[index].label, strlen(menuitems[index].label));
 #endif
@@ -301,7 +303,7 @@ float get_button_width(void)
 		nwins++;
 		c = c->next;
 	}
-	return (((float)DisplayWidth(dpy, screen)) / nwins);
+	return ((float)(DisplayWidth(dpy, screen) + DEF_BORDERWIDTH)) / nwins;
 }
 
 

@@ -31,21 +31,25 @@ XFontStruct *font;
 XftFont *xftfont;
 XftColor xft_detail;
 #endif
-GC string_gc, border_gc, active_gc, depressed_gc, inactive_gc, menu_gc, selected_gc;
-XColor detail_col, active_col, depressed_col, inactive_col, menu_col, selected_col;
+GC string_gc, border_gc, text_gc, active_gc, depressed_gc, inactive_gc, menu_gc, selected_gc, empty_gc;
+XColor border_col, text_col, active_col, depressed_col, inactive_col, menu_col, selected_col, empty_col;
 Cursor move_curs, resizestart_curs, resizeend_curs;
 Atom wm_state, wm_change_state, wm_protos, wm_delete, wm_cmapwins;
 #ifdef MWM_HINTS
 Atom mwm_hints;
 #endif
 Client *head_client, *last_focused_client, *fullscreen_client;
+unsigned int in_taskbar = 0; // actually, we don't know yet
+unsigned int showing_taskbar = 1;
 Rect fs_prevdims;
 char *opt_font = DEF_FONT;
-char *opt_detail = DEF_DETAIL;
+char *opt_border = DEF_BORDER;
+char *opt_text = DEF_TEXT;
 char *opt_active = DEF_ACTIVE;
 char *opt_inactive = DEF_INACTIVE;
 char *opt_menu = DEF_MENU;
 char *opt_selected = DEF_SELECTED;
+char *opt_empty = DEF_EMPTY;
 int opt_borderwidth = DEF_BORDERWIDTH;
 #ifdef SHAPE
 Bool shape;
@@ -77,11 +81,13 @@ int main(int argc, char **argv)
 	for (i = 1; i < argc; i++)
 	{
 		OPT_STR("-font", opt_font)
-		OPT_STR("-detail", opt_detail)
+		OPT_STR("-border", opt_border)
+		OPT_STR("-text", opt_text)
 		OPT_STR("-active", opt_active)
 		OPT_STR("-inactive", opt_inactive)
 		OPT_STR("-menu", opt_menu)
 		OPT_STR("-selected", opt_selected)
+		OPT_STR("-empty", opt_empty)
 		OPT_INT("-borderwidth", opt_borderwidth)
 		if (strcmp(argv[i], "-version") == 0)
 		{
@@ -89,8 +95,7 @@ int main(int argc, char **argv)
 			exit(0);
 		}
 		// shouldn't get here; must be a bad option
-		err("usage: windowlab [options]\n"
-			"       options are: -font <font>, -detail|-active|-inactive|-menu|-selected <color>, -borderwidth <width>");
+		err("usage: windowlab [options]\n    options are: -font <font>, -border|-text|-active|-inactive|-menu|-selected|-empty <color>, -borderwidth <width>");
 		return 2;
 	}
 
@@ -160,11 +165,13 @@ static void setup_display(void)
 	mwm_hints = XInternAtom(dpy, _XA_MWM_HINTS, False);
 #endif
 
-	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_detail, &detail_col, &dummyc);
+	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_border, &border_col, &dummyc);
+	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_text, &text_col, &dummyc);
 	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_active, &active_col, &dummyc);
 	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_inactive, &inactive_col, &dummyc);
 	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_menu, &menu_col, &dummyc);
 	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_selected, &selected_col, &dummyc);
+	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_empty, &empty_col, &dummyc);
 
 	depressed_col.pixel = active_col.pixel;
 	depressed_col.red = active_col.red - ACTIVE_SHADOW;
@@ -221,13 +228,14 @@ static void setup_display(void)
 	XFree(modmap);
 
 	gv.function = GXcopy;
-	gv.foreground = detail_col.pixel;
-	gv.font = font->fid;
-	string_gc = XCreateGC(dpy, root, GCFunction|GCForeground|GCFont, &gv);
 
-	gv.foreground = detail_col.pixel;
+	gv.foreground = border_col.pixel;
 	gv.line_width = opt_borderwidth;
 	border_gc = XCreateGC(dpy, root, GCFunction|GCForeground|GCLineWidth, &gv);
+
+	gv.foreground = text_col.pixel;
+	gv.font = font->fid;
+	text_gc = XCreateGC(dpy, root, GCFunction|GCForeground|GCFont, &gv);
 
 	gv.foreground = active_col.pixel;
 	active_gc = XCreateGC(dpy, root, GCFunction|GCForeground, &gv);
@@ -243,6 +251,9 @@ static void setup_display(void)
 
 	gv.foreground = selected_col.pixel;
 	selected_gc = XCreateGC(dpy, root, GCFunction|GCForeground, &gv);
+
+	gv.foreground = empty_col.pixel;
+	empty_gc = XCreateGC(dpy, root, GCFunction|GCForeground, &gv);
 
 	sattr.event_mask = ChildMask|ColormapChangeMask|ButtonMask;
 	XChangeWindowAttributes(dpy, root, CWEventMask, &sattr);

@@ -1,7 +1,7 @@
 xterm:xterm
-gedit:gedit
-Nautilus:nautilus --no-desktop
-Mozilla:mozilla
+nedit:nedit
+XFTree:xftree
+Opera:opera
 XMMS:xmms
 xv:xv
 The GIMP:gimp

@@ -207,7 +207,7 @@ static PropMwmHints *get_mwm_hints(Window w)
 
 static void init_position(Client *c)
 {
-	int mouse_x, mouse_y;
+	int mousex, mousey;
 
 	if (c->size->flags & (USSize))
 	{
@@ -244,9 +244,9 @@ static void init_position(Client *c)
 
 	if (c->x == 0 && c->y == 0)
 	{
-		get_mouse_position(&mouse_x, &mouse_y);
-		c->x = mouse_x;
-		c->y = mouse_y;
+		get_mouse_position(&mousex, &mousey);
+		c->x = mousex;
+		c->y = mousey + BARHEIGHT();
 		gravitate(c, REMOVE_GRAVITY);
 	}
 }
@@ -256,8 +256,8 @@ static void reparent(Client *c)
 	XSetWindowAttributes pattr;
 
 	pattr.override_redirect = True;
-	pattr.background_pixel = inactive_col.pixel;
-	pattr.border_pixel = detail_col.pixel;
+	pattr.background_pixel = empty_col.pixel;
+	pattr.border_pixel = border_col.pixel;
 	pattr.event_mask = ChildMask|ButtonPressMask|ExposureMask|EnterWindowMask;
 	c->frame = XCreateWindow(dpy, root,
 		c->x, c->y - BARHEIGHT(), c->width, c->height + BARHEIGHT(), BORDERWIDTH(c),
