@@ -102,7 +102,7 @@ void rclick_taskbar(void)
 	}
 	draw_menubar();
 	update_menuitem(0xffff); // force initial highlight
-	for (;;)
+	do
 	{
 		XMaskEvent(dpy, MouseMask, &ev);
 		switch (ev.type)
@@ -115,15 +115,15 @@ void rclick_taskbar(void)
 				{
 					fork_exec(menuitems[current_item].command);
 				}
-				// fall through
-			case ButtonPress: // never right-button
-				redraw_taskbar();
-				XUnmapWindow(dpy, constraint_win);
-				XDestroyWindow(dpy, constraint_win);
-				ungrab();
-				return;
+				break;
 		}
 	}
+	while (ev.type != ButtonPress && ev.type != ButtonRelease);
+
+	redraw_taskbar();
+	XUnmapWindow(dpy, constraint_win);
+	XDestroyWindow(dpy, constraint_win);
+	ungrab();
 }
 
 void rclick_root(void)
@@ -134,25 +134,23 @@ void rclick_root(void)
 		return;
 	}
 	draw_menubar();
-	for (;;)
+	do
 	{
 		XMaskEvent(dpy, MouseMask, &ev);
-		switch (ev.type)
+		if (ev.type == MotionNotify)
 		{
-			case MotionNotify:
-				if (ev.xmotion.y < BARHEIGHT())
-				{
-					ungrab();
-					rclick_taskbar();
-					return;
-				}
-				break;;
-			case ButtonRelease:
-				redraw_taskbar();
+			if (ev.xmotion.y < BARHEIGHT())
+			{
 				ungrab();
+				rclick_taskbar();
 				return;
+			}
 		}
 	}
+	while (ev.type != ButtonRelease);
+
+	redraw_taskbar();
+	ungrab();
 }
 
 void redraw_taskbar(void)
@@ -293,5 +291,7 @@ float get_button_width(void)
 	}
 	return (((float)DisplayWidth(dpy, screen)) / nwins);
 }
+
+
 
 

@@ -1,3 +1,9 @@
+1.10 (2003-05-25)
+
+* added code to toggle fullscreen mode on non transient windows when the user hits F11
+* tidied up some more code
+
+
 1.9 (2003-04-19)
 
 * made new windows appear fully on screen instead of just their titlebar

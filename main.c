@@ -38,7 +38,7 @@ Atom wm_state, wm_change_state, wm_protos, wm_delete, wm_cmapwins;
 #ifdef MWM_HINTS
 Atom mwm_hints;
 #endif
-Client *head_client, *last_focused_client, *topmost_client;
+Client *head_client, *last_focused_client;
 char *opt_font = DEF_FONT;
 char *opt_fg = DEF_FG;
 char *opt_bg = DEF_BG;
@@ -52,6 +52,7 @@ int opt_bw = DEF_BW;
 Bool shape;
 int shape_event;
 #endif
+unsigned int numlockmask = 0;
 
 static void scan_wins(void);
 static void setup_display(void);
@@ -135,6 +136,8 @@ static void setup_display(void)
 	XColor dummyc;
 	XGCValues gv;
 	XSetWindowAttributes sattr;
+	XModifierKeymap *modmap;
+	unsigned int i, j;
 #ifdef SHAPE
 	int dummy;
 #endif
@@ -196,6 +199,21 @@ static void setup_display(void)
 	resizestart_curs = XCreateFontCursor(dpy, XC_ul_angle);
 	resizeend_curs = XCreateFontCursor(dpy, XC_lr_angle); //XC_bottom_right_corner
 
+	/* find out which modifier is NumLock - we'll use this when grabbing
+	 * every combination of modifiers we can think of */
+	modmap = XGetModifierMapping(dpy);
+	for (i = 0; i < 8; i++) {
+		for (j = 0; j < modmap->max_keypermod; j++) {
+			if (modmap->modifiermap[i*modmap->max_keypermod+j] == XKeysymToKeycode(dpy, XK_Num_Lock)) {
+				numlockmask = (1<<i);
+#ifdef DEBUG
+				fprintf(stderr, "setup_display() : XK_Num_Lock is (1<<0x%02x)\n", i);
+#endif
+			}
+		}
+	}
+	XFree(modmap);
+
 	gv.function = GXcopy;
 	gv.foreground = fg.pixel;
 	gv.font = font->fid;
@@ -222,7 +240,11 @@ static void setup_display(void)
 
 	sattr.event_mask = ChildMask|ColormapChangeMask|ButtonMask;
 	XChangeWindowAttributes(dpy, root, CWEventMask, &sattr);
+
+	grab_keysym(root, None, KEY_FULLSCREEN);
 }
+
+
 
 
 

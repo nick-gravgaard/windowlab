@@ -21,13 +21,14 @@
 #ifndef WINDOWLAB_H
 #define WINDOWLAB_H
 
-#define VERSION "1.9"
+#define VERSION "1.10"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/keysym.h>
 #ifdef SHAPE
 #include <X11/extensions/shape.h>
 #endif
@@ -60,6 +61,8 @@
 #define MINSIZE		15
 #define MINWINWIDTH	80
 #define MINWINHEIGHT	80
+// key may be used by other apps, so change the fullscreen toggle key here
+#define KEY_FULLSCREEN	XK_F11
 
 /* A few useful masks made up out of X's basic ones. `ChildMask' is a
  * silly name, but oh well. */
@@ -74,6 +77,18 @@
 #define ungrab() XUngrabPointer(dpy, CurrentTime)
 #define grab(w, mask, curs) (XGrabPointer(dpy, w, False, mask, \
 	GrabModeAsync, GrabModeAsync, None, curs, CurrentTime) == GrabSuccess)
+#define grab_keysym(w, mask, keysym) \
+	XGrabKey(dpy, XKeysymToKeycode(dpy, keysym), mask, w, True, \
+			GrabModeAsync, GrabModeAsync); \
+	XGrabKey(dpy, XKeysymToKeycode(dpy, keysym), LockMask|mask, w, True, \
+			GrabModeAsync, GrabModeAsync); \
+	if (numlockmask) { \
+		XGrabKey(dpy, XKeysymToKeycode(dpy, keysym), numlockmask|mask, \
+				w, True, GrabModeAsync, GrabModeAsync); \
+		XGrabKey(dpy, XKeysymToKeycode(dpy, keysym), \
+				numlockmask|LockMask|mask, w, True, \
+				GrabModeAsync, GrabModeAsync); \
+	}
 
 /* I wanna know who the morons who prototyped these functions as
  * implicit int are...  */
@@ -184,7 +199,7 @@ struct _MenuItem
 extern Display *dpy;
 extern Window root;
 extern int screen;
-extern Client *head_client, *last_focused_client, *topmost_client;
+extern Client *head_client, *last_focused_client;
 extern XFontStruct *font;
 #ifdef XFT
 extern XftFont *xftfont;
@@ -202,6 +217,7 @@ extern int opt_bw;
 #ifdef SHAPE
 extern int shape, shape_event;
 #endif
+extern unsigned int numlockmask;
 
 //events.c
 extern void do_event_loop(void);
@@ -227,6 +243,7 @@ extern void move(Client *);
 extern void raise_lower(Client *);
 extern void resize(Client *);
 extern void hide(Client *);
+void toggle_fullscreen(Client *);
 extern void send_wm_delete(Client *);
 extern void write_titletext(Client *, Window);
 
@@ -264,6 +281,8 @@ extern unsigned int num_menuitems;
 extern void get_menuitems(void);
 extern void free_menuitems(void);
 #endif /* WINDOWLAB_H */
+
+
 
 
 

@@ -21,6 +21,7 @@
 #include "windowlab.h"
 #include <X11/Xatom.h>
 
+static void handle_key_event(XKeyEvent *);
 static void handle_button_press(XButtonEvent *);
 static void handle_windowbar_click(XButtonEvent *e, Client *c);
 static int box_clicked(Client *c, int x);
@@ -52,6 +53,9 @@ void do_event_loop(void)
 #endif
 		switch (ev.type)
 		{
+			case KeyPress:
+				handle_key_event(&ev.xkey);
+				break;
 			case ButtonPress:
 				handle_button_press(&ev.xbutton);
 				break;
@@ -90,6 +94,15 @@ void do_event_loop(void)
 				}
 #endif
 		}
+	}
+}
+
+static void handle_key_event(XKeyEvent *e)
+{
+	KeySym key = XKeycodeToKeysym(dpy, e->keycode, 0);
+	if (key == KEY_FULLSCREEN)
+	{
+		toggle_fullscreen(last_focused_client);
 	}
 }
 
@@ -483,6 +496,7 @@ static void handle_shape_change(XShapeEvent *e)
 	}
 }
 #endif
+
 
 
 

@@ -53,6 +53,8 @@ The GIMP:gimp
 
 WindowLab positions new windows (that don't specify their location) according to the coordinates of the mouse - the top-left hand corner of a new window is set to the location of the mouse pointer (if necessary the window will be moved to ensure that all of it is on the screen).
 
+Users can hit the F11 key to toggle fullscreen mode on and off for non transient windows. This may be useful for watching video applications.
+
 
 
 WHAT IF I FIND A BUG?
@@ -99,5 +101,6 @@ Portions of the code were based on 9wm, which contains this license:
 >         or shortcomings in the software, or damages caused by it.
 >
 > There is no warranty for this software.  Have a nice day.
+
 
 

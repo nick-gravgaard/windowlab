@@ -32,15 +32,17 @@ void move(Client *c)
 
 void raise_lower(Client *c)
 {
+	static Client *topmost_client;
 	if (c != topmost_client)
 	{
-		topmost_client = c;
 		raise_win(c);
+		topmost_client = c;
 	}
 	else
 	{
-		topmost_client = NULL; //lazy but amiwm does similar
 		lower_win(c);
+		XLowerWindow(dpy, taskbar); // make sure taskbar is lowest
+		topmost_client = NULL; // lazy but amiwm does similar
 	}
 }
 
@@ -63,6 +65,52 @@ void hide(Client *c)
 	XUnmapWindow(dpy, c->frame);
 	XUnmapWindow(dpy, c->window);
 	set_wm_state(c, IconicState);
+}
+
+void toggle_fullscreen(Client *c)
+{
+	static Client *fullscreen_client;
+	static Rect fs_prevdims;
+	if (c && !c->trans)
+	{
+		if (c == fullscreen_client) // reset to original size
+		{
+			c->x = fs_prevdims.x;
+			c->y = fs_prevdims.y;
+			c->width = fs_prevdims.width;
+			c->height = fs_prevdims.height;
+			XMoveResizeWindow(dpy, c->frame, c->x, c->y - BARHEIGHT(), c->width, c->height + BARHEIGHT());
+			XMoveResizeWindow(dpy, c->window, 0, BARHEIGHT(), c->width, c->height);
+			send_config(c);
+			fullscreen_client = NULL;
+		}
+		else // make fullscreen
+		{
+			if (fullscreen_client) // reset existing fullscreen window to original size
+			{
+				fullscreen_client->x = fs_prevdims.x;
+				fullscreen_client->y = fs_prevdims.y;
+				fullscreen_client->width = fs_prevdims.width;
+				fullscreen_client->height = fs_prevdims.height;
+				XMoveResizeWindow(dpy, fullscreen_client->frame, fullscreen_client->x, fullscreen_client->y - BARHEIGHT(), fullscreen_client->width, fullscreen_client->height + BARHEIGHT());
+				XMoveResizeWindow(dpy, fullscreen_client->window, 0, BARHEIGHT(), fullscreen_client->width, fullscreen_client->height);
+				send_config(fullscreen_client);
+				fullscreen_client = NULL;
+			}
+			fs_prevdims.x = c->x;
+			fs_prevdims.y = c->y;
+			fs_prevdims.width = c->width;
+			fs_prevdims.height = c->height;
+			c->x = 0;
+			c->y = 0;
+			c->width = DisplayWidth(dpy, screen);
+			c->height = DisplayHeight(dpy, screen);
+			XMoveResizeWindow(dpy, c->frame, c->x, c->y - BARHEIGHT(), c->width, c->height + BARHEIGHT());
+			XMoveResizeWindow(dpy, c->window, 0, BARHEIGHT(), c->width, c->height);
+			send_config(c);
+			fullscreen_client = c;
+		}
+	}
 }
 
 /* The name of this function is a bit misleading: if the client
@@ -127,7 +175,7 @@ static void drag(Client *c)
 	}
 	get_mouse_position(&x1, &y1);
 
-	for (;;)
+	do
 	{
 		XMaskEvent(dpy, ExposureMask|MouseMask, &ev);
 		switch (ev.type)
@@ -145,12 +193,11 @@ static void drag(Client *c)
 				XMoveWindow(dpy, c->frame, c->x, c->y - BARHEIGHT());
 				send_config(c);
 				break;
-			case ButtonRelease:
-				ungrab();
-				XDestroyWindow(dpy, constraint_win);
-				return;
 		}
 	}
+	while (ev.type != ButtonRelease);
+	ungrab();
+	XDestroyWindow(dpy, constraint_win);
 }
 
 static void sweep(Client *c)
@@ -180,15 +227,12 @@ static void sweep(Client *c)
 		return;
 	}
 
-	for (;;)
+	do
 	{
 		XMaskEvent(dpy, MouseMask, &ev);
-		if (ev.type == ButtonPress)
-		{
-			get_mouse_position(&newdims.x, &newdims.y);
-			break;
-		}
 	}
+	while (ev.type != ButtonPress);
+	get_mouse_position(&newdims.x, &newdims.y);
 
 	copy_focused = last_focused_client;
 	last_focused_client = NULL;
@@ -257,7 +301,7 @@ static void sweep(Client *c)
 
 	write_titletext(c, resizebar_win);
 
-	for (;;)
+	do
 	{
 		XMaskEvent(dpy, ExposureMask|MouseMask, &ev);
 		switch (ev.type)
@@ -275,23 +319,23 @@ static void sweep(Client *c)
 				XResizeWindow(dpy, resizebar_win, newdims.width + 1, BARHEIGHT() - DEF_BW);
 				write_titletext(c, resizebar_win);
 				break;
-			case ButtonRelease:
-				XUngrabServer(dpy);
-				ungrab();
-				last_focused_client = copy_focused;
-				c->x = newdims.x;
-				c->y = newdims.y;
-				c->width = newdims.width + 1;
-				c->height = newdims.height + 1;
-				XMoveResizeWindow(dpy, c->frame, c->x, c->y - BARHEIGHT(), c->width, c->height + BARHEIGHT());
-				XMoveResizeWindow(dpy, c->window, 0, BARHEIGHT(), c->width, c->height);
-				send_config(c);
-				XDestroyWindow(dpy, constraint_win);
-				XDestroyWindow(dpy, resizebar_win);
-				XDestroyWindow(dpy, resize_win);
-				return;
 		}
 	}
+	while (ev.type != ButtonRelease);
+
+	XUngrabServer(dpy);
+	ungrab();
+	last_focused_client = copy_focused;
+	c->x = newdims.x;
+	c->y = newdims.y;
+	c->width = newdims.width + 1;
+	c->height = newdims.height + 1;
+	XMoveResizeWindow(dpy, c->frame, c->x, c->y - BARHEIGHT(), c->width, c->height + BARHEIGHT());
+	XMoveResizeWindow(dpy, c->window, 0, BARHEIGHT(), c->width, c->height);
+	send_config(c);
+	XDestroyWindow(dpy, constraint_win);
+	XDestroyWindow(dpy, resizebar_win);
+	XDestroyWindow(dpy, resize_win);
 }
 
 static void recalc_sweep(Client *c, int x2, int y2, Rect *newdims)
@@ -365,7 +409,7 @@ static int get_incsize(Client *c, int *x_ret, int *y_ret, Rect *newdims, int mod
 			*x_ret = newdims->width - ((newdims->width - basex) % c->size->width_inc);
 			*y_ret = newdims->height - ((newdims->height - basey) % c->size->height_inc);
 		}
-		else //INCREMENTS
+		else // INCREMENTS
 		{
 			*x_ret = (newdims->width - basex) / c->size->width_inc;
 			*y_ret = (newdims->height - basey) / c->size->height_inc;
@@ -396,7 +440,4 @@ void write_titletext(Client *c, Window bar_win)
 #endif
 	}
 }
-
-
-
 
