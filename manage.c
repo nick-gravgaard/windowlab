@@ -108,8 +108,17 @@ void toggle_fullscreen(Client *c)
 			c->y = BARHEIGHT() - DEF_BORDERWIDTH;
 			c->width = maxwinwidth;
 			c->height = maxwinheight;
-			if (c->size->flags & PMaxSize)
+			if (c->size->flags & PMaxSize || c->size->flags & PResizeInc)
 			{
+				if (c->size->flags & PResizeInc)
+				{
+					Rect maxwinsize;
+					maxwinsize.x = xoffset;
+					maxwinsize.width = maxwinwidth;
+					maxwinsize.y = yoffset;
+					maxwinsize.height = maxwinheight;
+					get_incsize(c, &c->size->max_width, &c->size->max_height, &maxwinsize, PIXELS);
+				}
 				if (c->size->max_width < maxwinwidth)
 				{
 					c->width = c->size->max_width;
@@ -254,6 +263,16 @@ static void sweep(Client *c)
 		XMaskEvent(dpy, MouseMask, &ev);
 	}
 	while (ev.type != ButtonPress);
+
+	// any mouse button other than Button1 cancels the resize
+	if (ev.xbutton.button != Button1)
+	{
+		XUngrabServer(dpy);
+		ungrab();
+		XDestroyWindow(dpy, constraint_win);
+		return;
+	}
+
 	get_mouse_position(&newdims.x, &newdims.y);
 
 	copy_focused = last_focused_client;

@@ -1,3 +1,12 @@
+1.20 (2003-12-31)
+
+* altered the button graphics and changed the default active window colour
+* removed the borderwidth command line option
+* integrated more changes from David Lawrence Ramsey:
+	* made fullscreen mode respect window size increment hints as well as maximum size hints
+	* clicking the right mouse button between between clicking the resize button and starting the window drag cancels resize mode
+
+
 1.19 (2003-11-14)
 
 * users can now click and drag the mouse pointer over the taskbar to quickly find different windows

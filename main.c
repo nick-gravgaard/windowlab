@@ -50,7 +50,6 @@ char *opt_inactive = DEF_INACTIVE;
 char *opt_menu = DEF_MENU;
 char *opt_selected = DEF_SELECTED;
 char *opt_empty = DEF_EMPTY;
-int opt_borderwidth = DEF_BORDERWIDTH;
 #ifdef SHAPE
 Bool shape;
 int shape_event;
@@ -71,12 +70,6 @@ int main(int argc, char **argv)
 		variable = argv[++i]; \
 		continue; \
 	}
-#define OPT_INT(name, variable) \
-	if (strcmp(argv[i], name) == 0 && i+1<argc) \
-	{ \
-		variable = atoi(argv[++i]); \
-		continue; \
-	}
 
 	for (i = 1; i < argc; i++)
 	{
@@ -88,14 +81,13 @@ int main(int argc, char **argv)
 		OPT_STR("-menu", opt_menu)
 		OPT_STR("-selected", opt_selected)
 		OPT_STR("-empty", opt_empty)
-		OPT_INT("-borderwidth", opt_borderwidth)
 		if (strcmp(argv[i], "-version") == 0)
 		{
 			printf("windowlab: version " VERSION "\n");
 			exit(0);
 		}
 		// shouldn't get here; must be a bad option
-		err("usage: windowlab [options]\n    options are: -font <font>, -border|-text|-active|-inactive|-menu|-selected|-empty <color>, -borderwidth <width>");
+		err("usage: windowlab [options]\n    options are: -font <font>, -border|-text|-active|-inactive|-menu|-selected|-empty <color>");
 		return 2;
 	}
 
@@ -230,7 +222,7 @@ static void setup_display(void)
 	gv.function = GXcopy;
 
 	gv.foreground = border_col.pixel;
-	gv.line_width = opt_borderwidth;
+	gv.line_width = DEF_BORDERWIDTH;
 	border_gc = XCreateGC(dpy, root, GCFunction|GCForeground|GCLineWidth, &gv);
 
 	gv.foreground = text_col.pixel;

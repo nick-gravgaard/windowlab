@@ -250,15 +250,15 @@ static void handle_windowbar_click(XButtonEvent *e, Client *c)
 
 static unsigned int box_clicked(Client *c, unsigned int x)
 {
-	int pix_from_right = c->width - x;
-	if (pix_from_right < 0)
-	{
-		return UINT_MAX; // outside window
-	}
-	else
-	{
-		return (pix_from_right / ((BARHEIGHT() - BORDERWIDTH(c)) + 1));
-	}
+        int pix_from_right = (c->width - x) + DEF_BORDERWIDTH;
+        if (pix_from_right < 0)
+        {
+                return UINT_MAX; // outside window
+        }
+        else
+        {
+                return (pix_from_right / BARHEIGHT());
+        }
 }
 
 static void draw_button(Client *c, GC *detail_gc, GC *background_gc, unsigned int which_box)

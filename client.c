@@ -206,15 +206,15 @@ void redraw(Client *c)
 #ifdef MWM_HINTS
 	if (!c->has_title) return;
 #endif
-	XDrawLine(dpy, c->frame, border_gc, 0, BARHEIGHT() - BORDERWIDTH(c) + BORDERWIDTH(c)/2, c->width, BARHEIGHT() - BORDERWIDTH(c) + BORDERWIDTH(c)/2);
+	XDrawLine(dpy, c->frame, border_gc, 0, BARHEIGHT() - BORDERWIDTH(c) + BORDERWIDTH(c) / 2, c->width, BARHEIGHT() - BORDERWIDTH(c) + BORDERWIDTH(c) / 2);
 	// clear text part of bar
 	if (c == last_focused_client)
 	{
-		XFillRectangle(dpy, c->frame, active_gc, 0, 0, c->width - (((BARHEIGHT() - BORDERWIDTH(c)) + 1) * 3), BARHEIGHT() - BORDERWIDTH(c));
+		XFillRectangle(dpy, c->frame, active_gc, 0, 0, c->width - (BARHEIGHT() * 3), BARHEIGHT() - BORDERWIDTH(c));
 	}
 	else
 	{
-		XFillRectangle(dpy, c->frame, inactive_gc, 0, 0, c->width - (((BARHEIGHT() - BORDERWIDTH(c)) + 1) * 3), BARHEIGHT() - BORDERWIDTH(c));
+		XFillRectangle(dpy, c->frame, inactive_gc, 0, 0, c->width - (BARHEIGHT() * 3), BARHEIGHT() - BORDERWIDTH(c));
 	}
 	if (!c->trans && c->name)
 	{
@@ -229,7 +229,7 @@ void redraw(Client *c)
 #endif
 	}
 	// overwrite any text
-	XFillRectangle(dpy, c->frame, border_gc, c->width - (((BARHEIGHT() - BORDERWIDTH(c)) + 1) * 3), 0, ((BARHEIGHT() - BORDERWIDTH(c)) + 1) * 3, BARHEIGHT() - BORDERWIDTH(c));
+	XFillRectangle(dpy, c->frame, border_gc, c->width - (((BARHEIGHT() - BORDERWIDTH(c)) + 1) * 3), 0, BARHEIGHT() * 3, BARHEIGHT() - BORDERWIDTH(c));
 	if (c == last_focused_client)
 	{
 		draw_redraw_button(c, &text_gc, &active_gc);
@@ -345,7 +345,7 @@ void check_focus(Client *c)
 void draw_redraw_button(Client *c, GC *detail_gc, GC *background_gc)
 {
 	unsigned int x, topleft_offset;
-	x = (c->width - (((BARHEIGHT() - BORDERWIDTH(c)) + 1) * 3)) + 1;
+	x = (c->width - (BARHEIGHT() * 3)) + BORDERWIDTH(c);
 	topleft_offset = (BARHEIGHT() / 2) - 5; // 5 being ~half of 9
 	XFillRectangle(dpy, c->frame, *background_gc, x, 0, BARHEIGHT() - BORDERWIDTH(c), BARHEIGHT() - BORDERWIDTH(c));
 	XDrawRectangle(dpy, c->frame, *detail_gc, x + topleft_offset, topleft_offset, 8, 8);
@@ -355,7 +355,7 @@ void draw_redraw_button(Client *c, GC *detail_gc, GC *background_gc)
 void draw_toggledepth_button(Client *c, GC *detail_gc, GC *background_gc)
 {
 	unsigned int x, topleft_offset;
-	x = (c->width - (((BARHEIGHT() - BORDERWIDTH(c)) + 1) * 2)) + 1;
+	x = (c->width - (BARHEIGHT() * 2)) + BORDERWIDTH(c);
 	topleft_offset = (BARHEIGHT() / 2) - 6; // 6 being ~half of 11
 	XFillRectangle(dpy, c->frame, *background_gc, x, 0, BARHEIGHT() - BORDERWIDTH(c), BARHEIGHT() - BORDERWIDTH(c));
 	XDrawRectangle(dpy, c->frame, *detail_gc, x + topleft_offset, topleft_offset, 7, 7);
@@ -365,11 +365,14 @@ void draw_toggledepth_button(Client *c, GC *detail_gc, GC *background_gc)
 void draw_close_button(Client *c, GC *detail_gc, GC *background_gc)
 {
 	unsigned int x, topleft_offset;
-	x = (c->width - (((BARHEIGHT() - BORDERWIDTH(c)) + 1) * 1)) + 1;
+	x = (c->width - (BARHEIGHT() * 1)) + BORDERWIDTH(c);
 	topleft_offset = (BARHEIGHT() / 2) - 5; // 5 being ~half of 9
 	XFillRectangle(dpy, c->frame, *background_gc, x, 0, BARHEIGHT() - BORDERWIDTH(c), BARHEIGHT() - BORDERWIDTH(c));
-	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset, topleft_offset, x + topleft_offset + 7, topleft_offset + 7);
 	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 1, topleft_offset, x + topleft_offset + 8, topleft_offset + 7);
+	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 1, topleft_offset + 1, x + topleft_offset + 7, topleft_offset + 7);
+	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset, topleft_offset + 1, x + topleft_offset + 7, topleft_offset + 8);
+
 	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset, topleft_offset + 7, x + topleft_offset + 7, topleft_offset);
-	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 1, topleft_offset + 7, x + topleft_offset + 8, topleft_offset);
+	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 1, topleft_offset + 7, x + topleft_offset + 7, topleft_offset + 1);
+	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 1, topleft_offset + 8, x + topleft_offset + 8, topleft_offset + 1);
 }

@@ -21,7 +21,7 @@
 #ifndef WINDOWLAB_H
 #define WINDOWLAB_H
 
-#define VERSION "1.19"
+#define VERSION "1.20"
 
 #include <limits.h>
 #include <stdio.h>
@@ -50,7 +50,7 @@
 // use named colours, #rgb, #rrggbb or #rrrgggbbb format
 #define DEF_BORDER "#000"
 #define DEF_TEXT "#000"
-#define DEF_ACTIVE "#99d" // "#fd0"
+#define DEF_ACTIVE "#fd0"
 #define DEF_INACTIVE "#aaa"
 #define DEF_MENU "#ddd"
 #define DEF_SELECTED "#aad"
@@ -90,9 +90,9 @@
 
 // border width accessor to handle hints/no hints
 #ifdef MWM_HINTS
-#define BORDERWIDTH(c) ((c)->has_border ? opt_borderwidth : 0)
+#define BORDERWIDTH(c) ((c)->has_border ? DEF_BORDERWIDTH : 0)
 #else
-#define BORDERWIDTH(c) (opt_borderwidth)
+#define BORDERWIDTH(c) (DEF_BORDERWIDTH)
 #endif
 
 // bar height
@@ -204,7 +204,6 @@ extern Atom wm_state, wm_change_state, wm_protos, wm_delete, wm_cmapwins;
 extern Atom mwm_hints;
 #endif
 extern char *opt_font, *opt_border, *opt_text, *opt_active, *opt_inactive, *opt_menu, *opt_selected, *opt_empty;
-extern int opt_borderwidth;
 #ifdef SHAPE
 extern int shape, shape_event;
 #endif
