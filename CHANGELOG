@@ -1,3 +1,10 @@
+1.15 (2003-08-17)
+
+* integrated more changes from David Lawrence Ramsey:
+	* it now compiles with Xft support (it previously referenced detail_col instead of text_col in main.c)
+	* extra logic added to refix_position() to keep windows from overlapping the taskbar
+
+
 1.14 (2003-08-17)
 
 * fullscreen mode now reserves space at the top of the screen for the taskbar/menubar which is only displayed when the mouse is over it (for users who want to watch fullscreen video without the wm showing)

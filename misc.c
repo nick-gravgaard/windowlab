@@ -185,6 +185,8 @@ void refix_position(Client *c, XConfigureRequestEvent *e)
 	olddims.width = c->width;
 	olddims.height = c->height;
 	fix_position(c);
+	// properly set the window's y-coordinate so it doesn't overlap the taskbar or its border
+	if (c->y < (BARHEIGHT() * 2) - BORDERWIDTH(c)) c->y = (BARHEIGHT() * 2) - BORDERWIDTH(c);
 	if (olddims.x != c->x) e->value_mask |= CWX;
 	if (olddims.y != c->y) e->value_mask |= CWY;
 	if (olddims.width != c->width) e->value_mask |= CWWidth;

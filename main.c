@@ -190,11 +190,11 @@ static void setup_display(void)
 	}
 
 #ifdef XFT
-	xft_detail.color.red = detail_col.red;
-	xft_detail.color.green = detail_col.green;
-	xft_detail.color.blue = detail_col.blue;
+	xft_detail.color.red = text_col.red;
+	xft_detail.color.green = text_col.green;
+	xft_detail.color.blue = text_col.blue;
 	xft_detail.color.alpha = 0xffff;
-	xft_detail.pixel = detail_col.pixel;
+	xft_detail.pixel = text_col.pixel;
 
 	xftfont = XftFontOpenXlfd(dpy, DefaultScreen(dpy), opt_font);
 	if (!xftfont)
