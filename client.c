@@ -202,10 +202,11 @@ void remove_client(Client *c, int mode)
 
 void redraw(Client *c)
 {
+	if (c == fullscreen_client) return;
 #ifdef MWM_HINTS
 	if (!c->has_title) return;
 #endif
-	if (c == fullscreen_client) return;
+	XDrawLine(dpy, c->frame, border_gc, 0, BARHEIGHT() - BORDERWIDTH(c) + BORDERWIDTH(c)/2, c->width, BARHEIGHT() - BORDERWIDTH(c) + BORDERWIDTH(c)/2);
 	// clear text part of bar
 	if (c == last_focused_client)
 	{
@@ -227,7 +228,8 @@ void redraw(Client *c)
 			c->name, strlen(c->name));
 #endif
 	}
-	// clear button part of bar
+	// overwrite any text
+	XFillRectangle(dpy, c->frame, border_gc, c->width - (((BARHEIGHT() - BORDERWIDTH(c)) + 1) * 3), 0, ((BARHEIGHT() - BORDERWIDTH(c)) + 1) * 3, BARHEIGHT() - BORDERWIDTH(c));
 	if (c == last_focused_client)
 	{
 		draw_redraw_button(c, &text_gc, &active_gc);
