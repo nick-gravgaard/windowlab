@@ -1,3 +1,15 @@
+1.21 (2004-01-17)
+
+* the 8½ style of window reshaping was dropped in favour of a completely new mechanism that allows users to change one or many different edges of the window independantly in one action
+* small bug fix in window titlebar drawing
+* integrated changes from Guido Schimmels (thanks!):
+	* a bitmap font is no longer referenced if an XFT font is used
+* integrated more changes from David Lawrence Ramsey:
+	* the code was changed to use NULL explicitely
+	* draw_redraw_button() was renamed as draw_resize_button()
+	* warnings fixed when compiling using gccs -pedantic option
+
+
 1.20 (2003-12-31)
 
 * altered the button graphics and changed the default active window colour

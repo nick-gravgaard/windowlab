@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2003 Nick Gravgaard
+ * Copyright (c) 2001-2004 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/windowlab/
  *
@@ -175,7 +175,7 @@ void remove_client(Client *c, int mode)
 			}
 		}
 	}
-	if (c->name)
+	if (c->name != NULL)
 	{
 		XFree(c->name);
 	}
@@ -216,12 +216,12 @@ void redraw(Client *c)
 	{
 		XFillRectangle(dpy, c->frame, inactive_gc, 0, 0, c->width - (BARHEIGHT() * 3), BARHEIGHT() - BORDERWIDTH(c));
 	}
-	if (!c->trans && c->name)
+	if (!c->trans && c->name != NULL)
 	{
 #ifdef XFT
 		XftDrawString8(c->xftdraw, &xft_detail,
 			xftfont, SPACE, SPACE + xftfont->ascent,
-			c->name, strlen(c->name));
+			(unsigned char *)c->name, strlen(c->name));
 #else
 		XDrawString(dpy, c->frame, text_gc,
 			SPACE, SPACE + font->ascent,
@@ -229,16 +229,16 @@ void redraw(Client *c)
 #endif
 	}
 	// overwrite any text
-	XFillRectangle(dpy, c->frame, border_gc, c->width - (((BARHEIGHT() - BORDERWIDTH(c)) + 1) * 3), 0, BARHEIGHT() * 3, BARHEIGHT() - BORDERWIDTH(c));
+	XFillRectangle(dpy, c->frame, border_gc, c->width - (BARHEIGHT() * 3), 0, BARHEIGHT() * 3, BARHEIGHT() - BORDERWIDTH(c));
 	if (c == last_focused_client)
 	{
-		draw_redraw_button(c, &text_gc, &active_gc);
+		draw_resize_button(c, &text_gc, &active_gc);
 		draw_toggledepth_button(c, &text_gc, &active_gc);
 		draw_close_button(c, &text_gc, &active_gc);
 	}
 	else
 	{
-		draw_redraw_button(c, &text_gc, &inactive_gc);
+		draw_resize_button(c, &text_gc, &inactive_gc);
 		draw_toggledepth_button(c, &text_gc, &inactive_gc);
 		draw_close_button(c, &text_gc, &inactive_gc);
 	}
@@ -294,7 +294,7 @@ void set_shape(Client *c)
 			0, BARHEIGHT(), c->window, ShapeBounding, ShapeSet);
 		temp.x = -BORDERWIDTH(c);
 		temp.y = -BORDERWIDTH(c);
-		temp.width = c->width + 2*BORDERWIDTH(c);
+		temp.width = c->width + (2 * BORDERWIDTH(c));
 		temp.height = BARHEIGHT() + BORDERWIDTH(c);
 		XShapeCombineRectangles(dpy, c->frame, ShapeBounding,
 			0, 0, &temp, 1, ShapeUnion, YXBanded);
@@ -313,8 +313,8 @@ void set_shape(Client *c)
 			//I can't find a 'remove all shaping' function...
 			temp.x = -BORDERWIDTH(c);
 			temp.y = -BORDERWIDTH(c);
-			temp.width = c->width + 2*BORDERWIDTH(c);
-			temp.height = c->height + BARHEIGHT() + 2*BORDERWIDTH(c);
+			temp.width = c->width + (2 * BORDERWIDTH(c));
+			temp.height = c->height + BARHEIGHT() + (2 * BORDERWIDTH(c));
 			XShapeCombineRectangles(dpy, c->frame, ShapeBounding,
 				0, 0, &temp, 1, ShapeSet, YXBanded);
 		}
@@ -342,7 +342,7 @@ void check_focus(Client *c)
 	}
 }
 
-void draw_redraw_button(Client *c, GC *detail_gc, GC *background_gc)
+void draw_resize_button(Client *c, GC *detail_gc, GC *background_gc)
 {
 	unsigned int x, topleft_offset;
 	x = (c->width - (BARHEIGHT() * 3)) + BORDERWIDTH(c);

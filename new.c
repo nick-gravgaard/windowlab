@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2003 Nick Gravgaard
+ * Copyright (c) 2001-2004 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/windowlab/
  *
@@ -44,7 +44,7 @@ void make_new_client(Window w)
 	long dummy;
 
 	c = (Client *)malloc(sizeof *c);
-	if (!head_client)
+	if (head_client == NULL)
 	{
 		head_client = c;
 	}
@@ -57,9 +57,9 @@ void make_new_client(Window w)
 		}
 		p->next = c;
 	}
-	c->next = 0;
+	c->next = NULL;
 
-	if (!last_focused_client)
+	if (last_focused_client == NULL)
 	{
 		last_focused_client = c; // check every time? This should only be done at the start
 	}

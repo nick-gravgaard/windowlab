@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2003 Nick Gravgaard
+ * Copyright (c) 2001-2004 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/windowlab/
  *
@@ -33,7 +33,7 @@ XftColor xft_detail;
 #endif
 GC string_gc, border_gc, text_gc, active_gc, depressed_gc, inactive_gc, menu_gc, selected_gc, empty_gc;
 XColor border_col, text_col, active_col, depressed_col, inactive_col, menu_col, selected_col, empty_col;
-Cursor move_curs, resizestart_curs, resizeend_curs;
+Cursor moveresize_curs;
 Atom wm_state, wm_change_state, wm_protos, wm_delete, wm_cmapwins;
 #ifdef MWM_HINTS
 Atom mwm_hints;
@@ -65,7 +65,7 @@ int main(int argc, char **argv)
 	struct sigaction act;
 
 #define OPT_STR(name, variable)	 \
-	if (strcmp(argv[i], name) == 0 && i+1<argc) \
+	if (strcmp(argv[i], name) == 0 && i + 1 < argc) \
 	{ \
 		variable = argv[++i]; \
 		continue; \
@@ -100,7 +100,7 @@ int main(int argc, char **argv)
 
 	setup_display();
 	get_menuitems();
-	head_client = 0;
+	head_client = NULL;
 	make_taskbar();
 	scan_wins();
 	do_event_loop();
@@ -138,7 +138,7 @@ static void setup_display(void)
 
 	dpy = XOpenDisplay(NULL);
 
-	if (!dpy)
+	if (dpy == NULL)
 	{
 		err("can't open display! check your DISPLAY variable.");
 		exit(1);
@@ -174,13 +174,6 @@ static void setup_display(void)
 	depressed_col.blue = depressed_col.blue <= (USHRT_MAX - ACTIVE_SHADOW) ? depressed_col.blue : 0;
 	XAllocColor(dpy, DefaultColormap(dpy, screen), &depressed_col);
 
-	font = XLoadQueryFont(dpy, opt_font);
-	if (!font)
-	{
-		err("font '%s' not found", opt_font);
-		exit(1);
-	}
-
 #ifdef XFT
 	xft_detail.color.red = text_col.red;
 	xft_detail.color.green = text_col.green;
@@ -189,9 +182,16 @@ static void setup_display(void)
 	xft_detail.pixel = text_col.pixel;
 
 	xftfont = XftFontOpenXlfd(dpy, DefaultScreen(dpy), opt_font);
-	if (!xftfont)
+	if (xftfont == NULL)
 	{
 		err("font '%s' not found", opt_font);
+		exit(1);
+	}
+#else
+	font = XLoadQueryFont(dpy, opt_font);
+	if (font == NULL)
+	{
+		err("XLoadQueryFont(): font '%s' not found", opt_font);
 		exit(1);
 	}
 #endif
@@ -200,17 +200,18 @@ static void setup_display(void)
 	shape = XShapeQueryExtension(dpy, &shape_event, &dummy);
 #endif
 
-	move_curs = XCreateFontCursor(dpy, XC_fleur);
-	resizestart_curs = XCreateFontCursor(dpy, XC_ul_angle);
-	resizeend_curs = XCreateFontCursor(dpy, XC_lr_angle); //XC_bottom_right_corner
+	moveresize_curs = XCreateFontCursor(dpy, XC_fleur);
 
 	/* find out which modifier is NumLock - we'll use this when grabbing
 	 * every combination of modifiers we can think of */
 	modmap = XGetModifierMapping(dpy);
-	for (i = 0; i < 8; i++) {
-		for (j = 0; j < modmap->max_keypermod; j++) {
-			if (modmap->modifiermap[i*modmap->max_keypermod+j] == XKeysymToKeycode(dpy, XK_Num_Lock)) {
-				numlockmask = (1<<i);
+	for (i = 0; i < 8; i++)
+	{
+		for (j = 0; j < modmap->max_keypermod; j++)
+		{
+			if (modmap->modifiermap[i * modmap->max_keypermod + j] == XKeysymToKeycode(dpy, XK_Num_Lock))
+			{
+				numlockmask = (1 << i);
 #ifdef DEBUG
 				fprintf(stderr, "setup_display() : XK_Num_Lock is (1<<0x%02x)\n", i);
 #endif
@@ -227,8 +228,13 @@ static void setup_display(void)
 
 	gv.foreground = text_col.pixel;
 	gv.line_width = 1;
+
+#ifdef XFT
+	text_gc = XCreateGC(dpy, root, GCFunction|GCForeground, &gv);
+#else
 	gv.font = font->fid;
 	text_gc = XCreateGC(dpy, root, GCFunction|GCForeground|GCFont, &gv);
+#endif
 
 	gv.foreground = active_col.pixel;
 	active_gc = XCreateGC(dpy, root, GCFunction|GCForeground, &gv);

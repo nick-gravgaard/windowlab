@@ -1,5 +1,5 @@
 WINDOWLAB
-Copyright 2001-2003 Nick Gravgaard
+Copyright 2001-2004 Nick Gravgaard
 
 
 
@@ -7,7 +7,7 @@ WHAT IS WINDOWLAB?
 
 WindowLab is a small and simple window manager of novel design.
 
-It's click-to-focus, shares its window depth policy with the Amiga, and has a window resizing/reshaping method similar to that of 8½ from Plan 9. WindowLab maintains the illusion of direct manipulation by constraining the mouse pointer when appropriate, ie when a window cannot be dragged any further in one direction. The pointer is also constrained vertically (effectively making the target menu items infinitely tall according to Fitts's law) when it's in the menubar to reduce pointing time.
+It's click-to-focus, shares its window depth policy with the Amiga, and has a window resizing mechanism that allows one or many edges of a window to be changed in one action. WindowLab maintains the illusion of direct manipulation by constraining the mouse pointer when appropriate, ie when a window cannot be dragged any further in one direction. The pointer is also constrained vertically (effectively making the target menu items infinitely tall according to Fitts's law) when it's in the menubar to reduce pointing time.
 
 
 
@@ -15,7 +15,7 @@ WHY USE WINDOWLAB?
 
 * It allows the focussed window to be below other windows that you still need to look at (click-to-focus but not click-to-front) without using convoluted Windows style always-on-top modes
 
-* Windows can be moved and resized (reshaped) in one motion. A side effect of having a reshape button on each windows titlebar is that windows do not need easily draggable (and hence big) borders
+* One or many edges of a window can be changed in one action without having to click on thin window borders. As with much in WindowLab this allows faster use with less accuracy
 
 * It's very quick and easy to launch an application from the menu - it's easier to slam the pointer to the top of the screen and then make small adjustments to hit the target then it is to use a Windows style hierarchical "start" menu or a Blackbox style popup menu, and by constraining the pointer to the menu bar you can be less accurate (and thus faster) because once the pointer is in the menu bar you don't have to worry about vertical movements
 
@@ -59,7 +59,15 @@ If you use FreeBSD, you can get WindowLab from /usr/ports/x11-wm/windowlab/
 
 HOW DO I USE IT?
 
-WindowLab places a taskbar at the top of the screen and adds a bar to the top of each window. These bars consist of a draggable area, and three squares on the right hand side. From left to right, these squares start a reshape action (after clicking the gadget, move the mouse to where you want the top-left hand corner of the window to be, and drag the mouse to set the bottom-right corner), toggle the windows Z order Amiga style (if it's not at the front, bring it to the front, otherwise send it to the back), and close the window. Window titlebars must always be fully on-screen and cannot overlap the taskbar at the top of the screen (so if you want to get rid of a window quickly and don't want to send it to the back you should drag it downwards).
+WindowLab places a taskbar at the top of the screen and adds a bar to the top of each window. These bars consist of a draggable area, and three squares on the right hand side. From left to right, these squares:
+
+* start to resize the window (after clicking the gadget, drag inside the window to push the windows edges outwards or drag outside the window to push the windows edges inwards). To finish resizing the window click the right mouse button
+
+* toggle the windows Z order Amiga style (if it's not at the front, bring it to the front, otherwise send it to the back)
+
+* close the window
+
+Window titlebars must always be fully on-screen and cannot overlap the taskbar at the top of the screen (so if you want to get rid of a window quickly and don't want to send it to the back you should drag it downwards).
 
 The taskbar should list all windows currently in use. Clicking on a windows taskbar item will give that window focus and act as a click on that windows middle-gadget - ie toggle that windows Z order (depth).
 
@@ -97,7 +105,7 @@ So I started work on my own window manager, basing it on aewm. The most importan
 
 Another neat feature of the Amigas GUI that had not been done before in an X window manager was the constraining of the pointer when the user tried to drag a window beyond the edge of the screen. In this way, WindowLab treats windows like they are Amiga screens in that a windows titlebar is constrained to the physical screen. At this point I started to think about the issue of launching programs from WindowLab. aewms approach was that taskbars and launching files was not part of the window managers job, and I respected the minimalist reasoning behind this, but since my constrained windows took it for granted that a taskbar existed at the top of the screen, I reasoned that the taskbar was best kept within the window manager. With the taskbar taking up as much space as a menu bar would, I realised that I could reuse space just like the Amiga had done by making a menu bar available when the right mouse button is held down. My twist was that rather than have a proper drop down menu, my menu would consist of "bang" menu items a little like the "Quick Launch" toolbar in Windows 98, and by keeping the menu one level deep, I could reuse the constrained mouse pointer trick to take advantage of Fitts's law.
 
-I also wanted the user to be able to make a window act like an Amigas screen (so that the title bar and client area take up all of the screen), and this forced me to rule out any useful kind of draggable window borders. The 8½ style resizing mechanism allows me to make the resize button just like the toggle-depth and close buttons which seems nice and simple to me.
+I also wanted the user to be able to make a window act like an Amigas screen (so that the title bar and client area take up all of the screen), and this forced me to rule out any useful kind of draggable window borders. Originally (version 1.20 and previous) an 8½ style resizing mechanism was used, but some users complained that it meant that each edge of the window changed even if only a small resize was intended. The new mechanism allows one or many edges of a window to be changed in one action without the user having to drag window borders a couple of pixels thick.
 
 
 

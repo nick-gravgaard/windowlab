@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2003 Nick Gravgaard
+ * Copyright (c) 2001-2004 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/windowlab/
  *
@@ -159,7 +159,7 @@ static void handle_button_press(XButtonEvent *e)
 			if (e->button == Button1)
 			{
 				c = find_client(e->window, FRAME);
-				if (c && c != fullscreen_client)
+				if (c != NULL && c != fullscreen_client)
 				{
 					check_focus(c);
 					// click-to-focus
@@ -272,7 +272,7 @@ static void draw_button(Client *c, GC *detail_gc, GC *background_gc, unsigned in
 			draw_toggledepth_button(c, detail_gc, background_gc);
 			break;
 		case 2:
-			draw_redraw_button(c, detail_gc, background_gc);
+			draw_resize_button(c, detail_gc, background_gc);
 			break;
 	}
 }
@@ -299,7 +299,7 @@ static void handle_configure_request(XConfigureRequestEvent *e)
 	Client *c = find_client(e->window, WINDOW);
 	XWindowChanges wc;
 
-	if (c)
+	if (c != NULL)
 	{
 		gravitate(c, REMOVE_GRAVITY);
 		if (e->value_mask & CWX) c->x = e->x;
@@ -349,7 +349,7 @@ static void handle_configure_request(XConfigureRequestEvent *e)
 static void handle_map_request(XMapRequestEvent *e)
 {
 	Client *c = find_client(e->window, WINDOW);
-	if (c) unhide(c);
+	if (c != NULL) unhide(c);
 	else make_new_client(e->window);
 }
 
@@ -371,7 +371,7 @@ static void handle_unmap_event(XUnmapEvent *e)
 {
 	Client *c = find_client(e->window, WINDOW);
 
-	if (c)
+	if (c != NULL)
 	{
 		if (c->ignore_unmap)
 		{
@@ -391,7 +391,7 @@ static void handle_unmap_event(XUnmapEvent *e)
 static void handle_destroy_event(XDestroyWindowEvent *e)
 {
 	Client *c = find_client(e->window, WINDOW);
-	if (c)
+	if (c != NULL)
 	{
 		remove_client(c, WITHDRAW);
 	}
@@ -404,7 +404,7 @@ static void handle_destroy_event(XDestroyWindowEvent *e)
 static void handle_client_message(XClientMessageEvent *e)
 {
 	Client *c = find_client(e->window, WINDOW);
-	if (c && e->message_type == wm_change_state &&
+	if (c != NULL && e->message_type == wm_change_state &&
 		e->format == 32 && e->data.l[0] == IconicState)
 	{
 		hide(c);
@@ -421,7 +421,7 @@ static void handle_property_change(XPropertyEvent *e)
 	Client *c = find_client(e->window, WINDOW);
 	long dummy;
 
-	if (c)
+	if (c != NULL)
 	{
 		switch (e->atom)
 		{
@@ -483,7 +483,7 @@ static void handle_enter_event(XCrossingEvent *e)
 		}
 
 		c = find_client(e->window, FRAME);
-		if (c)
+		if (c != NULL)
 		{
 			XGrabButton(dpy, AnyButton, AnyModifier, c->frame, False, ButtonMask, GrabModeSync, GrabModeSync, None, None);
 		}
@@ -502,8 +502,8 @@ static void handle_enter_event(XCrossingEvent *e)
 static void handle_colormap_change(XColormapEvent *e)
 {
 	Client *c = find_client(e->window, WINDOW);
-	//if (c && e->c_new) //use c_new for c++
-	if (c && e->new)
+	//if (c != NULL && e->c_new) //use c_new for c++
+	if (c != NULL && e->new)
 	{
 		c->cmap = e->colormap;
 		XInstallColormap(dpy, c->cmap);
@@ -526,7 +526,7 @@ static void handle_expose_event(XExposeEvent *e)
 	else
 	{
 		Client *c = find_client(e->window, FRAME);
-		if (c && e->count == 0)
+		if (c != NULL && e->count == 0)
 		{
 			redraw(c);
 		}
@@ -537,7 +537,7 @@ static void handle_expose_event(XExposeEvent *e)
 static void handle_shape_change(XShapeEvent *e)
 {
 	Client *c = find_client(e->window, WINDOW);
-	if (c)
+	if (c != NULL)
 	{
 		set_shape(c);
 	}

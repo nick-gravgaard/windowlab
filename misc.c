@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2003 Nick Gravgaard
+ * Copyright (c) 2001-2004 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/windowlab/
  *
@@ -85,7 +85,7 @@ int handle_xerror(Display *dpy, XErrorEvent *e)
 		err("X error (%#lx): %s", e->resourceid, msg);
 	}
 
-	if (c)
+	if (c != NULL)
 	{
 		remove_client(c, WITHDRAW);
 	}
@@ -191,6 +191,14 @@ void refix_position(Client *c, XConfigureRequestEvent *e)
 	if (olddims.height != c->height) e->value_mask |= CWHeight;
 }
 
+void copy_dims(Rect *sourcedims, Rect *destdims)
+{
+	destdims->x = sourcedims->x;
+	destdims->y = sourcedims->y;
+	destdims->width = sourcedims->width;
+	destdims->height = sourcedims->height;
+}
+
 #ifdef DEBUG
 
 /* Bleh, stupid macro names. I'm not feeling creative today. */
@@ -245,7 +253,7 @@ void show_event(XEvent e)
 	}
 
 	c = find_client(w, WINDOW);
-	snprintf(buf, sizeof buf, c ? c->name : "(none)");
+	snprintf(buf, sizeof buf, c != NULL ? c->name : "(none)");
 	err("%#-10lx: %-20s: %s", w, buf, s);
 }
 
@@ -262,7 +270,7 @@ static const char *show_state(Client *c)
 
 static const char *show_grav(Client *c)
 {
-	if (!c->size || !(c->size->flags & PWinGravity))
+	if (c->size == NULL || !(c->size->flags & PWinGravity))
 	{
 		return "no grav (NW)";
 	}
@@ -286,7 +294,7 @@ static const char *show_grav(Client *c)
 
 void dump(Client *c)
 {
-	if (c)
+	if (c != NULL)
 	{
 		err("%s\n\t%s, %s, ignore %d\n"
 			"\tframe %#lx, win %#lx, geom %dx%d+%d+%d",
@@ -321,7 +329,7 @@ static void quit_nicely(void)
 	for (i = 0; i < nwins; i++)
 	{
 		c = find_client(wins[i], FRAME);
-		if (c)
+		if (c != NULL)
 		{
 			remove_client(c, REMAP);
 		}
@@ -332,9 +340,7 @@ static void quit_nicely(void)
 #ifdef XFT
 	XftFontClose(dpy, xftfont);
 #endif
-	XFreeCursor(dpy, move_curs);
-	XFreeCursor(dpy, resizestart_curs);
-	XFreeCursor(dpy, resizeend_curs);
+	XFreeCursor(dpy, moveresize_curs);
 	XFreeGC(dpy, border_gc);
 	XFreeGC(dpy, text_gc);
 

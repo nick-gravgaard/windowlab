@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2003 Nick Gravgaard
+ * Copyright (c) 2001-2004 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/windowlab/
  *
@@ -22,8 +22,8 @@
 
 static void drag(Client *);
 static void sweep(Client *);
-static void recalc_sweep(Client *, int, int, Rect *);
-static int get_incsize(Client *, int *, int *, Rect *, int);
+static void limit_size(Client *, Rect *);
+static int get_incsize(Client *, unsigned int *, unsigned int *, Rect *, int);
 
 void move(Client *c)
 {
@@ -71,7 +71,7 @@ void unhide(Client *c)
 void toggle_fullscreen(Client *c)
 {
 	unsigned int xoffset, yoffset, maxwinwidth, maxwinheight;
-	if (c && !c->trans)
+	if (c != NULL && !c->trans)
 	{
 		if (c == fullscreen_client) // reset to original size
 		{
@@ -90,7 +90,7 @@ void toggle_fullscreen(Client *c)
 			xoffset = yoffset = 0;
 			maxwinwidth = DisplayWidth(dpy, screen);
 			maxwinheight = DisplayHeight(dpy, screen) - BARHEIGHT();
-			if (fullscreen_client) // reset existing fullscreen window to original size
+			if (fullscreen_client != NULL) // reset existing fullscreen window to original size
 			{
 				fullscreen_client->x = fs_prevdims.x;
 				fullscreen_client->y = fs_prevdims.y;
@@ -117,7 +117,7 @@ void toggle_fullscreen(Client *c)
 					maxwinsize.width = maxwinwidth;
 					maxwinsize.y = yoffset;
 					maxwinsize.height = maxwinheight;
-					get_incsize(c, &c->size->max_width, &c->size->max_height, &maxwinsize, PIXELS);
+					get_incsize(c, (unsigned int *)&c->size->max_width, (unsigned int *)&c->size->max_height, &maxwinsize, PIXELS);
 				}
 				if (c->size->max_width < maxwinwidth)
 				{
@@ -151,7 +151,7 @@ void send_wm_delete(Client *c)
 
 	if (XGetWMProtocols(dpy, c->window, &protocols, &n))
 	{
-		for (i=0; i<n; i++)
+		for (i = 0; i < n; i++)
 		{
 			if (protocols[i] == wm_delete)
 			{
@@ -199,7 +199,7 @@ static void drag(Client *c)
 	constraint_win = XCreateWindow(dpy, root, bound.x, bound.y, bound.width, bound.height, 0, CopyFromParent, InputOnly, CopyFromParent, 0, &pattr);
 	XMapWindow(dpy, constraint_win);
 
-	if (!(XGrabPointer(dpy, root, False, MouseMask, GrabModeAsync, GrabModeAsync, constraint_win, move_curs, CurrentTime) == GrabSuccess))
+	if (!(XGrabPointer(dpy, root, False, MouseMask, GrabModeAsync, GrabModeAsync, constraint_win, moveresize_curs, CurrentTime) == GrabSuccess))
 	{
 		XDestroyWindow(dpy, constraint_win);
 		return;
@@ -213,7 +213,7 @@ static void drag(Client *c)
 		{
 			case Expose:
 				exposed_c = find_client(ev.xexpose.window, FRAME);
-				if (exposed_c)
+				if (exposed_c != NULL)
 				{
 					redraw(exposed_c);
 				}
@@ -234,15 +234,14 @@ static void drag(Client *c)
 static void sweep(Client *c)
 {
 	XEvent ev;
-	Client *exposed_c, *copy_focused;
-	Rect newdims, bound;
-	int mousex, mousey, dw, dh, minw, minh;
+	Client *exposed_c;
+	Rect newdims, recalceddims, bound;
+	int dw, dh, dragging = 0, dragging_outwards, end_resize = 0;
 	Window constraint_win, resize_win, resizebar_win;
 	XSetWindowAttributes pattr, resize_pattr, resizebar_pattr;
 
 	dw = DisplayWidth(dpy, screen);
 	dh = DisplayHeight(dpy, screen);
-	get_mouse_position(&mousex, &mousey);
 
 	bound.x = 1;
 	bound.width = dw;
@@ -252,93 +251,36 @@ static void sweep(Client *c)
 	constraint_win = XCreateWindow(dpy, root, bound.x, bound.y, bound.width, bound.height, 0, CopyFromParent, InputOnly, CopyFromParent, 0, &pattr);
 	XMapWindow(dpy, constraint_win);
 
-	if (!(XGrabPointer(dpy, root, False, MouseMask, GrabModeAsync, GrabModeAsync, constraint_win, resizestart_curs, CurrentTime) == GrabSuccess))
+	if (!(XGrabPointer(dpy, root, False, MouseMask, GrabModeAsync, GrabModeAsync, constraint_win, moveresize_curs, CurrentTime) == GrabSuccess))
 	{
 		XDestroyWindow(dpy, constraint_win);
 		return;
 	}
 
-	do
-	{
-		XMaskEvent(dpy, MouseMask, &ev);
-	}
-	while (ev.type != ButtonPress);
+	newdims.x = c->x;
+	newdims.y = c->y - BARHEIGHT();
+	newdims.width = c->width;
+	newdims.height = c->height + BARHEIGHT();
 
-	// any mouse button other than Button1 cancels the resize
-	if (ev.xbutton.button != Button1)
-	{
-		XUngrabServer(dpy);
-		ungrab();
-		XDestroyWindow(dpy, constraint_win);
-		return;
-	}
-
-	get_mouse_position(&newdims.x, &newdims.y);
-
-	copy_focused = last_focused_client;
-	last_focused_client = NULL;
-	redraw(copy_focused);
-
-	newdims.x -= (BORDERWIDTH(c) + 1);
-	newdims.y -= (BORDERWIDTH(c) + 1);
-	newdims.y += BARHEIGHT();
-
-	minw = c->size->min_width > MINWINWIDTH ? c->size->min_width : MINWINWIDTH;
-	minh = c->size->min_height > MINWINHEIGHT ? c->size->min_height : MINWINHEIGHT;
-
-	// work around insane default minimum sizes
-	if (minw < 0 || minw > (dw - 1))
-	{
-		minw = MINWINWIDTH;
-	}
-	if (minh < 0 || minh > (dh - 1))
-	{
-		minh = MINWINHEIGHT;
-	}
-
-	recalc_sweep(c, newdims.x + minw, newdims.y + minh, &newdims);
-
-	if ((newdims.x + newdims.width) > dw)
-	{
-		newdims.x = ((dw - newdims.width) - 1) - BORDERWIDTH(c);
-	}
-	if ((newdims.y + newdims.height) > dh)
-	{
-		newdims.y = ((dh - newdims.height) - 1) - BORDERWIDTH(c);
-	}
-
-	bound.x = (newdims.x + newdims.width);
-	bound.y = (newdims.y + newdims.height);
-	bound.width = (dw - bound.x);
-	bound.height = (dh - bound.y);
-
-	XMoveResizeWindow(dpy, constraint_win, bound.x, bound.y, bound.width, bound.height);
-
-	if (!(XGrabPointer(dpy, root, False, MouseMask, GrabModeAsync, GrabModeAsync, constraint_win, resizeend_curs, CurrentTime) == GrabSuccess))
-	{
-		return;
-	}
+	copy_dims(&newdims, &recalceddims);
 
 	// create and map resize window
 	resize_pattr.override_redirect = True;
 	resize_pattr.background_pixel = inactive_col.pixel;
 	resize_pattr.border_pixel = border_col.pixel;
 	resize_pattr.event_mask = ChildMask|ButtonPressMask|ExposureMask|EnterWindowMask;
-	resize_win = XCreateWindow(dpy, root,
-		newdims.x, newdims.y - BARHEIGHT(), newdims.width + 1, newdims.height + BARHEIGHT() + 1, DEF_BORDERWIDTH,
-		DefaultDepth(dpy, screen), CopyFromParent, DefaultVisual(dpy, screen),
-		CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWEventMask, &resize_pattr);
-	XMapWindow(dpy, resize_win);
+	resize_win = XCreateWindow(dpy, root, newdims.x, newdims.y, newdims.width, newdims.height, DEF_BORDERWIDTH, DefaultDepth(dpy, screen), CopyFromParent, DefaultVisual(dpy, screen), CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWEventMask, &resize_pattr);
+	XMapRaised(dpy, resize_win);
 
 	resizebar_pattr.override_redirect = True;
 	resizebar_pattr.background_pixel = active_col.pixel;
 	resizebar_pattr.border_pixel = border_col.pixel;
 	resizebar_pattr.event_mask = ChildMask|ButtonPressMask|ExposureMask|EnterWindowMask;
-	resizebar_win = XCreateWindow(dpy, resize_win,
-		-DEF_BORDERWIDTH, -DEF_BORDERWIDTH, newdims.width + 1, BARHEIGHT() - DEF_BORDERWIDTH, DEF_BORDERWIDTH,
-		DefaultDepth(dpy, screen), CopyFromParent, DefaultVisual(dpy, screen),
-		CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWEventMask, &resizebar_pattr);
-	XMapWindow(dpy, resizebar_win);
+	resizebar_win = XCreateWindow(dpy, resize_win, -DEF_BORDERWIDTH, -DEF_BORDERWIDTH, newdims.width, BARHEIGHT() - DEF_BORDERWIDTH, DEF_BORDERWIDTH, DefaultDepth(dpy, screen), CopyFromParent, DefaultVisual(dpy, screen), CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWEventMask, &resizebar_pattr);
+	XMapRaised(dpy, resizebar_win);
+
+	// hide real windows frame
+	XUnmapWindow(dpy, c->frame);
 
 	write_titletext(c, resizebar_win);
 
@@ -354,39 +296,182 @@ static void sweep(Client *c)
 					redraw(exposed_c);
 				}
 				break;
+			case ButtonPress:
+				if (ev.xbutton.button == Button1)
+				{
+					dragging = 1;
+					if ((ev.xmotion.x > newdims.x) && (ev.xmotion.x < newdims.x + newdims.width) && (ev.xmotion.y > newdims.y) && (ev.xmotion.y < newdims.y + newdims.height))
+					{
+						dragging_outwards = 1;
+					}
+					else
+					{
+						dragging_outwards = 0;
+					}
+				}
+				else if (ev.xbutton.button == Button3)
+				{
+					end_resize = 1;
+				}
+				break;
+			case ButtonRelease:
+				dragging = 0;
+				break;
 			case MotionNotify:
-				recalc_sweep(c, ev.xmotion.x, ev.xmotion.y, &newdims);
-				XResizeWindow(dpy, resize_win, newdims.width + 1, newdims.height + BARHEIGHT() + 1);
-				XResizeWindow(dpy, resizebar_win, newdims.width + 1, BARHEIGHT() - DEF_BORDERWIDTH);
-				write_titletext(c, resizebar_win);
+				if (dragging)
+				{
+					unsigned int leftedge_changed = 0, rightedge_changed = 0, topedge_changed = 0, bottomedge_changed = 0;
+					int newwidth, newheight;
+					if (dragging_outwards)
+					{
+						if (ev.xmotion.x < newdims.x)
+						{
+							newdims.width += newdims.x - ev.xmotion.x;
+							newdims.x = ev.xmotion.x;
+							leftedge_changed = 1;
+						}
+						else if (ev.xmotion.x > newdims.x + newdims.width)
+						{
+							newdims.width = ev.xmotion.x - newdims.x;
+							rightedge_changed = 1;
+						}
+						if (ev.xmotion.y < newdims.y)
+						{
+							newdims.height += newdims.y - ev.xmotion.y;
+							newdims.y = ev.xmotion.y;
+							topedge_changed = 1;
+						}
+						else if (ev.xmotion.y > newdims.y + newdims.height)
+						{
+							newdims.height = ev.xmotion.y - newdims.y;
+							bottomedge_changed = 1;
+						}
+					}
+					else // dragging inwards
+					{
+						static unsigned int last_ev_x, last_ev_y;
+						int change_x, change_y;
+						unsigned int above_win, below_win, leftof_win, rightof_win;
+						unsigned int linedup_horizontally, linedup_vertically;
+						unsigned int in_win;
+						unsigned int moving_horizontally, moving_vertically;
+
+						change_x = ev.xmotion.x - last_ev_x;
+						change_y = ev.xmotion.y - last_ev_y;
+
+						moving_horizontally = (ABS(change_x) > ABS(change_y));
+						moving_vertically = (!moving_horizontally);
+
+						above_win = (ev.xmotion.y < newdims.y);
+						below_win = (ev.xmotion.y > newdims.y + newdims.height);
+						leftof_win = (ev.xmotion.x < newdims.x);
+						rightof_win = (ev.xmotion.x > newdims.x + newdims.width);
+
+						linedup_vertically = ((!leftof_win) && (!rightof_win));
+						linedup_horizontally = ((!above_win) && (!below_win));
+
+						in_win = ((!above_win) && (!below_win) && (!leftof_win) && (!rightof_win));
+
+						if (in_win)
+						{
+							if (linedup_horizontally && moving_horizontally)
+							{
+								if (change_x > 0)
+								{
+									newdims.width -= ev.xmotion.x - newdims.x;
+									newdims.x = ev.xmotion.x;
+									leftedge_changed = 1;
+								}
+								else if (change_x < 0)
+								{
+									newdims.width = ev.xmotion.x - newdims.x;
+									rightedge_changed = 1;
+								}
+							}
+							if (linedup_vertically && moving_vertically)
+							{
+								if (change_y > 0)
+								{
+									newdims.height -= ev.xmotion.y - newdims.y;
+									newdims.y = ev.xmotion.y;
+									topedge_changed = 1;
+								}
+								else if (change_y < 0)
+								{
+									newdims.height = ev.xmotion.y - newdims.y;
+									bottomedge_changed = 1;
+								}
+							}
+						}
+
+						// store current mouse coords
+						last_ev_x = ev.xmotion.x;
+						last_ev_y = ev.xmotion.y;
+					}
+					// coords have changed
+					if (leftedge_changed || rightedge_changed || topedge_changed || bottomedge_changed)
+					{
+						copy_dims(&newdims, &recalceddims);
+
+						if (get_incsize(c, &newwidth, &newheight, &recalceddims, PIXELS))
+						{
+							if (leftedge_changed)
+							{
+								recalceddims.x = (recalceddims.x + recalceddims.width) - newwidth;
+								recalceddims.width = newwidth;
+							}
+							else if (rightedge_changed)
+							{
+								recalceddims.width = newwidth;
+							}
+
+							if (topedge_changed)
+							{
+								recalceddims.y = (recalceddims.y + recalceddims.height) - newheight;
+								recalceddims.height = newheight;
+							}
+							else if (bottomedge_changed)
+							{
+								recalceddims.height = newheight;
+							}
+						}
+
+						limit_size(c, &recalceddims);
+
+						XMoveResizeWindow(dpy, resize_win, recalceddims.x, recalceddims.y, recalceddims.width, recalceddims.height);
+						XResizeWindow(dpy, resizebar_win, recalceddims.width, BARHEIGHT() - DEF_BORDERWIDTH);
+						write_titletext(c, resizebar_win);
+					}
+				}
 				break;
 		}
 	}
-	while (ev.type != ButtonRelease);
+	while (!end_resize);
 
 	XUngrabServer(dpy);
 	ungrab();
-	last_focused_client = copy_focused;
-	c->x = newdims.x;
-	c->y = newdims.y;
-	c->width = newdims.width + 1;
-	c->height = newdims.height + 1;
+	c->x = recalceddims.x;
+	c->y = recalceddims.y + BARHEIGHT();
+	c->width = recalceddims.width;// + 1;
+	c->height = recalceddims.height - BARHEIGHT();// + 1;
+
 	XMoveResizeWindow(dpy, c->frame, c->x, c->y - BARHEIGHT(), c->width, c->height + BARHEIGHT());
-	XMoveResizeWindow(dpy, c->window, 0, BARHEIGHT(), c->width, c->height);
+	XResizeWindow(dpy, c->window, c->width, c->height);
+
+	// unhide real windows frame
+	XMapWindow(dpy, c->frame);
+
 	send_config(c);
 	XDestroyWindow(dpy, constraint_win);
 	XDestroyWindow(dpy, resizebar_win);
 	XDestroyWindow(dpy, resize_win);
 }
 
-static void recalc_sweep(Client *c, int x2, int y2, Rect *newdims)
+static void limit_size(Client *c, Rect *newdims)
 {
 	int dw, dh;
 	dw = DisplayWidth(dpy, screen);
 	dh = DisplayHeight(dpy, screen);
-	newdims->width = (x2 - newdims->x) - BORDERWIDTH(c);
-	newdims->height = (y2 - newdims->y) - BORDERWIDTH(c);
-	get_incsize(c, &newdims->width, &newdims->height, newdims, PIXELS);
 
 	if (c->size->flags & PMinSize)
 	{
@@ -436,7 +521,7 @@ static void recalc_sweep(Client *c, int x2, int y2, Rect *newdims)
  * the number of multiples (if mode == INCREMENTS) or the correct size
  * in pixels for said multiples (if mode == PIXELS). */
 
-static int get_incsize(Client *c, int *x_ret, int *y_ret, Rect *newdims, int mode)
+static int get_incsize(Client *c, unsigned int *x_ret, unsigned int *y_ret, Rect *newdims, int mode)
 {
 	int basex, basey;
 	if (c->size->flags & PResizeInc)
@@ -473,12 +558,12 @@ void write_titletext(Client *c, Window bar_win)
 		return;
 	}
 #endif
-	if (!c->trans && c->name)
+	if (!c->trans && c->name != NULL)
 	{
 #ifdef XFT
 		XftDrawString8(c->xftdraw, &xft_detail,
 			xftfont, SPACE, SPACE + xftfont->ascent,
-			c->name, strlen(c->name));
+			(unsigned char *)c->name, strlen(c->name));
 #else
 		XDrawString(dpy, bar_win, text_gc,
 			SPACE, SPACE + font->ascent,
@@ -486,4 +571,3 @@ void write_titletext(Client *c, Window bar_win)
 #endif
 	}
 }
-

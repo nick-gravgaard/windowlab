@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2003 Nick Gravgaard
+ * Copyright (c) 2001-2004 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/windowlab/
  *
@@ -21,7 +21,7 @@
 #ifndef WINDOWLAB_H
 #define WINDOWLAB_H
 
-#define VERSION "1.20"
+#define VERSION "1.21"
 
 #include <limits.h>
 #include <stdio.h>
@@ -69,6 +69,8 @@
 #define ChildMask (SubstructureRedirectMask|SubstructureNotifyMask)
 #define ButtonMask (ButtonPressMask|ButtonReleaseMask)
 #define MouseMask (ButtonMask|PointerMotionMask)
+
+#define ABS(x) (((x) < 0) ? -(x) : (x))
 
 // shorthand for wordy function calls
 #define setmouse(w, x, y) XWarpPointer(dpy, None, w, 0, 0, 0, 0, x, y)
@@ -198,7 +200,7 @@ extern XftColor xft_detail;
 #endif
 extern GC border_gc, text_gc, active_gc, depressed_gc, inactive_gc, menu_gc, selected_gc, empty_gc;
 extern XColor border_col, text_col, active_col, depressed_col, inactive_col, menu_col, selected_col, empty_col;
-extern Cursor move_curs, resizestart_curs, resizeend_curs;
+extern Cursor moveresize_curs;
 extern Atom wm_state, wm_change_state, wm_protos, wm_delete, wm_cmapwins;
 #ifdef MWM_HINTS
 extern Atom mwm_hints;
@@ -224,7 +226,7 @@ extern void gravitate(Client *, int);
 extern void set_shape(Client *);
 #endif
 extern void check_focus(Client *);
-extern void draw_redraw_button(Client *, GC *, GC *);
+extern void draw_resize_button(Client *, GC *, GC *);
 extern void draw_toggledepth_button(Client *, GC *, GC *);
 extern void draw_close_button(Client *, GC *, GC *);
 
@@ -251,6 +253,7 @@ int send_xmessage(Window, Atom, long);
 void get_mouse_position(int *, int *);
 void fix_position(Client *);
 void refix_position(Client *, XConfigureRequestEvent *);
+void copy_dims(Rect *, Rect *);
 #ifdef DEBUG
 extern void show_event(XEvent);
 extern void dump(Client *);

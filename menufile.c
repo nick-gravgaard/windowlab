@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2003 Nick Gravgaard
+ * Copyright (c) 2001-2004 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/windowlab/
  *
@@ -38,11 +38,11 @@ void get_menuitems(void)
 	memset(menuitems, '0', MAX_MENUITEMS_SIZE);
 
 	snprintf(defmenurc, sizeof defmenurc, "%s/.windowlab/menurc", getenv("HOME"));
-	if (!(menufile = fopen(defmenurc, "r")))
+	if ((menufile = fopen(defmenurc, "r")) == NULL)
 	{
 		menufile = fopen(DEF_MENURC, "r");
 	}
-	if (menufile)
+	if (menufile != NULL)
 	{
 		num_menuitems = 0;
 		while ((!feof(menufile)) && (!ferror(menufile)))
@@ -86,7 +86,7 @@ void get_menuitems(void)
 	{
 		menuitems[i].x = button_startx;
 #ifdef XFT
-		XftTextExtents8(dpy, xftfont, menuitems[i].label, strlen(menuitems[i].label), &extents);
+		XftTextExtents8(dpy, xftfont, (unsigned char *)menuitems[i].label, strlen(menuitems[i].label), &extents);
 		menuitems[i].width = extents.width + (SPACE * 4);
 #else
 		menuitems[i].width = XTextWidth(font, menuitems[i].label, strlen(menuitems[i].label)) + (SPACE * 4);

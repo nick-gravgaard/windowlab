@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2003 Nick Gravgaard
+ * Copyright (c) 2001-2004 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/windowlab/
  *
@@ -90,7 +90,7 @@ void lclick_taskbar(unsigned int x)
 	float button_width;
 	unsigned int button_clicked, old_button_clicked, i;
 	Client *c, *exposed_c;
-	if (head_client)
+	if (head_client != NULL)
 	{
 		get_mouse_position(&mousex, &mousey);
 
@@ -104,6 +104,7 @@ void lclick_taskbar(unsigned int x)
 
 		if (!(XGrabPointer(dpy, root, False, MouseMask, GrabModeAsync, GrabModeAsync, constraint_win, None, CurrentTime) == GrabSuccess))
 		{
+			XDestroyWindow(dpy, constraint_win);
 			return;
 		}
 
@@ -166,6 +167,7 @@ void rclick_taskbar(unsigned int x)
 
 	if (!(XGrabPointer(dpy, root, False, MouseMask, GrabModeAsync, GrabModeAsync, constraint_win, None, CurrentTime) == GrabSuccess))
 	{
+		XDestroyWindow(dpy, constraint_win);
 		return;
 	}
 	draw_menubar();
@@ -231,9 +233,9 @@ void redraw_taskbar(void)
 	button_width = get_button_width();
 	XClearWindow(dpy, taskbar);
 
-	if (!showing_taskbar) return;
+	if (showing_taskbar == 0) return;
 
-	for (c = head_client, i=0; c; c = c->next, i++)
+	for (c = head_client, i = 0; c != NULL; c = c->next, i++)
 	{
 		button_startx = (unsigned int)(i * button_width);
 		button_iwidth = (unsigned int)(((i + 1) * button_width) - button_startx);
@@ -249,12 +251,12 @@ void redraw_taskbar(void)
 		{
 			XFillRectangle(dpy, taskbar, inactive_gc, button_startx, 0, button_iwidth, BARHEIGHT() - DEF_BORDERWIDTH);
 		}
-		if (!c->trans && c->name)
+		if (!c->trans && c->name != NULL)
 		{
 #ifdef XFT
 			XftDrawString8(tbxftdraw, &xft_detail,
 				xftfont, button_startx + SPACE, SPACE + xftfont->ascent,
-				c->name, strlen(c->name));
+				(unsigned char *)c->name, strlen(c->name));
 #else
 			XDrawString(dpy, taskbar, text_gc,
 				button_startx + SPACE, SPACE + font->ascent,
@@ -277,7 +279,7 @@ void draw_menubar(void)
 #ifdef XFT
 			XftDrawString8(tbxftdraw, &xft_detail, xftfont,
 				menuitems[i].x + (SPACE * 2), xftfont->ascent + SPACE,
-				menuitems[i].label, strlen(menuitems[i].label));
+				(unsigned char *)menuitems[i].label, strlen(menuitems[i].label));
 #else
 			XDrawString(dpy, taskbar, text_gc,
 				menuitems[i].x + (SPACE * 2), font->ascent + SPACE,
@@ -340,7 +342,7 @@ void draw_menuitem(unsigned int index, unsigned int active)
 #ifdef XFT
 	XftDrawString8(tbxftdraw, &xft_detail, xftfont,
 		menuitems[index].x + (SPACE * 2), xftfont->ascent + SPACE,
-		menuitems[index].label, strlen(menuitems[index].label));
+		(unsigned char *)menuitems[index].label, strlen(menuitems[index].label));
 #else
 	XDrawString(dpy, taskbar, text_gc,
 		menuitems[index].x + (SPACE * 2), font->ascent + SPACE,
@@ -359,5 +361,3 @@ float get_button_width(void)
 	}
 	return ((float)(DisplayWidth(dpy, screen) + DEF_BORDERWIDTH)) / nwins;
 }
-
-
