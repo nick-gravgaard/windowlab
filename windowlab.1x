@@ -34,19 +34,19 @@ F11 to toggle fullscreen mode on and off for non transient windows. This may be 
 F12 to toggle the windows depth. This is the same as pressing a windows middle button
 .SH OPTIONS
 .TP
-.B -fn \fIfont-spec\fP
+.B -font \fIfont-spec\fP
 Draw window titles with the font defined by
 .IR font-spec .
 .TP
-.B -bw \fIwidth\fP
+.B -borderwidth \fIwidth\fP
 Draw window borders
 .I width
 pixels wide.
 .TP
-.B -fg \fIcolor\fP, -bg \fIcolor\fP, -db \fIcolor\fP, -fc \fIcolor\fP, -bd \fIcolor\fP, -mb \fIcolor\fP, -sm \fIcolor\fP
+.B -detail \fIcolor\fP, -active \fIcolor\fP, -inactive \fIcolor\fP, -menu \fIcolor\fP, -selected \fIcolor\fP
 Use
 .I color
-for the foreground, active background, depressed active background, inactive background, borders, the menubar and selected menu items respectively.
+for detail (text and borders), the active background, the inactive background, the menubar and selected menu items respectively.
 .TP
 .B -version
 Print version information to stdout and exit.

@@ -256,11 +256,11 @@ static void reparent(Client *c)
 	XSetWindowAttributes pattr;
 
 	pattr.override_redirect = True;
-	pattr.background_pixel = fc.pixel;
-	pattr.border_pixel = bd.pixel;
+	pattr.background_pixel = inactive_col.pixel;
+	pattr.border_pixel = detail_col.pixel;
 	pattr.event_mask = ChildMask|ButtonPressMask|ExposureMask|EnterWindowMask;
 	c->frame = XCreateWindow(dpy, root,
-		c->x, c->y - BARHEIGHT(), c->width, c->height + BARHEIGHT(), BW(c),
+		c->x, c->y - BARHEIGHT(), c->width, c->height + BARHEIGHT(), BORDERWIDTH(c),
 		DefaultDepth(dpy, screen), CopyFromParent, DefaultVisual(dpy, screen),
 		CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWEventMask, &pattr);
 

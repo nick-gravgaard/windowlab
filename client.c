@@ -66,7 +66,7 @@ void set_wm_state(Client *c, int state)
 	{
 		if (c == last_focused_client)
 		{
-			last_focused_client = 0;
+			last_focused_client = NULL;
 		}
 	}
 }
@@ -122,7 +122,7 @@ void send_config(Client *c)
  * itself completely before the Unmap and Destroy events get through
  * the queue to us. It's not absolutely perfect, but it works.
  *
- * The 'withdrawing' argument specifes if the client is actually
+ * The 'withdrawing' argument specifies if the client is actually
  * (destroying itself||being destroyed by us) or if we are merely
  * cleaning up its data structures when we exit mid-session. */
 
@@ -187,6 +187,10 @@ void remove_client(Client *c, int mode)
 	{
 		last_focused_client = NULL;
 	}
+	if (c == fullscreen_client)
+	{
+		fullscreen_client = NULL;
+	}
 	free(c);
 
 	XSync(dpy, False);
@@ -216,7 +220,7 @@ void redraw(Client *c)
 	if (!c->trans && c->name)
 	{
 #ifdef XFT
-		XftDrawString8(c->xftdraw, &xft_fg,
+		XftDrawString8(c->xftdraw, &xft_detail,
 			xftfont, SPACE, SPACE + xftfont->ascent,
 			c->name, strlen(c->name));
 #else
@@ -235,17 +239,17 @@ void redraw(Client *c)
 		XFillRectangle(dpy, c->frame, inactive_gc, c->width - (BARHEIGHT() * 3), 0, BARHEIGHT() * 3, BARHEIGHT());
 	}
 	XDrawLine(dpy, c->frame, border_gc,
-		0, BARHEIGHT() - BW(c) + BW(c)/2,
-		c->width, BARHEIGHT() - BW(c) + BW(c)/2);
+		0, BARHEIGHT() - BORDERWIDTH(c) + BORDERWIDTH(c)/2,
+		c->width, BARHEIGHT() - BORDERWIDTH(c) + BORDERWIDTH(c)/2);
 	XDrawLine(dpy, c->frame, border_gc,
-		c->width - BARHEIGHT() + BW(c) / 2, 0,
-		c->width - BARHEIGHT() + BW(c) / 2, BARHEIGHT());
+		c->width - BARHEIGHT() + BORDERWIDTH(c) / 2, 0,
+		c->width - BARHEIGHT() + BORDERWIDTH(c) / 2, BARHEIGHT());
 	XDrawLine(dpy, c->frame, border_gc,
-		c->width - (BARHEIGHT() * 2) + BW(c) / 2, 0,
-		c->width - (BARHEIGHT() * 2) + BW(c) / 2, BARHEIGHT());
+		c->width - (BARHEIGHT() * 2) + BORDERWIDTH(c) / 2, 0,
+		c->width - (BARHEIGHT() * 2) + BORDERWIDTH(c) / 2, BARHEIGHT());
 	XDrawLine(dpy, c->frame, border_gc,
-		c->width - (BARHEIGHT() * 3) + BW(c) / 2, 0,
-		c->width - (BARHEIGHT() * 3) + BW(c) / 2, BARHEIGHT());
+		c->width - (BARHEIGHT() * 3) + BORDERWIDTH(c) / 2, 0,
+		c->width - (BARHEIGHT() * 3) + BORDERWIDTH(c) / 2, BARHEIGHT());
 }
 
 /* Window gravity is a mess to explain, but we don't need to do much
@@ -296,16 +300,16 @@ void set_shape(Client *c)
 	{
 		XShapeCombineShape(dpy, c->frame, ShapeBounding,
 			0, BARHEIGHT(), c->window, ShapeBounding, ShapeSet);
-		temp.x = -BW(c);
-		temp.y = -BW(c);
-		temp.width = c->width + 2*BW(c);
-		temp.height = BARHEIGHT() + BW(c);
+		temp.x = -BORDERWIDTH(c);
+		temp.y = -BORDERWIDTH(c);
+		temp.width = c->width + 2*BORDERWIDTH(c);
+		temp.height = BARHEIGHT() + BORDERWIDTH(c);
 		XShapeCombineRectangles(dpy, c->frame, ShapeBounding,
 			0, 0, &temp, 1, ShapeUnion, YXBanded);
 		temp.x = 0;
 		temp.y = 0;
 		temp.width = c->width;
-		temp.height = BARHEIGHT() - BW(c);
+		temp.height = BARHEIGHT() - BORDERWIDTH(c);
 		XShapeCombineRectangles(dpy, c->frame, ShapeClip,
 			0, BARHEIGHT(), &temp, 1, ShapeUnion, YXBanded);
 		c->has_been_shaped = 1;
@@ -315,10 +319,10 @@ void set_shape(Client *c)
 		if (c->has_been_shaped)
 		{
 			//I can't find a 'remove all shaping' function...
-			temp.x = -BW(c);
-			temp.y = -BW(c);
-			temp.width = c->width + 2*BW(c);
-			temp.height = c->height + BARHEIGHT() + 2*BW(c);
+			temp.x = -BORDERWIDTH(c);
+			temp.y = -BORDERWIDTH(c);
+			temp.width = c->width + 2*BORDERWIDTH(c);
+			temp.height = c->height + BARHEIGHT() + 2*BORDERWIDTH(c);
 			XShapeCombineRectangles(dpy, c->frame, ShapeBounding,
 				0, 0, &temp, 1, ShapeSet, YXBanded);
 		}

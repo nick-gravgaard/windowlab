@@ -21,8 +21,8 @@
 #include "windowlab.h"
 
 static void draw_menubar(void);
-static int update_menuitem(int);
-static void draw_menuitem(int, int);
+static unsigned int update_menuitem(unsigned int);
+static void draw_menuitem(unsigned int, unsigned int);
 
 Window taskbar;
 #ifdef XFT
@@ -34,11 +34,11 @@ void make_taskbar(void)
 	XSetWindowAttributes pattr;
 
 	pattr.override_redirect = True;
-	pattr.background_pixel = fc.pixel;
-	pattr.border_pixel = bd.pixel;
+	pattr.background_pixel = inactive_col.pixel;
+	pattr.border_pixel = detail_col.pixel;
 	pattr.event_mask = ChildMask|ButtonPressMask|ExposureMask|EnterWindowMask;
 	taskbar = XCreateWindow(dpy, root,
-		0 - DEF_BW, 0 - DEF_BW, DisplayWidth(dpy, screen), BARHEIGHT(), DEF_BW,
+		0 - DEF_BORDERWIDTH, 0 - DEF_BORDERWIDTH, DisplayWidth(dpy, screen), BARHEIGHT(), DEF_BORDERWIDTH,
 		DefaultDepth(dpy, screen), CopyFromParent, DefaultVisual(dpy, screen),
 		CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWEventMask, &pattr);
 
@@ -121,7 +121,7 @@ void rclick_taskbar(void)
 		return;
 	}
 	draw_menubar();
-	update_menuitem(0xffff); // force initial highlight
+	update_menuitem(UINT_MAX); // force initial highlight
 	do
 	{
 		XMaskEvent(dpy, MouseMask, &ev);
@@ -201,12 +201,12 @@ void redraw_taskbar(void)
 		if (!c->trans && c->name)
 		{
 #ifdef XFT
-			XftDrawString8(tbxftdraw, &xft_fg,
-				xftfont, button_startx + SPACE + (DEF_BW/2), SPACE + xftfont->ascent,
+			XftDrawString8(tbxftdraw, &xft_detail,
+				xftfont, button_startx + SPACE + (DEF_BORDERWIDTH/2), SPACE + xftfont->ascent,
 				c->name, strlen(c->name));
 #else
 			XDrawString(dpy, taskbar, string_gc,
-				button_startx + SPACE + (DEF_BW/2), SPACE + font->ascent,
+				button_startx + SPACE + (DEF_BORDERWIDTH/2), SPACE + font->ascent,
 				c->name, strlen(c->name));
 #endif
 		}
@@ -217,14 +217,14 @@ void draw_menubar(void)
 {
 	unsigned int i, dw;
 	dw = DisplayWidth(dpy, screen);
-	XFillRectangle(dpy, taskbar, menubar_gc, 0, 0, dw, BARHEIGHT());
+	XFillRectangle(dpy, taskbar, menu_gc, 0, 0, dw, BARHEIGHT());
 
 	for (i = 0; i < num_menuitems; i++)
 	{
 		if (menuitems[i].label && menuitems[i].command)
 		{
 #ifdef XFT
-			XftDrawString8(tbxftdraw, &xft_fg, xftfont,
+			XftDrawString8(tbxftdraw, &xft_detail, xftfont,
 				menuitems[i].x + (SPACE * 2), xftfont->ascent + SPACE,
 				menuitems[i].label, strlen(menuitems[i].label));
 #else
@@ -236,7 +236,7 @@ void draw_menubar(void)
 	}
 }
 
-int update_menuitem(int mousex)
+unsigned int update_menuitem(unsigned int mousex)
 {
 	static unsigned int last_item; // retain value from last call
 	unsigned int i;
@@ -271,18 +271,18 @@ int update_menuitem(int mousex)
 	}
 }
 
-void draw_menuitem(int index, int active)
+void draw_menuitem(unsigned int index, unsigned int active)
 {
 	if (active)
 	{
-		XFillRectangle(dpy, taskbar, menusel_gc, menuitems[index].x, 0, menuitems[index].width, BARHEIGHT());
+		XFillRectangle(dpy, taskbar, selected_gc, menuitems[index].x, 0, menuitems[index].width, BARHEIGHT());
 	}
 	else
 	{
-		XFillRectangle(dpy, taskbar, menubar_gc, menuitems[index].x, 0, menuitems[index].width, BARHEIGHT());
+		XFillRectangle(dpy, taskbar, menu_gc, menuitems[index].x, 0, menuitems[index].width, BARHEIGHT());
 	}
 #ifdef XFT
-	XftDrawString8(tbxftdraw, &xft_fg, xftfont,
+	XftDrawString8(tbxftdraw, &xft_detail, xftfont,
 		menuitems[index].x + (SPACE * 2), xftfont->ascent + SPACE,
 		menuitems[index].label, strlen(menuitems[index].label));
 #else

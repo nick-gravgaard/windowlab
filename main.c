@@ -29,10 +29,10 @@ int screen;
 XFontStruct *font;
 #ifdef XFT
 XftFont *xftfont;
-XftColor xft_fg;
+XftColor xft_detail;
 #endif
-GC string_gc, border_gc, active_gc, depressed_gc, inactive_gc, menubar_gc, menusel_gc;
-XColor fg, bg, db, fc, bd, mb, sm;
+GC string_gc, border_gc, active_gc, depressed_gc, inactive_gc, menu_gc, selected_gc;
+XColor detail_col, active_col, depressed_col, inactive_col, menu_col, selected_col;
 Cursor move_curs, resizestart_curs, resizeend_curs;
 Atom wm_state, wm_change_state, wm_protos, wm_delete, wm_cmapwins;
 #ifdef MWM_HINTS
@@ -41,14 +41,12 @@ Atom mwm_hints;
 Client *head_client, *last_focused_client, *fullscreen_client;
 Rect fs_prevdims;
 char *opt_font = DEF_FONT;
-char *opt_fg = DEF_FG;
-char *opt_bg = DEF_BG;
-char *opt_db = DEF_DB;
-char *opt_fc = DEF_FC;
-char *opt_bd = DEF_BD;
-char *opt_mb = DEF_MB;
-char *opt_sm = DEF_SM;
-int opt_bw = DEF_BW;
+char *opt_detail = DEF_DETAIL;
+char *opt_active = DEF_ACTIVE;
+char *opt_inactive = DEF_INACTIVE;
+char *opt_menu = DEF_MENU;
+char *opt_selected = DEF_SELECTED;
+int opt_borderwidth = DEF_BORDERWIDTH;
 #ifdef SHAPE
 Bool shape;
 int shape_event;
@@ -78,15 +76,13 @@ int main(int argc, char **argv)
 
 	for (i = 1; i < argc; i++)
 	{
-		OPT_STR("-fn", opt_font)
-		OPT_STR("-fg", opt_fg)
-		OPT_STR("-bg", opt_bg)
-		OPT_STR("-db", opt_db)
-		OPT_STR("-fc", opt_fc)
-		OPT_STR("-bd", opt_bd)
-		OPT_STR("-mb", opt_mb)
-		OPT_STR("-sm", opt_sm)
-		OPT_INT("-bw", opt_bw)
+		OPT_STR("-font", opt_font)
+		OPT_STR("-detail", opt_detail)
+		OPT_STR("-active", opt_active)
+		OPT_STR("-inactive", opt_inactive)
+		OPT_STR("-menu", opt_menu)
+		OPT_STR("-selected", opt_selected)
+		OPT_INT("-borderwidth", opt_borderwidth)
 		if (strcmp(argv[i], "-version") == 0)
 		{
 			printf("windowlab: version " VERSION "\n");
@@ -94,7 +90,7 @@ int main(int argc, char **argv)
 		}
 		// shouldn't get here; must be a bad option
 		err("usage: windowlab [options]\n"
-			"       options are: -fn <font>, -fg|-bg|-db|-fc|-bd|-mb|-sm <color>, -bw <width>");
+			"       options are: -font <font>, -detail|-active|-inactive|-menu|-selected <color>, -borderwidth <width>");
 		return 2;
 	}
 
@@ -164,13 +160,20 @@ static void setup_display(void)
 	mwm_hints = XInternAtom(dpy, _XA_MWM_HINTS, False);
 #endif
 
-	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_fg, &fg, &dummyc);
-	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_bg, &bg, &dummyc);
-	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_db, &db, &dummyc);
-	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_fc, &fc, &dummyc);
-	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_bd, &bd, &dummyc);
-	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_mb, &mb, &dummyc);
-	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_sm, &sm, &dummyc);
+	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_detail, &detail_col, &dummyc);
+	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_active, &active_col, &dummyc);
+	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_inactive, &inactive_col, &dummyc);
+	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_menu, &menu_col, &dummyc);
+	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_selected, &selected_col, &dummyc);
+
+	depressed_col.pixel = active_col.pixel;
+	depressed_col.red = active_col.red - ACTIVE_SHADOW;
+	depressed_col.green = active_col.green - ACTIVE_SHADOW;
+	depressed_col.blue = active_col.blue - ACTIVE_SHADOW;
+	depressed_col.red = depressed_col.red <= (USHRT_MAX - ACTIVE_SHADOW) ? depressed_col.red : 0;
+	depressed_col.green = depressed_col.green <= (USHRT_MAX - ACTIVE_SHADOW) ? depressed_col.green : 0;
+	depressed_col.blue = depressed_col.blue <= (USHRT_MAX - ACTIVE_SHADOW) ? depressed_col.blue : 0;
+	XAllocColor(dpy, DefaultColormap(dpy, screen), &depressed_col);
 
 	font = XLoadQueryFont(dpy, opt_font);
 	if (!font)
@@ -180,11 +183,11 @@ static void setup_display(void)
 	}
 
 #ifdef XFT
-	xft_fg.color.red = fg.red;
-	xft_fg.color.green = fg.green;
-	xft_fg.color.blue = fg.blue;
-	xft_fg.color.alpha = 0xffff;
-	xft_fg.pixel = fg.pixel;
+	xft_detail.color.red = detail_col.red;
+	xft_detail.color.green = detail_col.green;
+	xft_detail.color.blue = detail_col.blue;
+	xft_detail.color.alpha = 0xffff;
+	xft_detail.pixel = detail_col.pixel;
 
 	xftfont = XftFontOpenXlfd(dpy, DefaultScreen(dpy), opt_font);
 	if (!xftfont)
@@ -218,28 +221,28 @@ static void setup_display(void)
 	XFree(modmap);
 
 	gv.function = GXcopy;
-	gv.foreground = fg.pixel;
+	gv.foreground = detail_col.pixel;
 	gv.font = font->fid;
 	string_gc = XCreateGC(dpy, root, GCFunction|GCForeground|GCFont, &gv);
 
-	gv.foreground = bd.pixel;
-	gv.line_width = opt_bw;
+	gv.foreground = detail_col.pixel;
+	gv.line_width = opt_borderwidth;
 	border_gc = XCreateGC(dpy, root, GCFunction|GCForeground|GCLineWidth, &gv);
 
-	gv.foreground = bg.pixel;
+	gv.foreground = active_col.pixel;
 	active_gc = XCreateGC(dpy, root, GCFunction|GCForeground, &gv);
 
-	gv.foreground = db.pixel;
+	gv.foreground = depressed_col.pixel;
 	depressed_gc = XCreateGC(dpy, root, GCFunction|GCForeground, &gv);
 
-	gv.foreground = fc.pixel;
+	gv.foreground = inactive_col.pixel;
 	inactive_gc = XCreateGC(dpy, root, GCFunction|GCForeground, &gv);
 
-	gv.foreground = mb.pixel;
-	menubar_gc = XCreateGC(dpy, root, GCFunction|GCForeground, &gv);
+	gv.foreground = menu_col.pixel;
+	menu_gc = XCreateGC(dpy, root, GCFunction|GCForeground, &gv);
 
-	gv.foreground = sm.pixel;
-	menusel_gc = XCreateGC(dpy, root, GCFunction|GCForeground, &gv);
+	gv.foreground = selected_col.pixel;
+	selected_gc = XCreateGC(dpy, root, GCFunction|GCForeground, &gv);
 
 	sattr.event_mask = ChildMask|ColormapChangeMask|ButtonMask;
 	XChangeWindowAttributes(dpy, root, CWEventMask, &sattr);

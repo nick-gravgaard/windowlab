@@ -153,22 +153,22 @@ void fix_position(Client *c)
 	{
 		c->x = 0;
 	}
-	if (c->y < BARHEIGHT() + BW(c))
+	if (c->y < BARHEIGHT() + BORDERWIDTH(c))
 	{
-		c->y = BARHEIGHT() + BW(c);
+		c->y = BARHEIGHT() + BORDERWIDTH(c);
 	}
 
-	if (c->x + c->width + BW(c) >= xmax)
+	if (c->x + c->width + BORDERWIDTH(c) >= xmax)
 	{
 		c->x = xmax - c->width;
 	}
-	if (c->y + c->height + BARHEIGHT() + BW(c) >= ymax)
+	if (c->y + c->height + BARHEIGHT() >= ymax)
 	{
-		c->y = ymax - c->height - BARHEIGHT() + BW(c);
+		c->y = ymax - c->height - BARHEIGHT();
 	}
 
-	c->x -= BW(c);
-	c->y -= BW(c);
+	c->x -= BORDERWIDTH(c);
+	c->y -= BORDERWIDTH(c);
 }
 
 /* If this is the fullscreen client we don't take BARHEIGHT() into account
@@ -182,31 +182,31 @@ void refix_position(Client *c, XConfigureRequestEvent *e)
 
 	if (fullscreen_client == c) has_decor = 0;
 
-	if (c->width < MINWINWIDTH - BW(c))
+	if (c->width < MINWINWIDTH - BORDERWIDTH(c))
 	{
-		c->width = MINWINWIDTH - BW(c);
+		c->width = MINWINWIDTH - BORDERWIDTH(c);
 		e->value_mask |= CWWidth;
 	}
-	if (c->height < MINWINHEIGHT - BW(c))
+	if (c->height < MINWINHEIGHT - BORDERWIDTH(c))
 	{
-		c->height = MINWINHEIGHT - BW(c);
+		c->height = MINWINHEIGHT - BORDERWIDTH(c);
 		e->value_mask |= CWHeight;
 	}
 	
-	if (c->width + BW(c) > xmax)
+	if (c->width + BORDERWIDTH(c) > xmax)
 	{
 		c->width = xmax;
 		e->value_mask |= CWWidth;
 	}
-	if (c->height + ((BARHEIGHT() * 2) * has_decor) + BW(c) > ymax)
+	if (c->height + ((BARHEIGHT() * 2) * has_decor) + BORDERWIDTH(c) > ymax)
 	{
 		c->height = ymax - ((BARHEIGHT() * 2) * has_decor);
 		e->value_mask |= CWHeight;
 	}
 
-	if (c->x + BW(c) < 0)
+	if (c->x + BORDERWIDTH(c) < 0)
 	{
-		c->x = 0 - BW(c);
+		c->x = 0 - BORDERWIDTH(c);
 		e->value_mask |= CWX;
 	}
 	if (c->y < (BARHEIGHT() * 2) * has_decor)
@@ -217,13 +217,13 @@ void refix_position(Client *c, XConfigureRequestEvent *e)
 
 	if (c->x + c->width >= xmax)
 	{
-		c->x = xmax - c->width - BW(c);
+		c->x = xmax - c->width - BORDERWIDTH(c);
 		e->value_mask |= CWX;
 	}
 	// note that this next bit differs from fix_position() because here we ensure that the titlebar is visible as opposed to the whole window
 	if (c->y + (BARHEIGHT() * has_decor) >= ymax)
 	{
-		c->y = ymax - (BARHEIGHT() * has_decor) - BW(c);
+		c->y = ymax - (BARHEIGHT() * has_decor) - BORDERWIDTH(c);
 		e->value_mask |= CWY;
 	}
 }

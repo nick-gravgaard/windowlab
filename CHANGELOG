@@ -1,3 +1,14 @@
+1.13 (2003-08-09)
+
+* depressed button colour is now derived from the active titlebar colour
+* removed redundant command line arguments and made the rest less cryptic
+* clients that cannot be made as big as the screen are now centred when put into fullscreen mode
+* Makefile now prompts the user before overwriting an existing menurc file
+* integrated more changes from David Lawrence Ramsey:
+	* fullscreen_client now set to NULL in send_wm_delete()
+	* made a few minor cleanups
+
+
 1.12 (2003-07-20)
 
 * cycle_previous() and cycle_next() greatly simplified

@@ -71,6 +71,7 @@ void unhide(Client *c)
 
 void toggle_fullscreen(Client *c)
 {
+	unsigned int xoffset, yoffset, displaywidth, displayheight;
 	if (c && !c->trans)
 	{
 		if (c == fullscreen_client) // reset to original size
@@ -86,6 +87,9 @@ void toggle_fullscreen(Client *c)
 		}
 		else // make fullscreen
 		{
+			xoffset = yoffset = 0;
+			displaywidth = DisplayWidth(dpy, screen);
+			displayheight = DisplayHeight(dpy, screen);
 			if (fullscreen_client) // reset existing fullscreen window to original size
 			{
 				fullscreen_client->x = fs_prevdims.x;
@@ -101,12 +105,25 @@ void toggle_fullscreen(Client *c)
 			fs_prevdims.y = c->y;
 			fs_prevdims.width = c->width;
 			fs_prevdims.height = c->height;
-			c->x = 0 - BW(c);
-			c->y = 0 - BW(c);
-			c->width = DisplayWidth(dpy, screen);
-			c->height = DisplayHeight(dpy, screen);
-			XMoveResizeWindow(dpy, c->frame, c->x, c->y - BARHEIGHT(), c->width, c->height + BARHEIGHT());
-			XMoveResizeWindow(dpy, c->window, 0, BARHEIGHT(), c->width, c->height);
+			c->x = 0 - BORDERWIDTH(c);
+			c->y = 0 - BORDERWIDTH(c);
+			c->width = displaywidth;
+			c->height = displayheight;
+			if (c->size->flags & PMaxSize)
+			{
+				if (c->size->max_width < displaywidth)
+				{
+					c->width = c->size->max_width;
+					xoffset = (displaywidth - c->width) / 2;
+				}
+				if (c->size->max_height < displayheight)
+				{
+					c->height = c->size->max_height;
+					yoffset = (displayheight - c->height) / 2;
+				}
+			}
+			XMoveResizeWindow(dpy, c->frame, c->x, c->y - BARHEIGHT(), displaywidth, displayheight + BARHEIGHT());
+			XMoveResizeWindow(dpy, c->window, xoffset, yoffset + BARHEIGHT(), c->width, c->height);
 			send_config(c);
 			fullscreen_client = c;
 		}
@@ -162,7 +179,7 @@ static void drag(Client *c)
 	dh = DisplayHeight(dpy, screen);
 	get_mouse_position(&mousex, &mousey);
 
-	bound.x = (mousex - c->x) - BW(c);
+	bound.x = (mousex - c->x) - BORDERWIDTH(c);
 	bound.width = (dw - bound.x - (c->width - bound.x)) + 1;
 	bound.y = mousey - c->y;
 	bound.height = (dh - bound.y - (c->height - bound.y)) + 1;
@@ -219,8 +236,8 @@ static void sweep(Client *c)
 
 	bound.x = 1;
 	bound.width = dw;
-	bound.y = BARHEIGHT() + BW(c) + 1;
-	bound.height = dh - BARHEIGHT() - BW(c);
+	bound.y = BARHEIGHT() + BORDERWIDTH(c) + 1;
+	bound.height = dh - BARHEIGHT() - BORDERWIDTH(c);
 
 	constraint_win = XCreateWindow(dpy, root, bound.x, bound.y, bound.width, bound.height, 0, CopyFromParent, InputOnly, CopyFromParent, 0, &pattr);
 	XMapWindow(dpy, constraint_win);
@@ -242,8 +259,8 @@ static void sweep(Client *c)
 	last_focused_client = NULL;
 	redraw(copy_focused);
 
-	newdims.x -= (BW(c) + 1);
-	newdims.y -= (BW(c) + 1);
+	newdims.x -= (BORDERWIDTH(c) + 1);
+	newdims.y -= (BORDERWIDTH(c) + 1);
 	newdims.y += BARHEIGHT();
 
 	minw = c->size->min_width > MINWINWIDTH ? c->size->min_width : MINWINWIDTH;
@@ -263,11 +280,11 @@ static void sweep(Client *c)
 
 	if ((newdims.x + newdims.width) > dw)
 	{
-		newdims.x = ((dw - newdims.width) - 1) - BW(c);
+		newdims.x = ((dw - newdims.width) - 1) - BORDERWIDTH(c);
 	}
 	if ((newdims.y + newdims.height) > dh)
 	{
-		newdims.y = ((dh - newdims.height) - 1) - BW(c);
+		newdims.y = ((dh - newdims.height) - 1) - BORDERWIDTH(c);
 	}
 
 	bound.x = (newdims.x + newdims.width);
@@ -284,21 +301,21 @@ static void sweep(Client *c)
 
 	// create and map resize window
 	resize_pattr.override_redirect = True;
-	resize_pattr.background_pixel = fc.pixel;
-	resize_pattr.border_pixel = bd.pixel;
+	resize_pattr.background_pixel = inactive_col.pixel;
+	resize_pattr.border_pixel = detail_col.pixel;
 	resize_pattr.event_mask = ChildMask|ButtonPressMask|ExposureMask|EnterWindowMask;
 	resize_win = XCreateWindow(dpy, root,
-		newdims.x, newdims.y - BARHEIGHT(), newdims.width + 1, newdims.height + BARHEIGHT() + 1, DEF_BW,
+		newdims.x, newdims.y - BARHEIGHT(), newdims.width + 1, newdims.height + BARHEIGHT() + 1, DEF_BORDERWIDTH,
 		DefaultDepth(dpy, screen), CopyFromParent, DefaultVisual(dpy, screen),
 		CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWEventMask, &resize_pattr);
 	XMapWindow(dpy, resize_win);
 
 	resizebar_pattr.override_redirect = True;
-	resizebar_pattr.background_pixel = bg.pixel;
-	resizebar_pattr.border_pixel = bd.pixel;
+	resizebar_pattr.background_pixel = active_col.pixel;
+	resizebar_pattr.border_pixel = detail_col.pixel;
 	resizebar_pattr.event_mask = ChildMask|ButtonPressMask|ExposureMask|EnterWindowMask;
 	resizebar_win = XCreateWindow(dpy, resize_win,
-		-DEF_BW, -DEF_BW, newdims.width + 1, BARHEIGHT() - DEF_BW, DEF_BW,
+		-DEF_BORDERWIDTH, -DEF_BORDERWIDTH, newdims.width + 1, BARHEIGHT() - DEF_BORDERWIDTH, DEF_BORDERWIDTH,
 		DefaultDepth(dpy, screen), CopyFromParent, DefaultVisual(dpy, screen),
 		CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWEventMask, &resizebar_pattr);
 	XMapWindow(dpy, resizebar_win);
@@ -320,7 +337,7 @@ static void sweep(Client *c)
 			case MotionNotify:
 				recalc_sweep(c, ev.xmotion.x, ev.xmotion.y, &newdims);
 				XResizeWindow(dpy, resize_win, newdims.width + 1, newdims.height + BARHEIGHT() + 1);
-				XResizeWindow(dpy, resizebar_win, newdims.width + 1, BARHEIGHT() - DEF_BW);
+				XResizeWindow(dpy, resizebar_win, newdims.width + 1, BARHEIGHT() - DEF_BORDERWIDTH);
 				write_titletext(c, resizebar_win);
 				break;
 		}
@@ -347,8 +364,8 @@ static void recalc_sweep(Client *c, int x2, int y2, Rect *newdims)
 	int dw, dh;
 	dw = DisplayWidth(dpy, screen);
 	dh = DisplayHeight(dpy, screen);
-	newdims->width = (x2 - newdims->x) - BW(c);
-	newdims->height = (y2 - newdims->y) - BW(c);
+	newdims->width = (x2 - newdims->x) - BORDERWIDTH(c);
+	newdims->height = (y2 - newdims->y) - BORDERWIDTH(c);
 	get_incsize(c, &newdims->width, &newdims->height, newdims, PIXELS);
 
 	if (c->size->flags & PMinSize)
@@ -388,9 +405,9 @@ static void recalc_sweep(Client *c, int x2, int y2, Rect *newdims)
 	{
 		newdims->width = dw - 1;
 	}
-	if (newdims->height > dh - ((BARHEIGHT() * 2) + BW(c)) - 1)
+	if (newdims->height > dh - ((BARHEIGHT() * 2) + BORDERWIDTH(c)) - 1)
 	{
-		newdims->height = dh - ((BARHEIGHT() * 2) + BW(c)) - 1;
+		newdims->height = dh - ((BARHEIGHT() * 2) + BORDERWIDTH(c)) - 1;
 	}
 }
 
@@ -434,7 +451,7 @@ void write_titletext(Client *c, Window bar_win)
 	if (!c->trans && c->name)
 	{
 #ifdef XFT
-		XftDrawString8(c->xftdraw, &xft_fg,
+		XftDrawString8(c->xftdraw, &xft_detail,
 			xftfont, SPACE, SPACE + xftfont->ascent,
 			c->name, strlen(c->name));
 #else

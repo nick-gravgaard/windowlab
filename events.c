@@ -195,7 +195,7 @@ static void handle_windowbar_click(XButtonEvent *e, Client *c)
 		XGrabServer(dpy);
 
 		in_box = 1;
-		XFillRectangle(dpy, c->frame, depressed_gc, (c->width - ((in_box_down + 1) * BARHEIGHT())) + BW(c), 0, BARHEIGHT() - BW(c), BARHEIGHT() - BW(c));
+		XFillRectangle(dpy, c->frame, depressed_gc, (c->width - ((in_box_down + 1) * BARHEIGHT())) + BORDERWIDTH(c), 0, BARHEIGHT() - BORDERWIDTH(c), BARHEIGHT() - BORDERWIDTH(c));
 		do
 		{
 			XMaskEvent(dpy, MouseMask, &ev);
@@ -203,20 +203,20 @@ static void handle_windowbar_click(XButtonEvent *e, Client *c)
 			win_ypos = (ev.xbutton.y - c->y) + BARHEIGHT();
 			if (ev.type == MotionNotify)
 			{
-				if ((win_ypos <= BARHEIGHT()) && (win_ypos >= BW(c)) && (in_box_up == in_box_down))
+				if ((win_ypos <= BARHEIGHT()) && (win_ypos >= BORDERWIDTH(c)) && (in_box_up == in_box_down))
 				{
 					in_box = 1;
-					XFillRectangle(dpy, c->frame, depressed_gc, (c->width - ((in_box_down + 1) * BARHEIGHT())) + BW(c), 0, BARHEIGHT() - BW(c), BARHEIGHT() - BW(c));
+					XFillRectangle(dpy, c->frame, depressed_gc, (c->width - ((in_box_down + 1) * BARHEIGHT())) + BORDERWIDTH(c), 0, BARHEIGHT() - BORDERWIDTH(c), BARHEIGHT() - BORDERWIDTH(c));
 				}
 				else
 				{
 					in_box = 0;
-					XFillRectangle(dpy, c->frame, active_gc, (c->width - ((in_box_down + 1) * BARHEIGHT())) + BW(c), 0, BARHEIGHT() - BW(c), BARHEIGHT() - BW(c));
+					XFillRectangle(dpy, c->frame, active_gc, (c->width - ((in_box_down + 1) * BARHEIGHT())) + BORDERWIDTH(c), 0, BARHEIGHT() - BORDERWIDTH(c), BARHEIGHT() - BORDERWIDTH(c));
 				}
 			}
 		}
 		while (ev.type != ButtonRelease);
-		XFillRectangle(dpy, c->frame, active_gc, (c->width - ((in_box_down + 1) * BARHEIGHT())) + BW(c), 0, BARHEIGHT() - BW(c), BARHEIGHT() - BW(c));
+		XFillRectangle(dpy, c->frame, active_gc, (c->width - ((in_box_down + 1) * BARHEIGHT())) + BORDERWIDTH(c), 0, BARHEIGHT() - BORDERWIDTH(c), BARHEIGHT() - BORDERWIDTH(c));
 
 		XUngrabServer(dpy);
 		ungrab();
@@ -247,7 +247,7 @@ static void handle_windowbar_click(XButtonEvent *e, Client *c)
 
 static int box_clicked(Client *c, int x)
 {
-	int pix_from_right = (c->width - x) + BW(c);
+	int pix_from_right = (c->width - x) + BORDERWIDTH(c);
 	if (pix_from_right < 0)
 	{
 		return -1; // outside window
@@ -294,7 +294,7 @@ static void handle_configure_request(XConfigureRequestEvent *e)
 		wc.y = c->y - BARHEIGHT();
 		wc.width = c->width;
 		wc.height = c->height + BARHEIGHT();
-		wc.border_width = BW(c);
+		wc.border_width = BORDERWIDTH(c);
 		//wc.sibling = e->above;
 		//wc.stack_mode = e->detail;
 		XConfigureWindow(dpy, c->frame, e->value_mask, &wc);

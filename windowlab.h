@@ -21,8 +21,9 @@
 #ifndef WINDOWLAB_H
 #define WINDOWLAB_H
 
-#define VERSION "1.12"
+#define VERSION "1.13"
 
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -44,28 +45,27 @@
  * installations will have that available. */
 
 #ifdef XFT
-#define DEF_FONT	"-*-arial-medium-r-*-*-*-80-*-*-*-*-*-*"
+#define DEF_FONT "-*-arial-medium-r-*-*-*-80-*-*-*-*-*-*"
 #else
-#define DEF_FONT	"lucidasans-10"
+#define DEF_FONT "lucidasans-10"
 #endif
 // use named colours, #rgb, #rrggbb or #rrrgggbbb format
-#define DEF_FG		"#000" // foreground
-#define DEF_BG		"#fd0" // active background
-#define DEF_DB		"#db0" // depressed active background
-#define DEF_FC		"#aaa" // inactive background
-#define DEF_BD		"#000" // borders
-#define DEF_MB		"#ddd" // menubar
-#define DEF_SM		"#aad" // selected menu item
-#define DEF_BW		2
-#define SPACE		3
-#define MINSIZE		15
-#define MINWINWIDTH	80
-#define MINWINHEIGHT	80
+#define DEF_DETAIL "#000"
+#define DEF_ACTIVE "#fd0"
+#define DEF_INACTIVE "#aaa"
+#define DEF_MENU "#ddd"
+#define DEF_SELECTED "#aad"
+#define DEF_BORDERWIDTH 2
+#define ACTIVE_SHADOW 0x2000 // eg #fff becomes #ddd
+#define SPACE 3
+#define MINSIZE 15
+#define MINWINWIDTH 80
+#define MINWINHEIGHT 80
 // keys may be used by other apps, so change them here
-#define KEY_CYCLEPREV	XK_F9
-#define KEY_CYCLENEXT	XK_F10
-#define KEY_FULLSCREEN	XK_F11
-#define KEY_TOGGLEZ	XK_F12
+#define KEY_CYCLEPREV XK_F9
+#define KEY_CYCLENEXT XK_F10
+#define KEY_FULLSCREEN XK_F11
+#define KEY_TOGGLEZ XK_F12
 
 /* A few useful masks made up out of X's basic ones. `ChildMask' is a
  * silly name, but oh well. */
@@ -98,9 +98,9 @@
 // Border width accessor to handle hints/no hints
 
 #ifdef MWM_HINTS
-#define BW(c) ((c)->has_border ? opt_bw : 0)
+#define BORDERWIDTH(c) ((c)->has_border ? opt_borderwidth : 0)
 #else
-#define BW(c) (opt_bw)
+#define BORDERWIDTH(c) (opt_borderwidth)
 #endif
 
 // Bar height
@@ -203,17 +203,17 @@ extern Rect fs_prevdims;
 extern XFontStruct *font;
 #ifdef XFT
 extern XftFont *xftfont;
-extern XftColor xft_fg;
+extern XftColor xft_detail;
 #endif
-extern GC string_gc, border_gc, active_gc, depressed_gc, inactive_gc, menubar_gc, menusel_gc;
-extern XColor fg, bg, db, fc, bd;
+extern GC string_gc, border_gc, active_gc, depressed_gc, inactive_gc, menu_gc, selected_gc;
+extern XColor detail_col, active_col, depressed_col, inactive_col, menu_col, selected_col;
 extern Cursor move_curs, resizestart_curs, resizeend_curs;
 extern Atom wm_state, wm_change_state, wm_protos, wm_delete, wm_cmapwins;
 #ifdef MWM_HINTS
 extern Atom mwm_hints;
 #endif
-extern char *opt_font, *opt_fg, *opt_bg, *opt_db, *opt_fc, *opt_bd, *opt_mb, *opt_sm;
-extern int opt_bw;
+extern char *opt_font, *opt_detail, *opt_active, *opt_inactive, *opt_menu, *opt_selected;
+extern int opt_borderwidth;
 #ifdef SHAPE
 extern int shape, shape_event;
 #endif
