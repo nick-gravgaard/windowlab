@@ -1,0 +1,108 @@
+WindowLab
+Copyright 2001-2002 Nick Gravgaard
+
+
+What is WindowLab?
+==================
+
+WindowLab is a minimalistic and different X window manager. As its name suggests, it's something of an experimental window manager and may not suit everyone. I am happy enough with it though for it to have become my default wm.
+
+This window manager will probably be most comfortable to Amiga users, seeing as its focus and window depth policies are the same. A few users may also notice that the window resizing/reshaping method is similar to that of Plan 9s (see 9wm for an approximation of it on X). WindowLab also believes in maintaining the illusion of direct manipulation at all times. For this reason, the pointer is constrained when appropriate, ie when a window cannot be dragged any further in one direction. Try reshaping a window to fit the entire screen and then dragging it - Amiga screens anyone?
+
+No new feature are planned, and future releases will consist of bug fixes and code tidying.
+
+
+Where can I get it?
+===================
+
+The latest version of WindowLab is held at http://nickgravgaard.com/windowlab/
+
+
+Author
+======
+
+WindowLab is maintained by Nick Gravgaard (me at nickgravgaard.com). I'd love to
+know if you use this software, and comments and bug reports/fixes are also
+welcome.
+
+
+Licence
+=======
+
+WindowLab is Free Software and had been released under the GPL. Please see the LICENCE file for more information. The licence for aewm (which includes that of 9wm) from which this code has been derived is included at the end of this README document.
+
+
+How do I install it?
+====================
+
+Before compiling, check the default (DEF_foo) options in windowlab.h, and the defines in the Makefile. DEF_FONT is of particular interest; make sure that it is defined to something that exists on your system. You can turn -DSHAPE off if you don't have the Shape extension, and -DMWM_HINTS on if you have the Lesstif or Motif headers installed.
+
+"make" will compile everything, and "make install" will install it.
+
+
+How do I use it?
+================
+
+WindowLab places a taskbar at the top of the screen and adds a bar to the top of each window. These bars consist of a draggable area, and three squares on the right hand side. The futhermost square closes the window, the middle one toggles the windows Z order Amiga style (if it's not front most, bring it to the front otherwise send it to the back), while the leftmost square starts a reshape action: after clicking the gadget, move the mouse to where you want the top-left hand corner of the window to be, and drag the mouse down and to the right to set the bottom-right corner. Window titlebars must always be fully on-screen and cannot overlap the taskbar at the top of the screen (so if you want to get rid of a window quickly and don't want to send it to the back you should drag it downwards).
+
+The taskbar should list all windows currently in use. Clicking on a windows
+taskbar item will give that window focus and act as a click on that windows
+middle-gadget - ie toggle that windows Z order (depth).
+
+If you click on the root window, an external program will start. Each mouse button starts a different program, and these can be defined with the -new1, -new2, and -new3 options.
+
+WindowLab places new windows based on the position of the mouse. If your mouse is in the center of the the screen, a new window will be centered; as you move the mouse to a side or corner, the position of the window will move there.
+
+
+How do I configure it?
+======================
+
+You have the source. Edit it and recompile :)
+
+
+What if I find a bug?
+=====================
+
+Please email me at nickgravgaard.com. If you know how to fix it, even better.
+
+
+Acknowledgements
+================
+
+Thanks to Decklin Foster who wrote the original aewm (v1.1.2 to be precise) on which WindowLab is based. He's done a superb job of writing a minimal window manager and was good enough to release it under a liberal licence that allows anyone to add their favorite GPL or BSD flavour as they see fit.
+
+
+*******************************
+* ORIGINAL AEWM LICENCE BELOW *
+*******************************
+
+License
+======================================================================
+
+Copyright (c) 1998-2001 Decklin Foster.
+
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS", WITHOUT ANY EXPRESS
+OR IMPLIED WARRANTIES OF ANY KIND. IN NO EVENT SHALL THE AUTHOR BE
+HELD LIABLE FOR ANY DAMAGES CONNECTED WITH THE USE OF THIS PROGRAM.
+
+You are granted permission to copy, publish, distribute, and/or sell
+copies of this program and any modified versions or derived works,
+provided that this copyright and notice are not removed or altered.
+
+Portions of the code were based on 9wm, which contains this license:
+
+> 9wm is free software, and is Copyright (c) 1994 by David Hogan.
+> Permission is granted to all sentient beings to use this software,
+> to make copies of it, and to distribute those copies, provided
+> that:
+>
+>     (1) the copyright and licence notices are left intact
+>     (2) the recipients are aware that it is free software
+>     (3) any unapproved changes in functionality are either
+>           (i) only distributed as patches
+>       or (ii) distributed as a new program which is not called 9wm
+>               and whose documentation gives credit where it is due
+>     (4) the author is not held responsible for any defects
+>         or shortcomings in the software, or damages caused by it.
+>
+> There is no warranty for this software.  Have a nice day.
