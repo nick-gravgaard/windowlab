@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2004 Nick Gravgaard
+ * Copyright (c) 2001-2005 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/windowlab/
  *
@@ -98,21 +98,21 @@ void get_menuitems(void)
 int parseline(char *menustr, char *labelstr, char *commandstr)
 {
 	int success = 1;
-	int menuStrLen = strlen(menustr);
-	char *pTemp = NULL;
-	char *menuStrCpy = (char *)malloc(menuStrLen + 1);
-	strcpy(menuStrCpy, menustr);
-	pTemp = strtok(menuStrCpy, ":");
+	int menustrlen = strlen(menustr);
+	char *ptemp = NULL;
+	char *menustrcpy = (char *)malloc(menustrlen + 1);
+	strcpy(menustrcpy, menustr);
+	ptemp = strtok(menustrcpy, ":");
 
-	if (pTemp != NULL)
+	if (ptemp != NULL)
 	{
-		strcpy(labelstr, pTemp);
-		if (pTemp != NULL)
+		strcpy(labelstr, ptemp);
+		if (ptemp != NULL)
 		{
-			pTemp = strtok(NULL, ":");
-			if (pTemp != NULL)
+			ptemp = strtok(NULL, ":");
+			if (ptemp != NULL)
 			{
-				strcpy(commandstr, pTemp);
+				strcpy(commandstr, ptemp);
 			}
 			else
 			{
@@ -124,9 +124,9 @@ int parseline(char *menustr, char *labelstr, char *commandstr)
 			success = 0;
 		}
 	}
-	if (menuStrCpy != NULL)
+	if (menustrcpy != NULL)
 	{
-		free(menuStrCpy);
+		free(menustrcpy);
 	}
 	return success;
 }

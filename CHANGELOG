@@ -1,3 +1,11 @@
+1.26 (2005-02-23)
+
+* integrated more changes from David Lawrence Ramsey:
+	* various improvements to the makefile were made
+	* a bug with vertically resizing windows that use size increments was fixed
+	* a few cosmetic cleanups to various sections of code were made
+
+
 1.25 (2004-12-23)
 
 * integrated changes from Matt Borkowski (thanks!):

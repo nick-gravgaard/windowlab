@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2004 Nick Gravgaard
+ * Copyright (c) 2001-2005 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/windowlab/
  *
@@ -83,8 +83,7 @@ int main(int argc, char **argv)
 		OPT_STR("-empty", opt_empty)
 		if (strcmp(argv[i], "-version") == 0)
 		{
-			printf("WindowLab version " VERSION ", Copyright (C) 2001-2004 Nick Gravgaard\nWindowLab comes with ABSOLUTELY NO WARRANTY.\nThis is free software, and you are welcome to redistribute it\nunder certain conditions; view the LICENCE file for details.\n");
-			exit(0);
+			printf("WindowLab version " VERSION " (" RELEASEDATE "), Copyright (C) 2001-2005 Nick Gravgaard\nWindowLab comes with ABSOLUTELY NO WARRANTY.\nThis is free software, and you are welcome to redistribute it\nunder certain conditions; view the LICENCE file for details.\n");			exit(0);
 		}
 		// shouldn't get here; must be a bad option
 		err("usage: windowlab [options]\n    options are: -font <font>, -border|-text|-active|-inactive|-menu|-selected|-empty <color>");

@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2004 Nick Gravgaard
+ * Copyright (c) 2001-2005 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/windowlab/
  *
@@ -21,7 +21,8 @@
 #ifndef WINDOWLAB_H
 #define WINDOWLAB_H
 
-#define VERSION "1.25"
+#define VERSION "1.26"
+#define RELEASEDATE "2005-02-23"
 
 #include <limits.h>
 #include <stdio.h>

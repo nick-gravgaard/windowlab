@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2004 Nick Gravgaard
+ * Copyright (c) 2001-2005 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/windowlab/
  *
@@ -418,6 +418,7 @@ void resize(Client *c)
 							if (leftedge_changed || rightedge_changed || topedge_changed || bottomedge_changed)
 							{
 								copy_dims(&newdims, &recalceddims);
+								recalceddims.height -= BARHEIGHT();
 
 								if (get_incsize(c, (unsigned int *)&newwidth, (unsigned int *)&newheight, &recalceddims, PIXELS))
 								{
@@ -442,6 +443,7 @@ void resize(Client *c)
 									}
 								}
 
+								recalceddims.height += BARHEIGHT();
 								limit_size(c, &recalceddims);
 
 								XMoveResizeWindow(dpy, resize_win, recalceddims.x, recalceddims.y, recalceddims.width, recalceddims.height);
@@ -563,10 +565,7 @@ static int get_incsize(Client *c, unsigned int *x_ret, unsigned int *y_ret, Rect
 void write_titletext(Client *c, Window bar_win)
 {
 #ifdef MWM_HINTS
-	if (!c->has_title)
-	{
-		return;
-	}
+	if (!c->has_title) return;
 #endif
 	if (!c->trans && c->name != NULL)
 	{

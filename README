@@ -1,5 +1,5 @@
 WINDOWLAB
-Copyright 2001-2004 Nick Gravgaard
+Copyright (c) 2001-2005 Nick Gravgaard
 
 
 
@@ -71,7 +71,7 @@ Window titlebars must always be fully on-screen and cannot overlap the taskbar a
 
 The taskbar should list all windows currently in use. Clicking on a windows taskbar item will give that window focus and act as a click on that windows middle-gadget - ie toggle that windows Z order (depth).
 
-To resize the active window hold down the left windows key and push against the windows edges with a mouse button down. (Depending on how your system handles the keyboard you may have problems with the windows key. If this applies to you you can use another key by changing the value of KEY_RESIZE in windowlab.h)
+To resize the active window hold down the left windows key and push against the windows edges with a mouse button down.
 
 If you right click outside a client window, WindowLab's taskbar becomes a menubar. Releasing the right mouse button over a selected menu item will start a corresponding external program. The menu labels and commands are defined in either ~/.windowlab/menurc or /etc/X11/windowlab/menurc if the first file cannot be opened.
 
@@ -107,7 +107,7 @@ So I started work on my own window manager, basing it on aewm. The most importan
 
 Another neat feature of the Amiga's GUI that had not been done before in an X window manager was the constraining of the pointer when the user tried to drag a window beyond the edge of the screen. In this way, WindowLab treats windows like they are Amiga screens in that a window's titlebar is constrained to the physical screen. At this point I started to think about the issue of launching programs from WindowLab. aewm's approach was that taskbars and launching files was not part of the window manager's job, and I respected the minimalist reasoning behind this, but since my constrained windows took it for granted that a taskbar existed at the top of the screen, I reasoned that the taskbar was best kept within the window manager. With the taskbar taking up as much space as a menu bar would, I realised that I could reuse space just like the Amiga had done by making a menu bar available when the right mouse button is held down. My twist was that rather than have drop down menus, my menubar would consist of "bang" menu items a little like the "Quick Launch" toolbar in Windows 98, and by keeping the menu one level deep, I could reuse the constrained mouse pointer trick to make target menu items easier to hit (infinitely tall according to Fitts's law).
 
-I also wanted windows to act like the Amiga's screens (so that the title bar and client area take up all of the screen), and this forced me to rule out any useful kind of draggable window borders. Earlier versions (up to 1.20) used an 8½ (from Plan 9) style resizing mechanism, but some users complained that it meant that each edge of the window changed even if only a small resize was intended. The mechanism that replaced it is completely original, and quicker and easier to use than traditional draggable borders (allowing one or many edges of a window to be changed in one action without the user having to click on thin window borders).
+I also wanted windows to be able to act like screens on the Amiga (where the title bar and client area can take up all of the screen), and this forced me to rule out any useful kind of draggable window borders. Earlier versions (up to 1.20) used an 8½ (from Plan 9) style resizing mechanism, but some users complained that it meant that each edge of the window changed even if only a small resize was intended. The mechanism that replaced it is completely original, and quicker and easier to use than traditional draggable borders (allowing one or many edges of a window to be changed in one action without the user having to click on thin window borders).
 
 
 
@@ -124,6 +124,12 @@ TIPS AND TRICKS
 * Use Alt + F11 to toggle fullscreen mode on before watching video applications
 
 If you know any other tips for use with WindowLab, please get in contact with me so that I can list them here.
+
+
+
+KNOWN ISSUES
+
+* Depending on how your system handles the keyboard you may have problems with the windows key. If you encounter problems please look at https://bugs.freedesktop.org/show_bug.cgi?id=587 for info on how to solve them. Alternatively you can use another key by changing the value of KEY_RESIZE in windowlab.h and recompiling.
 
 
 

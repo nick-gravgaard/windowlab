@@ -28,7 +28,9 @@ XROOT = /usr/X11R6
 # --------------------------------------------------------------------
 
 CC = gcc
+ifndef CFLAGS
 CFLAGS = -g -O2 -Wall
+endif
 
 BINDIR = $(DESTDIR)$(XROOT)/bin
 MANDIR = $(DESTDIR)$(XROOT)/man/man1
@@ -51,10 +53,9 @@ $(OBJS): %.o: %.c $(HEADERS)
 	$(CC) $(CFLAGS) $(DEFINES) $(INCLUDES) -c $< -o $@
 
 install: all
-	install -s $(PROG) $(BINDIR)
-	install -m 644 $(MANPAGE) $(MANDIR)
-	gzip -9vf $(MANDIR)/$(MANPAGE)
-	mkdir -p $(CFGDIR) && cp -i menurc.sample $(CFGDIR)/menurc
+	mkdir -p $(BINDIR) && install -m 755 -s $(PROG) $(BINDIR)
+	mkdir -p $(MANDIR) && install -m 644 $(MANPAGE) $(MANDIR) && gzip -9vf $(MANDIR)/$(MANPAGE)
+	mkdir -p $(CFGDIR) && cp -i menurc.sample $(CFGDIR)/menurc && chmod 644 $(CFGDIR)/menurc
 
 clean:
 	rm -f $(PROG) $(OBJS)

@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2004 Nick Gravgaard
+ * Copyright (c) 2001-2005 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/windowlab/
  *
@@ -134,8 +134,7 @@ void fix_position(Client *c)
 	unsigned int ymax = DisplayHeight(dpy, screen);
 	unsigned int titlebarheight;
 	
-	if (fullscreen_client == c) titlebarheight = 0;
-	else titlebarheight = BARHEIGHT();
+	titlebarheight = (fullscreen_client == c) ? 0 : BARHEIGHT();
 
 	if (c->width < MINWINWIDTH)
 	{
