@@ -1,7 +1,7 @@
 /* WindowLab - an X11 window manager
  * Copyright (c) 2001-2003 Nick Gravgaard
  * me at nickgravgaard.com
- * http://nickgravgaard.com/
+ * http://nickgravgaard.com/windowlab/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -144,5 +144,6 @@ void free_menuitems(void)
 		}
 	}
 }
+
 
 

@@ -1,3 +1,15 @@
+1.9 (2003-04-19)
+
+* made new windows appear fully on screen instead of just their titlebar
+* added code to destroy the constraint window if it can't be grabbed (found by Pierre-Paul Lavoie)
+* removed unnecessary unmapping of windows before they were destroyed (found by Pierre-Paul Lavoie)
+* integrated changes from Pierre-Paul Lavoie (thaks ppl!):
+	* the menurc path is now specified by a -D option on the compile line in the makefile instead of being a #define in the code
+* integrated more changes from David Lawrence Ramsey:
+	* significant changes made to the ConfigureRequest event handler with the addition of refix_position()
+	* crash in dump_clients() in DEBUG mode fixed
+
+
 1.8 (2003-03-30)
 
 * integrated more changes from David Lawrence Ramsey:

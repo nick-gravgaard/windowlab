@@ -51,7 +51,7 @@ An example menurc file is included (menurc.sample). Each line in the menurc file
 
 The GIMP:gimp
 
-WindowLab positions new windows according to the coordinates of the mouse - the top-left hand corner of a new window is set to the location of the mouse pointer (WindowLab will move the window if necessary to ensure that all of the new windowbar is fully on-screen).
+WindowLab positions new windows (that don't specify their location) according to the coordinates of the mouse - the top-left hand corner of a new window is set to the location of the mouse pointer (if necessary the window will be moved to ensure that all of it is on the screen).
 
 
 
@@ -99,4 +99,5 @@ Portions of the code were based on 9wm, which contains this license:
 >         or shortcomings in the software, or damages caused by it.
 >
 > There is no warranty for this software.  Have a nice day.
+
 

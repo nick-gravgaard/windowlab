@@ -1,16 +1,14 @@
-# WindowLab - an X11 window manager
-# by Nick Gravgaard (me at nickgravgaard.com)
-# the following lines are from the original creator of this makefile and the
-# window manager aewm by Decklin Foster
-###
-# aewm - a minimalistic X11 window manager.
-# Copyright (c) 1998-2001 Decklin Foster <decklin@red-bean.com>
-# Free software! Please see README for details and license.
-###
+# Makefile for WindowLab
 
 # Comment out to remove shape support (for X11R5 or just a tiny bin)
 DEFINES += -DSHAPE
 EXTRA_LIBS += -lXext
+
+# Information about the location of the menurc file
+ifndef MENURC
+MENURC = /etc/X11/windowlab/menurc
+endif
+DEFINES += -DDEF_MENURC="\"$(MENURC)\""
 
 # Uncomment to add MWM hints supports (needs Lesstif headers)
 #DEFINES += -DMWM_HINTS
@@ -63,6 +61,4 @@ clean:
 	rm -f $(PROG) $(OBJS)
 
 .PHONY: all install clean
-
-
 

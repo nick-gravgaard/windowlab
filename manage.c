@@ -1,7 +1,7 @@
 /* WindowLab - an X11 window manager
  * Copyright (c) 2001-2003 Nick Gravgaard
  * me at nickgravgaard.com
- * http://nickgravgaard.com/
+ * http://nickgravgaard.com/windowlab/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -122,6 +122,7 @@ static void drag(Client *c)
 
 	if (!(XGrabPointer(dpy, root, False, MouseMask, GrabModeAsync, GrabModeAsync, constraint_win, move_curs, CurrentTime) == GrabSuccess))
 	{
+		XDestroyWindow(dpy, constraint_win);
 		return;
 	}
 	get_mouse_position(&x1, &y1);
@@ -146,8 +147,6 @@ static void drag(Client *c)
 				break;
 			case ButtonRelease:
 				ungrab();
-
-				XUnmapWindow(dpy, constraint_win);
 				XDestroyWindow(dpy, constraint_win);
 				return;
 		}
@@ -177,6 +176,7 @@ static void sweep(Client *c)
 
 	if (!(XGrabPointer(dpy, root, False, MouseMask, GrabModeAsync, GrabModeAsync, constraint_win, resizestart_curs, CurrentTime) == GrabSuccess))
 	{
+		XDestroyWindow(dpy, constraint_win);
 		return;
 	}
 
@@ -286,9 +286,6 @@ static void sweep(Client *c)
 				XMoveResizeWindow(dpy, c->frame, c->x, c->y - BARHEIGHT(), c->width, c->height + BARHEIGHT());
 				XMoveResizeWindow(dpy, c->window, 0, BARHEIGHT(), c->width, c->height);
 				send_config(c);
-				XUnmapWindow(dpy, constraint_win);
-				XUnmapWindow(dpy, resizebar_win);
-				XUnmapWindow(dpy, resize_win);
 				XDestroyWindow(dpy, constraint_win);
 				XDestroyWindow(dpy, resizebar_win);
 				XDestroyWindow(dpy, resize_win);
@@ -399,5 +396,7 @@ void write_titletext(Client *c, Window bar_win)
 #endif
 	}
 }
+
+
 
 

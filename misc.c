@@ -1,7 +1,7 @@
 /* WindowLab - an X11 window manager
  * Copyright (c) 2001-2003 Nick Gravgaard
  * me at nickgravgaard.com
- * http://nickgravgaard.com/
+ * http://nickgravgaard.com/windowlab/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -130,6 +130,15 @@ void fix_position(Client *c)
 	unsigned int ymax = DisplayHeight(dpy, screen);
 	c->y += BARHEIGHT();
 
+	if (c->width < MINWINWIDTH)
+	{
+		c->width = MINWINWIDTH;
+	}
+	if (c->height < MINWINHEIGHT)
+	{
+		c->height = MINWINHEIGHT;
+	}
+	
 	if (c->width > xmax)
 	{
 		c->width = xmax;
@@ -152,13 +161,64 @@ void fix_position(Client *c)
 	{
 		c->x = xmax - c->width;
 	}
-	if (c->y + BARHEIGHT() + BW(c) >= ymax)
+	if (c->y + c->height + BARHEIGHT() + BW(c) >= ymax)
 	{
-		c->y = (ymax - BARHEIGHT()) + BW(c);
+		c->y = (ymax - c->height) - BARHEIGHT();
 	}
 
 	c->x -= BW(c);
 	c->y -= BW(c);
+}
+
+void refix_position(Client *c, XConfigureRequestEvent *e)
+{
+	unsigned int xmax = DisplayWidth(dpy, screen);
+	unsigned int ymax = DisplayHeight(dpy, screen);
+
+	if (c->width < MINWINWIDTH - BW(c))
+	{
+		c->width = MINWINWIDTH - BW(c);
+		e->value_mask |= CWWidth;
+	}
+	if (c->height < MINWINHEIGHT - BW(c))
+	{
+		c->height = MINWINHEIGHT - BW(c);
+		e->value_mask |= CWHeight;
+	}
+	
+	if (c->width + BW(c) > xmax)
+	{
+		c->width = xmax;
+		e->value_mask |= CWWidth;
+	}
+	if (c->height + (BARHEIGHT() * 2) + BW(c) > ymax)
+	{
+		c->height = ymax - (BARHEIGHT() * 2);
+		e->value_mask |= CWHeight;
+	}
+
+	if (c->x + BW(c) < 0)
+	{
+		c->x = 0 - BW(c);
+		e->value_mask |= CWX;
+	}
+	if (c->y <= BARHEIGHT() * 2)
+	{
+		c->y = BARHEIGHT() * 2;
+		e->value_mask |= CWY;
+	}
+
+	if (c->x + c->width >= xmax)
+	{
+		c->x = xmax - c->width - BW(c);
+		e->value_mask |= CWX;
+	}
+	// note that this next bit differs from fix_position() because here we ensure that the titlebar is visible as opposed to the whole window
+	if (c->y + BARHEIGHT() >= ymax)
+	{
+		c->y = ymax - BARHEIGHT() - BW(c);
+		e->value_mask |= CWY;
+	}
 }
 
 #ifdef DEBUG
@@ -262,12 +322,11 @@ void dump(Client *c)
 void dump_clients()
 {
 	Client *c = head_client;
-	do
+	while (c != NULL)
 	{
 		dump(c);
 		c = c->next;
 	}
-	while (c != NULL)
 }
 #endif
 
@@ -309,4 +368,6 @@ static void quit_nicely(void)
 	XCloseDisplay(dpy);
 	exit(0);
 }
+
+
 

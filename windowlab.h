@@ -1,7 +1,7 @@
 /* WindowLab - an X11 window manager
  * Copyright (c) 2001-2003 Nick Gravgaard
  * me at nickgravgaard.com
- * http://nickgravgaard.com/
+ * http://nickgravgaard.com/windowlab/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 #ifndef WINDOWLAB_H
 #define WINDOWLAB_H
 
-#define VERSION "1.8"
+#define VERSION "1.9"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -55,7 +55,6 @@
 #define DEF_BD		"#000" // borders
 #define DEF_MB		"#ddd" // menubar
 #define DEF_SM		"#aad" // selected menu item
-#define DEF_MENURC	"/etc/X11/windowlab/menurc"
 #define DEF_BW		2
 #define SPACE		3
 #define MINSIZE		15
@@ -240,6 +239,7 @@ int ignore_xerror(Display *, XErrorEvent *);
 int send_xmessage(Window, Atom, long);
 void get_mouse_position(int *, int *);
 void fix_position(Client *);
+void refix_position(Client *, XConfigureRequestEvent *);
 #ifdef DEBUG
 extern void show_event(XEvent);
 extern void dump(Client *);
@@ -264,4 +264,7 @@ extern unsigned int num_menuitems;
 extern void get_menuitems(void);
 extern void free_menuitems(void);
 #endif /* WINDOWLAB_H */
+
+
+
 

@@ -1,7 +1,7 @@
 /* WindowLab - an X11 window manager
  * Copyright (c) 2001-2003 Nick Gravgaard
  * me at nickgravgaard.com
- * http://nickgravgaard.com/
+ * http://nickgravgaard.com/windowlab/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -265,6 +265,7 @@ static void handle_configure_request(XConfigureRequestEvent *e)
 		if (e->value_mask & CWWidth) c->width = e->width;
 		if (e->value_mask & CWHeight) c->height = e->height;
 		gravitate(c, APPLY_GRAVITY);
+		refix_position(c, e);
 		// configure the frame
 		wc.x = c->x;
 		wc.y = c->y - BARHEIGHT();
@@ -482,6 +483,7 @@ static void handle_shape_change(XShapeEvent *e)
 	}
 }
 #endif
+
 
 
 
