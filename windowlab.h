@@ -51,10 +51,10 @@
 #define DEF_FG		"#000" // foreground
 #define DEF_BG		"#fd0" // active background
 #define DEF_DB		"#db0" // depressed active background
-#define DEF_FC		"#bbb" // inactive background
+#define DEF_FC		"#aaa" // inactive background
 #define DEF_BD		"#000" // borders
 #define DEF_MB		"#ddd" // menubar
-#define DEF_SM		"#bbd" // selected menu item
+#define DEF_SM		"#aad" // selected menu item
 #define DEF_MENURC	"/etc/X11/windowlab/menurc"
 #define DEF_BW		2
 #define SPACE		3
@@ -229,6 +229,7 @@ extern void raise_lower(Client *);
 extern void resize(Client *);
 extern void hide(Client *);
 extern void send_wm_delete(Client *);
+extern void write_titletext(Client *, Window);
 
 //misc.c
 void err(const char *, ...);
@@ -263,11 +264,4 @@ extern unsigned int num_menuitems;
 extern void get_menuitems(void);
 extern void free_menuitems(void);
 #endif /* WINDOWLAB_H */
-
-
-
-
-
-
-
 

@@ -1,3 +1,9 @@
+1.7 (2003-03-30)
+
+* added title bar to the reshape window
+* small improvements made to manage.c
+
+
 1.6 (2003-03-15)
 
 * added visual hint when a button is depressed
