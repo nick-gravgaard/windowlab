@@ -9,7 +9,7 @@ windowlab \- a window manager for X11
 .B windowlab
 is a small and simple window manager of novel design.
 .PP
-It's click-to-focus, shares its window depth policy with the Amiga, and has a window resizing mechanism that allows one or many edges of a window to be changed in one action. WindowLab maintains the illusion of direct manipulation by constraining the mouse pointer when appropriate, ie when a window cannot be dragged any further in one direction. The pointer is also constrained vertically (effectively making the target menu items infinitely tall according to Fitts's law) when it's in the menubar to reduce pointing time.
+It's click-to-focus but not raise-on-focus and has a window resizing mechanism that allows one or many edges of a window to be changed in one action. WindowLab maintains the illusion of direct manipulation by constraining the mouse pointer when appropriate, ie when a window cannot be dragged any further in one direction. The pointer is also constrained vertically (effectively making the target menu items infinitely tall according to Fitts's law) when it's in the menubar to reduce pointing time.
 .PP
 WindowLab places a taskbar at the top of the screen and adds a bar to the top of each window. These bars consist of a draggable area, and three squares on the right hand side. From left to right, these squares:
 .PP
@@ -23,9 +23,9 @@ Window titlebars must always be fully on-screen and cannot overlap the taskbar a
 .PP
 The taskbar should list all windows currently in use. Clicking on a windows taskbar item will give that window focus and act as a click on that windows middle-gadget - ie toggle that windows Z order (depth).
 .PP
-To resize the active window hold down the middle mouse button and the left windows key and push against the windows edges (you can resize without using a modifier key by changing the value of RESIZE_USES_MOD in windowlab.h).
+To resize the active window hold down the left windows key and push against the windows edges with a mouse button down. (Depending on how your system handles the keyboard you may have problems with the windows key. If this applies to you you can use another key by changing the value of KEY_RESIZE in windowlab.h)
 .PP
-If you right click outside a client window, WindowLabs taskbar becomes a menubar. Releasing the right mouse button over a selected menu item will start a corresponding external program. The menu labels and commands are defined in either ~/.windowlab/menurc or /etc/X11/windowlab/menurc if the first file cannot be opened.
+If you right click outside a client window, WindowLab's taskbar becomes a menubar. Releasing the right mouse button over a selected menu item will start a corresponding external program. The menu labels and commands are defined in either ~/.windowlab/menurc or /etc/X11/windowlab/menurc if the first file cannot be opened.
 .PP
 An example menurc file is included (menurc.sample). Each line in the menurc file should have the menu label, a colon, and then the corresponding command, ie:
 .PP

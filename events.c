@@ -22,7 +22,6 @@
 #include "windowlab.h"
 
 static void handle_key_press(XKeyEvent *);
-static void handle_key_release(XKeyEvent *);
 static void handle_button_press(XButtonEvent *);
 static void handle_windowbar_click(XButtonEvent *, Client *);
 static unsigned int box_clicked(Client *, unsigned int);
@@ -57,9 +56,6 @@ void do_event_loop(void)
 		{
 			case KeyPress:
 				handle_key_press(&ev.xkey);
-				break;
-			case KeyRelease:
-				handle_key_release(&ev.xkey);
 				break;
 			case ButtonPress:
 				handle_button_press(&ev.xbutton);
@@ -107,8 +103,11 @@ static void handle_key_press(XKeyEvent *e)
 	KeySym key = XKeycodeToKeysym(dpy, e->keycode, 0);
 	switch (key)
 	{
-		case KEY_BUTTON2MOD:
-			button2mod_down = 1;
+		case KEY_RESIZE:
+			if (last_focused_client != fullscreen_client)
+			{
+				resize(last_focused_client);
+			}
 			break;
 		case KEY_CYCLEPREV:
 			cycle_previous();
@@ -125,17 +124,6 @@ static void handle_key_press(XKeyEvent *e)
 	}
 }
 
-static void handle_key_release(XKeyEvent *e)
-{
-	KeySym key = XKeycodeToKeysym(dpy, e->keycode, 0);
-	switch (key)
-	{
-		case KEY_BUTTON2MOD:
-			button2mod_down = 0;
-			break;
-	}
-}
-
 /* Someone clicked a button. If it was on the root, we get the click
  * be default. If it's on a window frame, we get it as well. If it's
  * on a client window, it may still fall through to us if the client
@@ -145,78 +133,54 @@ static void handle_button_press(XButtonEvent *e)
 {
 	Client *c;
 
-	if (e->button == Button2)
+	if (e->window == root)
 	{
-		if (button2mod_down == RESIZE_USES_MOD && last_focused_client != NULL && last_focused_client != fullscreen_client)
+#ifdef DEBUG
+		dump_clients();
+#endif
+		if (e->button == Button3)
 		{
-			if (e->window == last_focused_client->frame)
+			rclick_root();
+		}
+	}
+	else
+	{
+		if (e->window == taskbar)
+		{
+			if (e->button == Button1)
 			{
-				// dragging from inside the window, outwards
-				resize(last_focused_client, 1);
+				lclick_taskbar(e->x);
 			}
 			else
 			{
-				// dragging from outside the window, inwards
-				resize(last_focused_client, 0);
+				if (e->button == Button3)
+				{
+					rclick_taskbar(e->x);
+				}
 			}
 		}
 		else
 		{
 			// pass event on
 			XAllowEvents(dpy, ReplayPointer, CurrentTime);
-		}
-	}
-	else
-	{
-		if (e->window == root)
-		{
-#ifdef DEBUG
-			dump_clients();
-#endif
-			if (e->button == Button3)
+			if (e->button == Button1)
 			{
-				rclick_root();
-			}
-		}
-		else
-		{
-			if (e->window == taskbar)
-			{
-				if (e->button == Button1)
+				c = find_client(e->window, FRAME);
+				if (c != NULL && c != fullscreen_client)
 				{
-					lclick_taskbar(e->x);
-				}
-				else
-				{
-					if (e->button == Button3)
+					// click-to-focus
+					check_focus(c);
+					if (e->y < BARHEIGHT())
 					{
-						rclick_taskbar(e->x);
+						handle_windowbar_click(e, c);
 					}
 				}
 			}
 			else
 			{
-				// pass event on
-				XAllowEvents(dpy, ReplayPointer, CurrentTime);
-				if (e->button == Button1)
+				if (e->button == Button3)
 				{
-					c = find_client(e->window, FRAME);
-					if (c != NULL && c != fullscreen_client)
-					{
-						// click-to-focus
-						check_focus(c);
-						if (e->y < BARHEIGHT())
-						{
-							handle_windowbar_click(e, c);
-						}
-					}
-				}
-				else
-				{
-					if (e->button == Button3)
-					{
-						rclick_root();
-					}
+					rclick_root();
 				}
 			}
 		}

@@ -41,7 +41,6 @@ Atom mwm_hints;
 Client *head_client, *last_focused_client, *fullscreen_client;
 unsigned int in_taskbar = 0; // actually, we don't know yet
 unsigned int showing_taskbar = 1;
-unsigned int button2mod_down = 0;
 Rect fs_prevdims;
 char *opt_font = DEF_FONT;
 char *opt_border = DEF_BORDER;
@@ -84,7 +83,7 @@ int main(int argc, char **argv)
 		OPT_STR("-empty", opt_empty)
 		if (strcmp(argv[i], "-version") == 0)
 		{
-			printf("windowlab: version " VERSION "\n");
+			printf("WindowLab version " VERSION ", Copyright (C) 2001-2004 Nick Gravgaard\nWindowLab comes with ABSOLUTELY NO WARRANTY.\nThis is free software, and you are welcome to redistribute it\nunder certain conditions; view the LICENCE file for details.\n");
 			exit(0);
 		}
 		// shouldn't get here; must be a bad option
@@ -258,8 +257,9 @@ static void setup_display(void)
 	sattr.event_mask = ChildMask|ColormapChangeMask|ButtonMask;
 	XChangeWindowAttributes(dpy, root, CWEventMask, &sattr);
 
+	grab_keysym(root, None, KEY_RESIZE);
+
 	// change Mod1Mask to None to remove the need to hold down Alt
-	grab_keysym(root, None, KEY_BUTTON2MOD);
 	grab_keysym(root, Mod1Mask, KEY_CYCLEPREV);
 	grab_keysym(root, Mod1Mask, KEY_CYCLENEXT);
 	grab_keysym(root, Mod1Mask, KEY_FULLSCREEN);

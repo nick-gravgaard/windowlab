@@ -7,4 +7,5 @@ X-Chat:xchat
 XMMS:xmms
 xv:xv
 The GIMP:gimp
+About:windowlab -version | xmessage -file -
 Quit:skill windowlab

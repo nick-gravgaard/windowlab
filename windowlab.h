@@ -21,7 +21,7 @@
 #ifndef WINDOWLAB_H
 #define WINDOWLAB_H
 
-#define VERSION "1.23"
+#define VERSION "1.24"
 
 #include <limits.h>
 #include <stdio.h>
@@ -42,13 +42,9 @@
 
 // here are the default settings - change to suit your taste
 
-// change this value to 0 to allow resizing to work without the modifier key
-// this will however mean that the modifier key is needed to generate normal Button2 events
-#define RESIZE_USES_MOD 1
-
 // if you aren't sure about DEF_FONT, change it to "fixed"; almost all X installations will have that available
 #ifdef XFT
-#define DEF_FONT "-*-arial-medium-r-*-*-*-80-*-*-*-*-*-*"
+#define DEF_FONT "-bitstream-bitstream vera sans-medium-r-*-*-*-100-*-*-*-*-*-*"
 #else
 #define DEF_FONT "lucidasans-10"
 #endif
@@ -66,7 +62,8 @@
 #define SPACE 3
 
 // keys may be used by other apps, so change them here
-#define KEY_BUTTON2MOD XK_Super_L // XK_Super_L is the left Windows key
+#define KEY_RESIZE XK_Super_L // XK_Super_L is the left Windows key
+
 #define KEY_CYCLEPREV XK_Tab
 #define KEY_CYCLENEXT XK_q
 #define KEY_FULLSCREEN XK_F11
@@ -76,6 +73,7 @@
 #define ChildMask (SubstructureRedirectMask|SubstructureNotifyMask)
 #define ButtonMask (ButtonPressMask|ButtonReleaseMask)
 #define MouseMask (ButtonMask|PointerMotionMask)
+#define KeyMask (KeyPressMask|KeyReleaseMask)
 
 #define ABS(x) (((x) < 0) ? -(x) : (x))
 
@@ -198,7 +196,7 @@ extern Display *dpy;
 extern Window root;
 extern int screen;
 extern Client *head_client, *last_focused_client, *fullscreen_client;
-extern unsigned int in_taskbar, showing_taskbar, button2mod_down;
+extern unsigned int in_taskbar, showing_taskbar;
 extern Rect fs_prevdims;
 extern XFontStruct *font;
 #ifdef XFT
@@ -243,7 +241,7 @@ extern void make_new_client(Window);
 // manage.c
 extern void move(Client *);
 extern void raise_lower(Client *);
-extern void resize(Client *, unsigned int);
+extern void resize(Client *);
 extern void hide(Client *);
 extern void unhide(Client *);
 void toggle_fullscreen(Client *);
@@ -279,7 +277,7 @@ extern void lclick_taskbar(unsigned int);
 extern void rclick_taskbar(unsigned int);
 extern void rclick_root(void);
 extern void redraw_taskbar(void);
-float get_button_width(void);
+extern float get_button_width(void);
 
 // menufile.c
 extern MenuItem* menuitems;

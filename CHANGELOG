@@ -1,3 +1,10 @@
+1.24 (2004-05-29)
+
+* holding down the Windows key on it's own now brings the current window to the front, after which dragging against the window's edge with any mouse button depressed resizes it
+* integrated more changes from David Lawrence Ramsey:
+	* a few prototypes/declarations were fixed
+
+
 1.23 (2004-03-12)
 
 * resizing now optionally uses a modifier key

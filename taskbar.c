@@ -51,7 +51,7 @@ void make_taskbar(void)
 #endif
 }
 
-void cycle_previous()
+void cycle_previous(void)
 {
 	Client *c = last_focused_client;
 	Client *original_c = c;
@@ -70,7 +70,7 @@ void cycle_previous()
 	}
 }
 
-void cycle_next()
+void cycle_next(void)
 {
 	Client *c = last_focused_client;
 	if (head_client != NULL && head_client->next != NULL) // at least 2 windows exist
