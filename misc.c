@@ -74,7 +74,7 @@ int handle_xerror(Display *dpy, XErrorEvent *e)
 
 	if (e->error_code == BadAccess && e->resourceid == root)
 	{
-		err("root window unavailible (maybe another wm is running?)");
+		err("root window unavailable (maybe another wm is running?)");
 		exit(1);
 	}
 	else
@@ -250,20 +250,24 @@ static const char *show_grav(Client *c)
 
 void dump(Client *c)
 {
-	err("%s\n\t%s, %s, ignore %d\n"
-		"\tframe %#lx, win %#lx, geom %dx%d+%d+%d",
-		c->name, show_state(c), show_grav(c), c->ignore_unmap,
-		c->frame, c->window, c->width, c->height, c->x, c->y);
+	if (c)
+	{
+		err("%s\n\t%s, %s, ignore %d\n"
+			"\tframe %#lx, win %#lx, geom %dx%d+%d+%d",
+			c->name, show_state(c), show_grav(c), c->ignore_unmap,
+			c->frame, c->window, c->width, c->height, c->x, c->y);
+	}
 }
 
 void dump_clients()
 {
 	Client *c = head_client;
-	while (c != NULL)
+	do
 	{
-		c = c->next;
 		dump(c);
+		c = c->next;
 	}
+	while (c != NULL)
 }
 #endif
 
@@ -300,7 +304,7 @@ static void quit_nicely(void)
 	XFreeGC(dpy, string_gc);
 
 	XInstallColormap(dpy, DefaultColormap(dpy, screen));
-	XSetInputFocus(dpy, PointerRoot, RevertToPointerRoot, CurrentTime);
+	XSetInputFocus(dpy, PointerRoot, RevertToNone, CurrentTime);
 
 	XCloseDisplay(dpy);
 	exit(0);

@@ -1,3 +1,13 @@
+1.6 (2003-03-15)
+
+* added visual hint when a button is depressed
+* integrated changes from David Lawrence Ramsey (thanks!):
+	* some focussing problems fixed
+	* GTK resizing bug handled
+	* iconified windows now handled properly
+	* misc small fixes
+
+
 1.5 (2003-02-27)
 
 * gave menu its own colours

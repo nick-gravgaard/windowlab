@@ -72,6 +72,7 @@ void make_new_client(Window w)
 
 	c->window = w;
 	c->ignore_unmap = 0;
+	c->iconic = 0;
 #ifdef SHAPE
 	c->has_been_shaped = 0;
 #endif
@@ -131,6 +132,7 @@ void make_new_client(Window w)
 		if (get_wm_state(c) == IconicState)
 		{
 			c->ignore_unmap++;
+			c->iconic++;
 			XUnmapWindow(dpy, c->window);
 		}
 		else
@@ -148,6 +150,8 @@ void make_new_client(Window w)
 			XMapRaised(dpy, c->frame);
 		}
 	}
+
+	check_focus(c);
 
 #ifdef DEBUG
 	dump(c);

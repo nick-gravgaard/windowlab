@@ -157,7 +157,7 @@ static void handle_button_press(XButtonEvent *e)
 
 static void handle_windowbar_click(XButtonEvent *e, Client *c)
 {
-	int in_box_down, in_box_up;
+	int in_box, in_box_down, in_box_up, win_ypos;
 	XEvent ev;
 
 	in_box_down = box_clicked(c, e->x);
@@ -167,16 +167,36 @@ static void handle_windowbar_click(XButtonEvent *e, Client *c)
 		{
 			return;
 		}
+
 		XGrabServer(dpy);
+
+		in_box = 1;
+		XFillRectangle(dpy, c->frame, depressed_gc, (c->width - ((in_box_down + 1) * BARHEIGHT())) + BW(c), 0, BARHEIGHT() - BW(c), BARHEIGHT() - BW(c));
 		do
 		{
 			XMaskEvent(dpy, MouseMask, &ev);
+			in_box_up = box_clicked(c, ev.xbutton.x - c->x);
+			win_ypos = (ev.xbutton.y - c->y) + BARHEIGHT();
+			if (ev.type == MotionNotify)
+			{
+				if ((win_ypos <= BARHEIGHT()) && (win_ypos >= BW(c)) && (in_box_up == in_box_down))
+				{
+					in_box = 1;
+					XFillRectangle(dpy, c->frame, depressed_gc, (c->width - ((in_box_down + 1) * BARHEIGHT())) + BW(c), 0, BARHEIGHT() - BW(c), BARHEIGHT() - BW(c));
+				}
+				else
+				{
+					in_box = 0;
+					XFillRectangle(dpy, c->frame, active_gc, (c->width - ((in_box_down + 1) * BARHEIGHT())) + BW(c), 0, BARHEIGHT() - BW(c), BARHEIGHT() - BW(c));
+				}
+			}
 		}
 		while (ev.type != ButtonRelease);
+		XFillRectangle(dpy, c->frame, active_gc, (c->width - ((in_box_down + 1) * BARHEIGHT())) + BW(c), 0, BARHEIGHT() - BW(c), BARHEIGHT() - BW(c));
+
 		XUngrabServer(dpy);
 		ungrab();
-		in_box_up = box_clicked(c, (ev.xbutton.x - c->x) + BW(c));
-		if ((e->y < BARHEIGHT()) && (in_box_up == in_box_down))
+		if (in_box)
 		{
 			switch (in_box_up)
 			{
@@ -204,7 +224,15 @@ static void handle_windowbar_click(XButtonEvent *e, Client *c)
 
 static int box_clicked(Client *c, int x)
 {
-	return (c->width - x) / BARHEIGHT();
+	int pix_from_right = (c->width - x) + BW(c);
+	if (pix_from_right < 0)
+	{
+		return -1; // outside window
+	}
+	else
+	{
+		return (pix_from_right / BARHEIGHT());
+	}
 }
 
 /* Because we are redirecting the root window, we get ConfigureRequest
@@ -283,6 +311,11 @@ static void handle_map_request(XMapRequestEvent *e)
 		XMapWindow(dpy, c->window);
 		XMapRaised(dpy, c->frame);
 		set_wm_state(c, NormalState);
+		if (c->iconic)
+		{
+			c->iconic--;
+			redraw_taskbar();
+		}
 	}
 	else
 	{
@@ -449,4 +482,13 @@ static void handle_shape_change(XShapeEvent *e)
 	}
 }
 #endif
+
+
+
+
+
+
+
+
+
 

@@ -63,10 +63,17 @@ void click_taskbar(unsigned int x)
 		button_clicked = (unsigned int)(x / button_width);
 		for (i = 0; i < button_clicked; i++)
 		{
+			if (c->iconic)
+			{
+				button_clicked++;
+			}
 			c = c->next;
 		}
-		check_focus(c);
-		raise_lower(c);
+		if (!c->iconic)
+		{
+			check_focus(c);
+			raise_lower(c);
+		}
 	}
 }
 
@@ -159,9 +166,14 @@ void redraw_taskbar(void)
 
 	for (c = head_client, i=0; c; c = c->next, i++)
 	{
+		if (c->iconic)
+		{
+			i--;
+			continue;
+		}
 		button_startx = (unsigned int)(i * button_width);
 		button_iwidth = (unsigned int)(((i+1) * button_width) - button_startx);
-		if (c != head_client)
+		if (button_startx != 0)
 		{
 			XDrawLine(dpy, taskbar, border_gc, button_startx, 0, button_startx, BARHEIGHT());
 		}
@@ -273,7 +285,10 @@ float get_button_width(void)
 	Client *c = head_client;
 	while (c != NULL)
 	{
-		nwins++;
+		if (!c->iconic)
+		{
+			nwins++;
+		}
 		c = c->next;
 	}
 	return (((float)DisplayWidth(dpy, screen)) / nwins);

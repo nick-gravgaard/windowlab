@@ -61,6 +61,14 @@ void set_wm_state(Client *c, int state)
 
 	XChangeProperty(dpy, c->window, wm_state, wm_state,
 		32, PropModeReplace, (unsigned char *)data, 2);
+
+	if (state == IconicState)
+	{
+		if (c == last_focused_client)
+		{
+			last_focused_client = 0;
+		}
+	}
 }
 
 /* If we can't find a WM_STATE we're going to have to assume
@@ -321,7 +329,7 @@ void set_shape(Client *c)
 void check_focus(Client *c)
 {
 	Client *old_focused;
-	XSetInputFocus(dpy, c->window, RevertToPointerRoot, CurrentTime);
+	XSetInputFocus(dpy, c->window, RevertToNone, CurrentTime);
 	XInstallColormap(dpy, c->cmap);
 	if (c != last_focused_client)
 	{

@@ -62,6 +62,11 @@ void hide(Client *c)
 	{
 		c->ignore_unmap++;
 	}
+	if (!c->iconic)
+	{
+		c->iconic++;
+		redraw_taskbar();
+	}
 	XUnmapWindow(dpy, c->frame);
 	XUnmapWindow(dpy, c->window);
 	set_wm_state(c, IconicState);
@@ -203,6 +208,16 @@ static void sweep(Client *c)
 
 	minw = c->size->min_width > MINWINWIDTH ? c->size->min_width : MINWINWIDTH;
 	minh = c->size->min_height > MINWINHEIGHT ? c->size->min_height : MINWINHEIGHT;
+
+	// work around insane default minimum sizes
+	if (minw < 0 || minw > (dw - 1))
+	{
+		minw = MINWINWIDTH;
+	}
+	if (minh < 0 || minh > (dh - 1))
+	{
+		minh = MINWINHEIGHT;
+	}
 
 	recalc_sweep(c, newdims.x + minw, newdims.y + minh, &newdims);
 

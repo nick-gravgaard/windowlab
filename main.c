@@ -31,18 +31,18 @@ XFontStruct *font;
 XftFont *xftfont;
 XftColor xft_fg;
 #endif
-GC string_gc, border_gc, active_gc, inactive_gc, menubar_gc, menusel_gc;
-XColor fg, bg, fc, bd, mb, sm;
+GC string_gc, border_gc, active_gc, depressed_gc, inactive_gc, menubar_gc, menusel_gc;
+XColor fg, bg, db, fc, bd, mb, sm;
 Cursor move_curs, resizestart_curs, resizeend_curs;
 Atom wm_state, wm_change_state, wm_protos, wm_delete, wm_cmapwins;
 #ifdef MWM_HINTS
 Atom mwm_hints;
 #endif
-Client *head_client, *last_focused_client, *topmost_client, *last_button_in_client;
-int last_button;
+Client *head_client, *last_focused_client, *topmost_client;
 char *opt_font = DEF_FONT;
 char *opt_fg = DEF_FG;
 char *opt_bg = DEF_BG;
+char *opt_db = DEF_DB;
 char *opt_fc = DEF_FC;
 char *opt_bd = DEF_BD;
 char *opt_mb = DEF_MB;
@@ -79,6 +79,7 @@ int main(int argc, char **argv)
 		OPT_STR("-fn", opt_font)
 		OPT_STR("-fg", opt_fg)
 		OPT_STR("-bg", opt_bg)
+		OPT_STR("-db", opt_db)
 		OPT_STR("-fc", opt_fc)
 		OPT_STR("-bd", opt_bd)
 		OPT_STR("-mb", opt_mb)
@@ -91,7 +92,7 @@ int main(int argc, char **argv)
 		}
 		// shouldn't get here; must be a bad option
 		err("usage: windowlab [options]\n"
-			"       options are: -fn <font>, -fg|-bg|-fc|-bd|-mb|-sm <color>, -bw <width>");
+			"       options are: -fn <font>, -fg|-bg|-db|-fc|-bd|-mb|-sm <color>, -bw <width>");
 		return 2;
 	}
 
@@ -161,6 +162,7 @@ static void setup_display(void)
 
 	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_fg, &fg, &dummyc);
 	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_bg, &bg, &dummyc);
+	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_db, &db, &dummyc);
 	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_fc, &fc, &dummyc);
 	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_bd, &bd, &dummyc);
 	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_mb, &mb, &dummyc);
@@ -206,6 +208,9 @@ static void setup_display(void)
 	gv.foreground = bg.pixel;
 	active_gc = XCreateGC(dpy, root, GCFunction|GCForeground, &gv);
 
+	gv.foreground = db.pixel;
+	depressed_gc = XCreateGC(dpy, root, GCFunction|GCForeground, &gv);
+
 	gv.foreground = fc.pixel;
 	inactive_gc = XCreateGC(dpy, root, GCFunction|GCForeground, &gv);
 
@@ -218,5 +223,6 @@ static void setup_display(void)
 	sattr.event_mask = ChildMask|ColormapChangeMask|ButtonMask;
 	XChangeWindowAttributes(dpy, root, CWEventMask, &sattr);
 }
+
 
 

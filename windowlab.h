@@ -21,7 +21,7 @@
 #ifndef WINDOWLAB_H
 #define WINDOWLAB_H
 
-#define VERSION "1.5"
+#define VERSION "1.6"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -50,10 +50,11 @@
 // use named colours, #rgb, #rrggbb or #rrrgggbbb format
 #define DEF_FG		"#000" // foreground
 #define DEF_BG		"#fd0" // active background
-#define DEF_FC		"#aaa" // inactive background
+#define DEF_DB		"#db0" // depressed active background
+#define DEF_FC		"#bbb" // inactive background
 #define DEF_BD		"#000" // borders
 #define DEF_MB		"#ddd" // menubar
-#define DEF_SM		"#aac" // selected menu item
+#define DEF_SM		"#bbd" // selected menu item
 #define DEF_MENURC	"/etc/X11/windowlab/menurc"
 #define DEF_BW		2
 #define SPACE		3
@@ -150,6 +151,7 @@ struct _Client
 	Colormap cmap;
 	int x, y, width, height;
 	int ignore_unmap;
+	int iconic;
 #ifdef SHAPE
 	Bool has_been_shaped;
 #endif
@@ -183,21 +185,20 @@ struct _MenuItem
 extern Display *dpy;
 extern Window root;
 extern int screen;
-extern Client *head_client, *last_focused_client, *topmost_client, *last_button_in_client;
-extern int last_button;
+extern Client *head_client, *last_focused_client, *topmost_client;
 extern XFontStruct *font;
 #ifdef XFT
 extern XftFont *xftfont;
 extern XftColor xft_fg;
 #endif
-extern GC string_gc, border_gc, active_gc, inactive_gc, menubar_gc, menusel_gc;
-extern XColor fg, bg, fc, bd;
+extern GC string_gc, border_gc, active_gc, depressed_gc, inactive_gc, menubar_gc, menusel_gc;
+extern XColor fg, bg, db, fc, bd;
 extern Cursor move_curs, resizestart_curs, resizeend_curs;
 extern Atom wm_state, wm_change_state, wm_protos, wm_delete, wm_cmapwins;
 #ifdef MWM_HINTS
 extern Atom mwm_hints;
 #endif
-extern char *opt_font, *opt_fg, *opt_bg, *opt_fc, *opt_bd, *opt_mb, *opt_sm;
+extern char *opt_font, *opt_fg, *opt_bg, *opt_db, *opt_fc, *opt_bd, *opt_mb, *opt_sm;
 extern int opt_bw;
 #ifdef SHAPE
 extern int shape, shape_event;
@@ -262,4 +263,11 @@ extern unsigned int num_menuitems;
 extern void get_menuitems(void);
 extern void free_menuitems(void);
 #endif /* WINDOWLAB_H */
+
+
+
+
+
+
+
 
