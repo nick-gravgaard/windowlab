@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2002 Nick Gravgaard
+ * Copyright (c) 2001-2003 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/
  *
@@ -22,6 +22,9 @@
 #include <X11/Xmd.h>
 
 Window taskbar;
+#ifdef XFT
+XftDraw *tbxftdraw;
+#endif
 
 void make_taskbar(void)
 {
@@ -39,12 +42,10 @@ void make_taskbar(void)
 	XMapWindow(dpy, taskbar);
 
 #ifdef XFT
-//	tbxftdraw = XftDrawCreate(dpy, (Drawable) taskbar,
-//		DefaultVisual(dpy, DefaultScreen(dpy)),
-//		DefaultColormap(dpy, DefaultScreen(dpy)));
+	tbxftdraw = XftDrawCreate(dpy, (Drawable) taskbar,
+		DefaultVisual(dpy, DefaultScreen(dpy)),
+		DefaultColormap(dpy, DefaultScreen(dpy)));
 #endif
-
-	//send_config(c);
 }
 
 void click_taskbar(unsigned int x)
@@ -52,16 +53,18 @@ void click_taskbar(unsigned int x)
 	float button_width;
 	unsigned int button_clicked, i;
 	Client *c;
-
-	button_width = get_button_width();
-	button_clicked = x / button_width;
-	c = head_client;
-	for (i = 0; i < button_clicked; i++)
+	if (head_client)
 	{
-		c = c->next;
+		c = head_client;
+		button_width = get_button_width();
+		button_clicked = (unsigned int)(x / button_width);
+		for (i = 0; i < button_clicked; i++)
+		{
+			c = c->next;
+		}
+		check_focus(c);
+		raise_lower(c);
 	}
-	check_focus(c);
-	raise_lower(c);
 }
 
 void redraw_taskbar(void)
@@ -75,12 +78,11 @@ void redraw_taskbar(void)
 
 	for (c = head_client, i=0; c; c = c->next, i++)
 	{
-		button_startx = i * button_width;
-		button_iwidth = ((i+1) * button_width) - button_startx;
+		button_startx = (unsigned int)(i * button_width);
+		button_iwidth = (unsigned int)(((i+1) * button_width) - button_startx);
 		if (c != head_client)
 		{
-			XDrawLine(dpy, taskbar, border_gc,
-				button_startx, 0, button_startx, BARHEIGHT());
+			XDrawLine(dpy, taskbar, border_gc, button_startx, 0, button_startx, BARHEIGHT());
 		}
 		if (c == last_focused_client)
 		{
@@ -107,12 +109,14 @@ void redraw_taskbar(void)
 
 float get_button_width(void)
 {
-	unsigned int nwins=0;
-	Client *c;
-
-	for (c = head_client; c; c = c->next)
+	unsigned int nwins = 0;
+	Client *c = head_client;
+	while (c != NULL)
 	{
 		nwins++;
+		c = c->next;
 	}
 	return (((float)DisplayWidth(dpy, screen)) / nwins);
 }
+
+

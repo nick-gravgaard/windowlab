@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2002 Nick Gravgaard
+ * Copyright (c) 2001-2003 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/
  *
@@ -124,6 +124,43 @@ void get_mouse_position(int *x, int *y)
 		x, y, &win_x, &win_y, &mask);
 }
 
+void fix_position(Client *c)
+{
+	unsigned int xmax = DisplayWidth(dpy, screen);
+	unsigned int ymax = DisplayHeight(dpy, screen);
+	c->y += BARHEIGHT();
+
+	if (c->width > xmax)
+	{
+		c->width = xmax;
+	}
+	if (c->height + (BARHEIGHT() * 2) > ymax)
+	{
+		c->height = ymax - (BARHEIGHT() * 2);
+	}
+
+	if (c->x < 0)
+	{
+		c->x = 0;
+	}
+	if (c->y <= (BARHEIGHT() + BW(c)))
+	{
+		c->y = (BARHEIGHT() + BW(c));
+	}
+
+	if (c->x + c->width + BW(c) >= xmax)
+	{
+		c->x = xmax - c->width;
+	}
+	if (c->y + BARHEIGHT() + BW(c) >= ymax)
+	{
+		c->y = (ymax - BARHEIGHT()) + BW(c);
+	}
+
+	c->x -= BW(c);
+	c->y -= BW(c);
+}
+
 #ifdef DEBUG
 
 /* Bleh, stupid macro names. I'm not feeling creative today. */
@@ -221,9 +258,10 @@ void dump(Client *c)
 
 void dump_clients()
 {
-	Client *c;
-	for (c = head_client; c; c = c->next)
+	Client *c = head_client;
+	while (c != NULL)
 	{
+		c = c->next;
 		dump(c);
 	}
 }
@@ -256,7 +294,6 @@ static void quit_nicely(void)
 	XFreeCursor(dpy, move_curs);
 	XFreeCursor(dpy, resizestart_curs);
 	XFreeCursor(dpy, resizeend_curs);
-	XFreeGC(dpy, invert_gc);
 	XFreeGC(dpy, border_gc);
 	XFreeGC(dpy, string_gc);
 
@@ -266,3 +303,4 @@ static void quit_nicely(void)
 	XCloseDisplay(dpy);
 	exit(0);
 }
+

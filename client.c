@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2002 Nick Gravgaard
+ * Copyright (c) 2001-2003 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/
  *
@@ -23,49 +23,30 @@
 
 Client *find_client(Window w, int mode)
 {
-	Client *c;
+	Client *c = head_client;
 	if (mode == FRAME)
 	{
-		for (c = head_client; c; c = c->next)
+		while (c != NULL)
 		{
 			if (c->frame == w)
 			{
 				return c;
 			}
+			c = c->next;
 		}
 	}
 	else //WINDOW
 	{
-		for (c = head_client; c; c = c->next)
+		while (c != NULL)
 		{
 			if (c->window == w)
 			{
 				return c;
 			}
+			c = c->next;
 		}
 	}
 	return NULL;
-}
-
-/* For a regular window, c->trans is None (false), and we include
- * enough space to draw the title. For a transient window we just make
- * a tiny strip. */
-
-int theight(Client *c)
-{
-#ifdef MWM_HINTS
-	if (!c->has_title)
-	{
-		return 0;
-	}
-#endif
-#ifdef XFT
-//	return (c->trans ? 0 : xftfont->ascent + xftfont->descent) + 2*SPACE + BW(c);
-	return (xftfont->ascent + xftfont->descent) + 2*SPACE + BW(c);
-#else
-//	return (c->trans ? 0 : font->ascent + font->descent) + 2*SPACE + BW(c);
-	return (font->ascent + font->descent) + 2*SPACE + BW(c);
-#endif
 }
 
 /* Attempt to follow the ICCCM by explicity specifying 32 bits for
@@ -206,11 +187,6 @@ void remove_client(Client *c, int mode)
 	redraw_taskbar();
 }
 
-/* I've changed this to just clear the window every time. The amount
- * of 'flicker' is basically imperceptable. Also, we might be drawing
- * an anti-aliased font with Xft, in which case we have to clear to
- * draw the text properly. */
-
 void redraw(Client *c)
 {
 #ifdef MWM_HINTS
@@ -219,16 +195,15 @@ void redraw(Client *c)
 		return;
 	}
 #endif
-
+	// clear text part of bar
 	if (c == last_focused_client)
 	{
-		XSetWindowBackground(dpy, c->frame, bg.pixel);
+		XFillRectangle(dpy, c->frame, active_gc, 0, 0, c->width - (BARHEIGHT() * 3), BARHEIGHT());
 	}
-	else 
+	else
 	{
-		XSetWindowBackground(dpy, c->frame, fc.pixel);
+		XFillRectangle(dpy, c->frame, inactive_gc, 0, 0, c->width - (BARHEIGHT() * 3), BARHEIGHT());
 	}
-	XClearWindow(dpy, c->frame);
 	if (!c->trans && c->name)
 	{
 #ifdef XFT
@@ -241,26 +216,27 @@ void redraw(Client *c)
 			c->name, strlen(c->name));
 #endif
 	}
+	// clear button part of bar
 	if (c == last_focused_client)
 	{
-		XFillRectangle(dpy, c->frame, active_gc, c->width - (theight(c) * 3) + BW(c) / 2, 0, c->width - (theight(c) * 3) + BW(c) / 2, theight(c));
+		XFillRectangle(dpy, c->frame, active_gc, c->width - (BARHEIGHT() * 3), 0, BARHEIGHT() * 3, BARHEIGHT());
 	}
 	else
 	{
-		XFillRectangle(dpy, c->frame, inactive_gc, c->width - (theight(c) * 3) + BW(c) / 2, 0, c->width - (theight(c) * 3) + BW(c) / 2, theight(c));
+		XFillRectangle(dpy, c->frame, inactive_gc, c->width - (BARHEIGHT() * 3), 0, BARHEIGHT() * 3, BARHEIGHT());
 	}
 	XDrawLine(dpy, c->frame, border_gc,
-		0, theight(c) - BW(c) + BW(c)/2,
-		c->width, theight(c) - BW(c) + BW(c)/2);
+		0, BARHEIGHT() - BW(c) + BW(c)/2,
+		c->width, BARHEIGHT() - BW(c) + BW(c)/2);
 	XDrawLine(dpy, c->frame, border_gc,
-		c->width - theight(c) + BW(c) / 2, 0,
-		c->width - theight(c) + BW(c) / 2, theight(c));
+		c->width - BARHEIGHT() + BW(c) / 2, 0,
+		c->width - BARHEIGHT() + BW(c) / 2, BARHEIGHT());
 	XDrawLine(dpy, c->frame, border_gc,
-		c->width - (theight(c) * 2) + BW(c) / 2, 0,
-		c->width - (theight(c) * 2) + BW(c) / 2, theight(c));
+		c->width - (BARHEIGHT() * 2) + BW(c) / 2, 0,
+		c->width - (BARHEIGHT() * 2) + BW(c) / 2, BARHEIGHT());
 	XDrawLine(dpy, c->frame, border_gc,
-		c->width - (theight(c) * 3) + BW(c) / 2, 0,
-		c->width - (theight(c) * 3) + BW(c) / 2, theight(c));
+		c->width - (BARHEIGHT() * 3) + BW(c) / 2, 0,
+		c->width - (BARHEIGHT() * 3) + BW(c) / 2, BARHEIGHT());
 }
 
 /* Window gravity is a mess to explain, but we don't need to do much
@@ -282,10 +258,10 @@ void gravitate(Client *c, int multiplier)
 		case NorthWestGravity:
 		case NorthEastGravity:
 		case NorthGravity:
-			dy = theight(c);
+			dy = BARHEIGHT();
 			break;
 		case CenterGravity:
-			dy = theight(c)/2;
+			dy = BARHEIGHT()/2;
 			break;
 	}
 
@@ -310,19 +286,19 @@ void set_shape(Client *c)
 	if (n > 1)
 	{
 		XShapeCombineShape(dpy, c->frame, ShapeBounding,
-			0, theight(c), c->window, ShapeBounding, ShapeSet);
+			0, BARHEIGHT(), c->window, ShapeBounding, ShapeSet);
 		temp.x = -BW(c);
 		temp.y = -BW(c);
 		temp.width = c->width + 2*BW(c);
-		temp.height = theight(c) + BW(c);
+		temp.height = BARHEIGHT() + BW(c);
 		XShapeCombineRectangles(dpy, c->frame, ShapeBounding,
 			0, 0, &temp, 1, ShapeUnion, YXBanded);
 		temp.x = 0;
 		temp.y = 0;
 		temp.width = c->width;
-		temp.height = theight(c) - BW(c);
+		temp.height = BARHEIGHT() - BW(c);
 		XShapeCombineRectangles(dpy, c->frame, ShapeClip,
-			0, theight(c), &temp, 1, ShapeUnion, YXBanded);
+			0, BARHEIGHT(), &temp, 1, ShapeUnion, YXBanded);
 		c->has_been_shaped = 1;
 	}
 	else
@@ -333,7 +309,7 @@ void set_shape(Client *c)
 			temp.x = -BW(c);
 			temp.y = -BW(c);
 			temp.width = c->width + 2*BW(c);
-			temp.height = c->height + theight(c) + 2*BW(c);
+			temp.height = c->height + BARHEIGHT() + 2*BW(c);
 			XShapeCombineRectangles(dpy, c->frame, ShapeBounding,
 				0, 0, &temp, 1, ShapeSet, YXBanded);
 		}
@@ -357,3 +333,4 @@ void check_focus(Client *c)
 		redraw_taskbar();
 	}
 }
+

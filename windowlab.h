@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2002 Nick Gravgaard
+ * Copyright (c) 2001-2003 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/
  *
@@ -21,7 +21,7 @@
 #ifndef WINDOWLAB_H
 #define WINDOWLAB_H
 
-#define VERSION "1.0"
+#define VERSION "1.3"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -119,7 +119,7 @@
  * override-redirect) are kept track of in linked list starting at the
  * global pointer called, appropriately, 'clients'. 
  *
- * window and parent refer to the actual client window and the larget
+ * window and parent refer to the actual client window and the larger
  * frame into which we will reparent it respectively. trans is set to
  * None for regular windows, and the window's 'owner' for a transient
  * window. Currently, we don't actually do anything with the owner for
@@ -152,6 +152,13 @@ struct _Client
 #endif
 };
 
+typedef struct _Rect Rect;
+
+struct _Rect
+{
+	int x, y, width, height;
+};
+
 /* Below here are (mainly generated with cproto) declarations and
  * prototypes for each file. */
 
@@ -166,7 +173,7 @@ extern XFontStruct *font;
 extern XftFont *xftfont;
 extern XftColor xft_fg;
 #endif
-extern GC invert_gc, string_gc, border_gc, active_gc, inactive_gc;
+extern GC string_gc, border_gc, active_gc, inactive_gc;
 extern XColor fg, bg, fc, bd;
 extern Cursor move_curs, resizestart_curs, resizeend_curs;
 extern Atom wm_state, wm_change_state, wm_protos, wm_delete, wm_cmapwins;
@@ -184,7 +191,6 @@ extern void do_event_loop(void);
 
 //client.c
 extern Client *find_client(Window, int);
-extern int theight(Client *);
 extern void set_wm_state(Client *, int);
 extern long get_wm_state(Client *);
 extern void send_config(Client *);
@@ -214,6 +220,7 @@ int handle_xerror(Display *, XErrorEvent *);
 int ignore_xerror(Display *, XErrorEvent *);
 int send_xmessage(Window, Atom, long);
 void get_mouse_position(int *, int *);
+void fix_position(Client *);
 #ifdef DEBUG
 extern void show_event(XEvent);
 extern void dump(Client *);
@@ -223,7 +230,7 @@ extern void dump_clients(void);
 // taskbar.c
 extern Window taskbar;
 #ifdef XFT
-//extern XftDraw *tbxftdraw;
+extern XftDraw *tbxftdraw;
 #endif
 extern void make_taskbar(void);
 extern void click_taskbar(unsigned int);
@@ -231,3 +238,4 @@ extern void redraw_taskbar(void);
 float get_button_width(void);
 
 #endif /* WINDOWLAB_H */
+

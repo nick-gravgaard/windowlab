@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2002 Nick Gravgaard
+ * Copyright (c) 2001-2003 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/
  *
@@ -43,22 +43,21 @@ void make_new_client(Window w)
 #endif
 	long dummy;
 
-	c = malloc(sizeof *c);
+	c = (Client *)malloc(sizeof *c);
 	if (!head_client)
 	{
 		head_client = c;
 	}
 	else
 	{
-		for (p = head_client; p && p->next; p = p->next)
+		p = head_client;
+		while (p->next != NULL)
 		{
+			p = p->next;
 		}
 		p->next = c;
 	}
 	c->next = 0;
-
-//	c->next = head_client;
-//	head_client = c;
 
 	if (!last_focused_client)
 	{
@@ -117,6 +116,7 @@ void make_new_client(Window w)
 		}
 	}
 
+	fix_position(c);
 	gravitate(c, APPLY_GRAVITY);
 	reparent(c);
 
@@ -196,14 +196,12 @@ static PropMwmHints *get_mwm_hints(Window w)
  *
  * If we can't find a reasonable position hint, we make up a position
  * using the relative mouse co-ordinates and window size. To account
- * for window gravity while doing this, we add theight into the
+ * for window gravity while doing this, we add BARHEIGHT() into the
  * calculation and then degravitate. Don't think about it too hard, or
  * your head will explode. */
 
 static void init_position(Client *c)
 {
-	int xmax = DisplayWidth(dpy, screen);
-	int ymax = DisplayHeight(dpy, screen);
 	int mouse_x, mouse_y;
 
 	if (c->size->flags & (USSize))
@@ -213,15 +211,15 @@ static void init_position(Client *c)
 	}
 	else
 	{
-		/* we would check PSize here, if GTK didn't blow goats */
-		/* make sure it's big enough to click at */
-		if (c->width < 2 * theight(c))
+		// we would check PSize here, if GTK didn't blow goats
+		// make sure it's big enough for the 3 buttons and a bit of bar
+		if (c->width < 4 * BARHEIGHT())
 		{
-			c->width = 2 * theight(c);
+			c->width = 4 * BARHEIGHT();
 		}
-		if (c->height < theight(c))
+		if (c->height < BARHEIGHT())
 		{
-			c->height = theight(c);
+			c->height = BARHEIGHT();
 		}
 	}
 
@@ -237,42 +235,14 @@ static void init_position(Client *c)
 			c->x = c->size->x;
 			c->y = c->size->y;
 		}
-		if (c->x < 0)
-		{
-			c->x = 0;
-		}
-		if (c->y < 0)
-		{
-			c->y = 0;
-		}
-		if (c->x > xmax)
-		{
-			c->x = xmax - 5;
-		}
-		if (c->y > ymax)
-		{
-			c->y = ymax - 5;
-		}
 	}
 
 	if (c->x == 0 && c->y == 0)
 	{
 		get_mouse_position(&mouse_x, &mouse_y);
-
-		if (c->width < xmax)
-		{
-			c->x = (mouse_x / (float)xmax) * (xmax - c->width);
-		}
-		if (c->height + theight(c) < ymax)
-		{
-			c->y = (mouse_y / (float)ymax) * (ymax - c->height - theight(c));
-		}
-		c->y += theight(c);
+		c->x = mouse_x;
+		c->y = mouse_y;
 		gravitate(c, REMOVE_GRAVITY);
-	}
-	if (c->y <= (BARHEIGHT() + BW(c)))
-	{
-		c->y = (BARHEIGHT() + BW(c));
 	}
 }
 
@@ -285,7 +255,7 @@ static void reparent(Client *c)
 	pattr.border_pixel = bd.pixel;
 	pattr.event_mask = ChildMask|ButtonPressMask|ExposureMask|EnterWindowMask;
 	c->frame = XCreateWindow(dpy, root,
-		c->x, c->y - theight(c), c->width, c->height + theight(c), BW(c),
+		c->x, c->y - BARHEIGHT(), c->width, c->height + BARHEIGHT(), BW(c),
 		DefaultDepth(dpy, screen), CopyFromParent, DefaultVisual(dpy, screen),
 		CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWEventMask, &pattr);
 
@@ -301,7 +271,9 @@ static void reparent(Client *c)
 	XSelectInput(dpy, c->window, ColormapChangeMask|PropertyChangeMask);
 	XSetWindowBorderWidth(dpy, c->window, 0);
 	XResizeWindow(dpy, c->window, c->width, c->height);
-	XReparentWindow(dpy, c->window, c->frame, 0, theight(c));
+	XReparentWindow(dpy, c->window, c->frame, 0, BARHEIGHT());
 
 	send_config(c);
 }
+
+

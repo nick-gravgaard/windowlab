@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2002 Nick Gravgaard
+ * Copyright (c) 2001-2003 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/
  *
@@ -22,15 +22,14 @@
 
 static void drag(Client *);
 static void sweep(Client *);
-static void recalc_sweep(Client *, int, int, int, int);
-static void draw_outline(Client *);
-static int get_incsize(Client *, int *, int *, int);
+static void recalc_sweep(Client *, int, int, int, int, Rect *);
+static int get_incsize(Client *, int *, int *, Rect *, int);
+
+Window resize_win;
 
 void move(Client *c)
 {
 	drag(c);
-//	XMoveWindow(dpy, c->frame, c->x, c->y - theight(c));
-//	send_config(c);
 }
 
 void raise_lower(Client *c)
@@ -51,9 +50,9 @@ void resize(Client *c)
 {
 	sweep(c);
 	XMoveResizeWindow(dpy, c->frame,
-		c->x, c->y - theight(c), c->width, c->height + theight(c));
+		c->x, c->y - BARHEIGHT(), c->width, c->height + BARHEIGHT());
 	XMoveResizeWindow(dpy, c->window,
-		0, theight(c), c->width, c->height);
+		0, BARHEIGHT(), c->width, c->height);
 	send_config(c);
 }
 
@@ -118,30 +117,20 @@ static void drag(Client *c)
 	boundw = (dw - boundx - (c->width - boundx)) + 1;
 	boundy = mousey - c->y;
 	boundh = (dh - boundy - (c->height - boundy)) + 1;
-	boundy += (BARHEIGHT() + theight(c));
-	boundh += c->height - (BARHEIGHT() + theight(c));
+	boundy += (BARHEIGHT() + BARHEIGHT());
+	boundh += c->height - (BARHEIGHT() + BARHEIGHT());
 
 	constraint_win = XCreateWindow(dpy, root, boundx, boundy, boundw, boundh, 0, CopyFromParent, InputOnly, CopyFromParent, 0, &pattr);
-//	constraint_win = XCreateSimpleWindow(dpy, root, boundx, boundy, boundw, boundh, 0, 0, ParentRelative);
-//	XLowerWindow(dpy, constraint_win);
 	XMapWindow(dpy, constraint_win);
-
-//	if (!grab(root, MouseMask, move_curs))
-//	{
-//		return;
-//	}
 
 	if (!(XGrabPointer(dpy, root, False, MouseMask, GrabModeAsync, GrabModeAsync, constraint_win, move_curs, CurrentTime) == GrabSuccess))
 	{
 		return;
 	}
-//	XGrabServer(dpy);
 	get_mouse_position(&x1, &y1);
 
-//	draw_outline(c);
 	for (;;)
 	{
-//		XMaskEvent(dpy, MouseMask, &ev);
 		XMaskEvent(dpy, ExposureMask|MouseMask, &ev);
 		switch (ev.type)
 		{
@@ -153,16 +142,12 @@ static void drag(Client *c)
 				}
 				break;
 			case MotionNotify:
-//				draw_outline(c); // clear
 				c->x = old_cx + (ev.xmotion.x - x1);
 				c->y = old_cy + (ev.xmotion.y - y1);
-				XMoveWindow(dpy, c->frame, c->x, c->y - theight(c));
+				XMoveWindow(dpy, c->frame, c->x, c->y - BARHEIGHT());
 				send_config(c);
-//				draw_outline(c);
 				break;
 			case ButtonRelease:
-//				draw_outline(c); // clear
-//				XUngrabServer(dpy);
 				ungrab();
 
 				XUnmapWindow(dpy, constraint_win);
@@ -177,12 +162,12 @@ static void sweep(Client *c)
 	XEvent ev;
 	int old_cx = c->x;
 	int old_cy = c->y;
-//	int old_cx;// = c->x;
-//	int old_cy;// = c->y;
+	Client *exposed_c;
+	Rect newdims;
 
 	int boundx, boundy, boundw, boundh, mousex, mousey, dw, dh;
 	Window constraint_win;
-	XSetWindowAttributes pattr;
+	XSetWindowAttributes pattr, resize_pattr;
 
 	dw = DisplayWidth(dpy, screen);
 	dh = DisplayHeight(dpy, screen);
@@ -200,18 +185,6 @@ static void sweep(Client *c)
 	{
 		return;
 	}
-
-//	if (!grab(root, MouseMask, resize_curs))
-//	{
-//		return;
-//	}
-//	XGrabServer(dpy);
-
-//	do
-//	{
-//		XMaskEvent(dpy, MouseMask, &ev);
-//	}
-//	while (ev.type != ButtonRelease);
 
 	for (;;)
 	{
@@ -231,7 +204,7 @@ static void sweep(Client *c)
 
 	boundx = old_cx + MINWINWIDTH + BW(c);
 	boundw = dw - boundx - 1;
-	boundy = old_cy + MINWINHEIGHT + BW(c) + theight(c);
+	boundy = old_cy + MINWINHEIGHT + BW(c) + BARHEIGHT();
 	boundh = dh - boundy - 1;
 
 	if (boundx > dw)
@@ -242,7 +215,7 @@ static void sweep(Client *c)
 	}
 	if (boundy > dh)
 	{
-		old_cy = dh - MINWINHEIGHT - BW(c) - theight(c);
+		old_cy = dh - MINWINHEIGHT - BW(c) - BARHEIGHT();
 		boundy = dh - 1;
 		boundh = 1;
 	}
@@ -255,108 +228,95 @@ static void sweep(Client *c)
 		return;
 	}
 
-	recalc_sweep(c, old_cx, old_cy, ev.xmotion.x, ev.xmotion.y); //ng today
-	draw_outline(c);
-//	setmouse(c->window, c->width, c->height);
+	recalc_sweep(c, old_cx, old_cy, ev.xmotion.x, ev.xmotion.y, &newdims);
+
+	// create and map resize window
+	resize_pattr.override_redirect = True;
+	resize_pattr.background_pixel = fc.pixel;
+	resize_pattr.border_pixel = bd.pixel;
+	resize_pattr.event_mask = ChildMask|ButtonPressMask|ExposureMask|EnterWindowMask;
+	resize_win = XCreateWindow(dpy, root,
+		newdims.x, newdims.y - BARHEIGHT(), newdims.width + BW(c), newdims.height + BARHEIGHT() + BW(c), DEF_BW,
+		DefaultDepth(dpy, screen), CopyFromParent, DefaultVisual(dpy, screen),
+		CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWEventMask, &resize_pattr);
+	XMapWindow(dpy, resize_win);
+
 	for (;;)
 	{
-		XMaskEvent(dpy, MouseMask, &ev);
+		XMaskEvent(dpy, ExposureMask|MouseMask, &ev);
 		switch (ev.type)
 		{
+			case Expose:
+				exposed_c = find_client(ev.xexpose.window, FRAME);
+				if (exposed_c)
+				{
+					redraw(exposed_c);
+				}
+				break;
 			case MotionNotify:
-				draw_outline(c); //clear
-				recalc_sweep(c, old_cx, old_cy, ev.xmotion.x, ev.xmotion.y);
-				draw_outline(c);
+				recalc_sweep(c, old_cx, old_cy, ev.xmotion.x, ev.xmotion.y, &newdims);
+				XMoveResizeWindow(dpy, resize_win, newdims.x, newdims.y - BARHEIGHT(), newdims.width, newdims.height + BARHEIGHT());
 				break;
 			case ButtonRelease:
-				draw_outline(c); //clear
+				c->x = newdims.x;
+				c->y = newdims.y;
+				c->width = newdims.width;
+				c->height = newdims.height;
 				XUngrabServer(dpy);
 				ungrab();
-
 				XUnmapWindow(dpy, constraint_win);
 				XDestroyWindow(dpy, constraint_win);
+				XUnmapWindow(dpy, resize_win);
+				XDestroyWindow(dpy, resize_win);
 				return;
-
 		}
 	}
 }
 
-static void recalc_sweep(Client *c, int x1, int y1, int x2, int y2)
+static void recalc_sweep(Client *c, int x1, int y1, int x2, int y2, Rect *newdims)
 {
-	c->width = abs(x1 - x2);
-	c->height = abs(y1 - y2);
-	c->height -= theight(c);
+	newdims->width = abs(x1 - x2);
+	newdims->height = abs(y1 - y2);
+	newdims->height -= BARHEIGHT();
 
-	get_incsize(c, &c->width, &c->height, PIXELS);
+	get_incsize(c, &newdims->width, &newdims->height, newdims, PIXELS);
 
 	if (c->size->flags & PMinSize)
 	{
-		if (c->width < c->size->min_width)
+		if (newdims->width < c->size->min_width)
 		{
-			c->width = c->size->min_width;
+			newdims->width = c->size->min_width;
 		}
-		if (c->height < c->size->min_height)
+		if (newdims->height < c->size->min_height)
 		{
-			c->height = c->size->min_height;
+			newdims->height = c->size->min_height;
 		}
 	}
 
 	if (c->size->flags & PMaxSize)
 	{
-		if (c->width > c->size->max_width)
+		if (newdims->width > c->size->max_width)
 		{
-			c->width = c->size->max_width;
+			newdims->width = c->size->max_width;
 		}
-		if (c->height > c->size->max_height)
+		if (newdims->height > c->size->max_height)
 		{
-			c->height = c->size->max_height;
+			newdims->height = c->size->max_height;
 		}
 	}
 
-	if (c->width < MINWINWIDTH)
+	if (newdims->width < MINWINWIDTH)
 	{
-		c->width = MINWINWIDTH;
+		newdims->width = MINWINWIDTH;
 	}
-	if (c->height < MINWINHEIGHT)
+	if (newdims->height < MINWINHEIGHT)
 	{
-		c->height = MINWINHEIGHT;
+		newdims->height = MINWINHEIGHT;
 	}
 
-	c->x = (x1 <= x2) ? x1 : x1 - c->width;
-	c->y = (y1 <= y2) ? y1 : y1 - c->height - theight(c);
-
-	c->y += theight(c);
-}
-
-static void draw_outline(Client *c)
-{
-//	char buf[32];
-	int width, height;
-
-	XFillRectangle(dpy, root, invert_gc,
-		c->x, c->y - theight(c),
-		c->width + BW(c), c->height + theight(c) + BW(c));
-
-/*	XDrawRectangle(dpy, root, invert_gc,
-		c->x + BW(c)/2, c->y - theight(c) + BW(c)/2,
-		c->width + BW(c), c->height + theight(c) + BW(c));
-	XDrawLine(dpy, root, invert_gc, c->x + BW(c), c->y + BW(c)/2,
-		c->x + c->width + BW(c), c->y + BW(c)/2);
-*/
-	if (!get_incsize(c, &width, &height, INCREMENTS))
-	{
-		width = c->width;
-		height = c->height;
-	}
-/*
-	gravitate(c, REMOVE_GRAVITY);
-	snprintf(buf, sizeof buf, "%dx%d+%d+%d", width, height, c->x, c->y);
-	gravitate(c, APPLY_GRAVITY);
-	XDrawString(dpy, root, invert_gc,
-		c->x + c->width - XTextWidth(font, buf, strlen(buf)) - SPACE,
-		c->y + c->height - SPACE,
-		buf, strlen(buf));
-*/
+	newdims->x = x1;
+	newdims->y = y1;
+	newdims->y += BARHEIGHT();
 }
 
 /* If the window in question has a ResizeInc int, then it wants to be
@@ -364,10 +324,9 @@ static void draw_outline(Client *c)
  * the number of multiples (if mode == INCREMENTS) or the correct size
  * in pixels for said multiples (if mode == PIXELS). */
 
-static int get_incsize(Client *c, int *x_ret, int *y_ret, int mode)
+static int get_incsize(Client *c, int *x_ret, int *y_ret, Rect *newdims, int mode)
 {
 	int basex, basey;
-
 	if (c->size->flags & PResizeInc)
 	{
 		basex = (c->size->flags & PBaseSize) ? c->size->base_width :
@@ -376,16 +335,17 @@ static int get_incsize(Client *c, int *x_ret, int *y_ret, int mode)
 			(c->size->flags & PMinSize) ? c->size->min_height : 0;
 		if (mode == PIXELS)
 		{
-			*x_ret = c->width - ((c->width - basex) % c->size->width_inc);
-			*y_ret = c->height - ((c->height - basey) % c->size->height_inc);
+			*x_ret = newdims->width - ((newdims->width - basex) % c->size->width_inc);
+			*y_ret = newdims->height - ((newdims->height - basey) % c->size->height_inc);
 		}
 		else //INCREMENTS
 		{
-			*x_ret = (c->width - basex) / c->size->width_inc;
-			*y_ret = (c->height - basey) / c->size->height_inc;
+			*x_ret = (newdims->width - basex) / c->size->width_inc;
+			*y_ret = (newdims->height - basey) / c->size->height_inc;
 		}
 		return 1;
 	}
-
 	return 0;
 }
+
+

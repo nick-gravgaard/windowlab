@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2002 Nick Gravgaard
+ * Copyright (c) 2001-2003 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/
  *
@@ -31,7 +31,7 @@ XFontStruct *font;
 XftFont *xftfont;
 XftColor xft_fg;
 #endif
-GC invert_gc, string_gc, border_gc, active_gc, inactive_gc;
+GC string_gc, border_gc, active_gc, inactive_gc;
 XColor fg, bg, fc, bd;
 Cursor move_curs, resizestart_curs, resizeend_curs;
 Atom wm_state, wm_change_state, wm_protos, wm_delete, wm_cmapwins;
@@ -107,9 +107,8 @@ int main(int argc, char **argv)
 
 	setup_display();
 	head_client = 0;
-	scan_wins();
 	make_taskbar();
-	redraw_taskbar();
+	scan_wins();
 	do_event_loop();
 	return 1; //just another brick in the -Wall
 }
@@ -210,10 +209,8 @@ static void setup_display(void)
 	gv.foreground = fc.pixel;
 	inactive_gc = XCreateGC(dpy, root, GCFunction|GCForeground, &gv);
 
-	gv.function = GXinvert;
-	gv.subwindow_mode = IncludeInferiors;
-	invert_gc = XCreateGC(dpy, root, GCFunction|GCSubwindowMode|GCLineWidth|GCFont, &gv);
-
 	sattr.event_mask = ChildMask|ColormapChangeMask|ButtonMask;
 	XChangeWindowAttributes(dpy, root, CWEventMask, &sattr);
 }
+
+

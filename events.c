@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2002 Nick Gravgaard
+ * Copyright (c) 2001-2003 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/
  *
@@ -22,6 +22,8 @@
 #include <X11/Xatom.h>
 
 static void handle_button_press(XButtonEvent *);
+static void handle_windowbar_click(XButtonEvent *e, Client *c);
+static int box_clicked(Client *c, int x);
 static void handle_configure_request(XConfigureRequestEvent *);
 static void handle_map_request(XMapRequestEvent *);
 static void handle_unmap_event(XUnmapEvent *);
@@ -99,8 +101,6 @@ void do_event_loop(void)
 static void handle_button_press(XButtonEvent *e)
 {
 	Client *c;
-	int in_box_down, in_box_up;
-	XEvent ev;
 
 	if (e->window == root)
 	{
@@ -126,57 +126,77 @@ static void handle_button_press(XButtonEvent *e)
 		{
 			click_taskbar(e->x);
 		}
-		c = find_client(e->window, FRAME);
-		if (c)
+		else
 		{
-			check_focus(c);
-			//click-to-focus
-			XSetInputFocus(dpy, c->window, RevertToPointerRoot, CurrentTime);
-			XInstallColormap(dpy, c->cmap);
-
-			XAllowEvents(dpy, ReplayPointer, CurrentTime); /* back on? */
-
-			if (e->y < theight(c))
+			c = find_client(e->window, FRAME);
+			if (c)
 			{
-				in_box_down = (c->width - e->x) / theight(c);
-				if (in_box_down <= 2)
+				check_focus(c);
+				//click-to-focus
+				XSetInputFocus(dpy, c->window, RevertToPointerRoot, CurrentTime);
+				XInstallColormap(dpy, c->cmap);
+
+				XAllowEvents(dpy, ReplayPointer, CurrentTime); // back on?
+
+				if (e->y < BARHEIGHT())
 				{
-					if (!grab(root, MouseMask, None))
-					{
-						return;
-					}
-					XGrabServer(dpy);
-					do
-					{
-						XMaskEvent(dpy, MouseMask, &ev);
-					}
-					while (ev.type != ButtonRelease);
-					XUngrabServer(dpy);
-					ungrab();
-					in_box_up = ((c->width - (ev.xbutton.x - c->x)) + BW(c)) / theight(c);
-					if ((e->y < theight(c)) && (in_box_up == in_box_down))
-					{
-						switch (in_box_up)
-						{
-							case 0:
-								send_wm_delete(c);
-								break;
-							case 1:
-								raise_lower(c);
-								break;
-							case 2:
-								resize(c);
-								break;
-						}
-					}
-				}
-				else
-				{
-					move(c);
+					handle_windowbar_click(e, c);
 				}
 			}
 		}
 	}
+}
+
+static void handle_windowbar_click(XButtonEvent *e, Client *c)
+{
+	int in_box_down, in_box_up;
+	XEvent ev;
+
+	in_box_down = box_clicked(c, e->x);
+	if (in_box_down <= 2)
+	{
+		if (!grab(root, MouseMask, None))
+		{
+			return;
+		}
+		XGrabServer(dpy);
+		do
+		{
+			XMaskEvent(dpy, MouseMask, &ev);
+		}
+		while (ev.type != ButtonRelease);
+		XUngrabServer(dpy);
+		ungrab();
+		in_box_up = box_clicked(c, (ev.xbutton.x - c->x) + BW(c));
+		if ((e->y < BARHEIGHT()) && (in_box_up == in_box_down))
+		{
+			switch (in_box_up)
+			{
+				case 0:
+					send_wm_delete(c);
+					break;
+				case 1:
+					raise_lower(c);
+					break;
+				case 2:
+					resize(c);
+					break;
+			}
+		}
+	}
+	else
+	{
+		move(c);
+	}
+}
+
+/* return which button was clicked - this is a multiple of BARHEIGHT()
+ * from the right hand side. We only care about 0, 1 and 2.
+ */
+
+static int box_clicked(Client *c, int x)
+{
+	return (c->width - x) / BARHEIGHT();
 }
 
 /* Because we are redirecting the root window, we get ConfigureRequest
@@ -205,10 +225,11 @@ static void handle_configure_request(XConfigureRequestEvent *e)
 		if (e->value_mask & CWHeight) c->height = e->height;
 		gravitate(c, APPLY_GRAVITY);
 		/* configure the frame */
+		fix_position(c);
 		wc.x = c->x;
-		wc.y = c->y - theight(c);
+		wc.y = c->y - BARHEIGHT();
 		wc.width = c->width;
-		wc.height = c->height + theight(c);
+		wc.height = c->height + BARHEIGHT();
 		wc.border_width = BW(c);
 		wc.sibling = e->above;
 		wc.stack_mode = e->detail;
@@ -222,7 +243,7 @@ static void handle_configure_request(XConfigureRequestEvent *e)
 		send_config(c);
 		/* start setting up the next call */
 		wc.x = 0;
-		wc.y = theight(c);
+		wc.y = BARHEIGHT();
 	}
 	else
 	{
@@ -245,16 +266,15 @@ static void handle_configure_request(XConfigureRequestEvent *e)
 static void handle_map_request(XMapRequestEvent *e)
 {
 	Client *c = find_client(e->window, WINDOW);
-
-	if (!c)
-	{
-		make_new_client(e->window);
-	}
-	else
+	if (c)
 	{
 		XMapWindow(dpy, c->window);
 		XMapRaised(dpy, c->frame);
 		set_wm_state(c, NormalState);
+	}
+	else
+	{
+		make_new_client(e->window);
 	}
 }
 
@@ -276,17 +296,16 @@ static void handle_unmap_event(XUnmapEvent *e)
 {
 	Client *c = find_client(e->window, WINDOW);
 
-	if (!c)
+	if (c)
 	{
-		return;
-	}
-	if (c->ignore_unmap)
-	{
-		c->ignore_unmap--;
-	}
-	else
-	{
-		remove_client(c, WITHDRAW);
+		if (c->ignore_unmap)
+		{
+			c->ignore_unmap--;
+		}
+		else
+		{
+			remove_client(c, WITHDRAW);
+		}
 	}
 }
 
@@ -297,12 +316,10 @@ static void handle_unmap_event(XUnmapEvent *e)
 static void handle_destroy_event(XDestroyWindowEvent *e)
 {
 	Client *c = find_client(e->window, WINDOW);
-
-	if (!c)
+	if (c)
 	{
-		return;
+		remove_client(c, WITHDRAW);
 	}
-	remove_client(c, WITHDRAW);
 }
 
 /* If a client wants to iconify itself (boo! hiss!) it must send a
@@ -312,7 +329,6 @@ static void handle_destroy_event(XDestroyWindowEvent *e)
 static void handle_client_message(XClientMessageEvent *e)
 {
 	Client *c = find_client(e->window, WINDOW);
-
 	if (c && e->message_type == wm_change_state &&
 		e->format == 32 && e->data.l[0] == IconicState)
 	{
@@ -330,22 +346,22 @@ static void handle_property_change(XPropertyEvent *e)
 	Client *c = find_client(e->window, WINDOW);
 	long dummy;
 
-	if (!c)
+	if (c)
 	{
-		return;
-	}
-	switch (e->atom)
-	{
-		case XA_WM_NAME:
-			if (c->name)
-			{
-				XFree(c->name);
-			}
-			XFetchName(dpy, c->window, &c->name);
-			redraw(c);
-			break;
-		case XA_WM_NORMAL_HINTS:
-			XGetWMNormalHints(dpy, c->window, c->size, &dummy);
+		switch (e->atom)
+		{
+			case XA_WM_NAME:
+				if (c->name)
+				{
+					XFree(c->name);
+				}
+				XFetchName(dpy, c->window, &c->name);
+				redraw(c);
+				redraw_taskbar();
+				break;
+			case XA_WM_NORMAL_HINTS:
+				XGetWMNormalHints(dpy, c->window, c->size, &dummy);
+		}
 	}
 }
 
@@ -361,26 +377,11 @@ static void handle_property_change(XPropertyEvent *e)
 
 static void handle_enter_event(XCrossingEvent *e)
 {
-/*	Client *c = find_client(e->window, FRAME);
-
-	if (!c)
-	{
-		return;
-	}
-	XSetInputFocus(dpy, c->window, RevertToPointerRoot, CurrentTime);
-	XInstallColormap(dpy, c->cmap); */
-
-/* from 9wm/client.c. Is c->parent from 9wm, c->frame in windowlab?
-I think we want to make the wm aware of button clicks here so that we can
-set focus etc */
 	Client *c = find_client(e->window, FRAME);
-	if (!c)
+	if (c)
 	{
-		return;
+		XGrabButton(dpy, AnyButton, AnyModifier, c->frame, False, ButtonMask, GrabModeSync, GrabModeSync, None, None);
 	}
-	XGrabButton(dpy, AnyButton, AnyModifier, c->frame, False, ButtonMask, GrabModeSync, GrabModeSync, None, None);
-//	XUngrabButton(dpy, AnyButton, AnyModifier, c->frame);
-	return;
 }
 
 /* Here's part 2 of our colormap policy: when a client installs a new
@@ -395,7 +396,7 @@ set focus etc */
 static void handle_colormap_change(XColormapEvent *e)
 {
 	Client *c = find_client(e->window, WINDOW);
-
+	//if (c && e->c_new) //use c_new for c++
 	if (c && e->new)
 	{
 		c->cmap = e->colormap;
@@ -409,11 +410,20 @@ static void handle_colormap_change(XColormapEvent *e)
 
 static void handle_expose_event(XExposeEvent *e)
 {
-	Client *c = find_client(e->window, FRAME);
-
-	if (c && e->count == 0)
+	if (e->window == taskbar)
 	{
-		redraw(c);
+		if (e->count == 0)
+		{
+			redraw_taskbar();
+		}
+	}
+	else
+	{
+		Client *c = find_client(e->window, FRAME);
+		if (c && e->count == 0)
+		{
+			redraw(c);
+		}
 	}
 }
 
@@ -421,10 +431,10 @@ static void handle_expose_event(XExposeEvent *e)
 static void handle_shape_change(XShapeEvent *e)
 {
 	Client *c = find_client(e->window, WINDOW);
-
 	if (c)
 	{
 		set_shape(c);
 	}
 }
 #endif
+

@@ -1,3 +1,24 @@
+1.3 (2003-02-10)
+
+* fixed crash caused if the taskbar is clicked and no clients are present (found by lanzz)
+* changed resizing to use a window rather than inverting the background
+* many misc bug fixes
+* fixed a problem with xft/freetype (found by Michael Haller)
+
+
+1.2 (2003-01-23)
+
+* new client window positioning algorithm altered so that it's more obvious to the user
+* small bug in find_client fixed
+
+
+1.1 (2003-01-12)
+
+* some refactoring in events.c
+* added some missing event handling for the taskbar window (found by Pierre-Paul Lavoie)
+* made taskbar window update when a client window changes its title
+
+
 1.0 (2002-12-26)
 
 * first public release
