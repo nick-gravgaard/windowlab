@@ -38,7 +38,8 @@ Atom wm_state, wm_change_state, wm_protos, wm_delete, wm_cmapwins;
 #ifdef MWM_HINTS
 Atom mwm_hints;
 #endif
-Client *head_client, *last_focused_client;
+Client *head_client, *last_focused_client, *fullscreen_client;
+Rect fs_prevdims;
 char *opt_font = DEF_FONT;
 char *opt_fg = DEF_FG;
 char *opt_bg = DEF_BG;

@@ -1,3 +1,16 @@
+1.12 (2003-07-20)
+
+* cycle_previous() and cycle_next() greatly simplified
+* unhide() function added
+* hidden windows are now listed in the taskbar, and clicking their buttons will unhide them
+* RATIONALE file added to explain the reasoning behind some of WindowLabs features
+* integrated more changes from David Lawrence Ramsey:
+	* code added to keep windows (eg Mozilla and Mozilla Firebird) from raising themselves
+	* modified refix_position() to handle maximized (decorless) windows properly
+	* fixed a bug in the manpage where the description of the keybindings is all fused into one paragraph
+	* made a few minor cleanups
+
+
 1.11 (2003-07-05)
 
 * fixed fullscreenmode so that no border is shown on screen

@@ -61,88 +61,38 @@ void click_taskbar(unsigned int x)
 		c = head_client;
 		button_width = get_button_width();
 		button_clicked = (unsigned int)(x / button_width);
-		for (i = 0; i < button_clicked; i++)
-		{
-			if (c->iconic)
-			{
-				button_clicked++;
-			}
-			c = c->next;
-		}
-		if (!c->iconic)
-		{
-			check_focus(c);
-			raise_lower(c);
-		}
+		for (i = 0; i < button_clicked; i++) c = c->next;
+		if (c->iconic) unhide(c);
+		check_focus(c);
+		raise_lower(c);
 	}
 }
 
-void cycle_previous(Client *c)
+void cycle_previous()
 {
+	Client *c = last_focused_client;
 	Client *original_c = c;
-	Client *beforethis_c = c;
-	Client *lastnoniconic_c = c;
-	int stop = 0;
-	if (head_client != NULL && head_client->next != NULL)
+	if (head_client != NULL && head_client->next != NULL) // at least 2 windows exist
 	{
-		if (c == head_client)
+		if (c == NULL) c = head_client;
+		if (c == head_client) original_c = NULL;
+		do
 		{
-			do
-			{
-				c = c->next;
-				if (!c->iconic)
-				{
-					lastnoniconic_c = c;
-				}
-			}
-			while (c->next != NULL);
-			c = lastnoniconic_c;
+			if (c->next == NULL) c = head_client;
+			else c = c->next;
 		}
-		else
-		{
-			do
-			{
-				if (c->next == NULL)
-				{
-					c = head_client;
-				}
-				else
-				{
-					c = c->next;
-				}
-				if (c->next == beforethis_c && c->iconic)
-				{
-					beforethis_c = c;
-					if (beforethis_c == original_c)
-					{
-						stop = 1;
-					}
-				}
-			}
-			while (c->next != beforethis_c && !stop);
-		}
+		while (c->next != original_c);
 		check_focus(c);
 	}
 }
 
-void cycle_next(Client *c)
+void cycle_next()
 {
-	int looped = 0;
-	if (head_client && head_client->next != NULL)
+	Client *c = last_focused_client;
+	if (head_client != NULL && head_client->next != NULL) // at least 2 windows exist
 	{
-		do
-		{
-			if (c->next == NULL)
-			{
-				looped++;
-				c = head_client;
-			}
-			else
-			{
-				c = c->next;
-			}
-		}
-		while (c->iconic && looped < 2);
+		if (c == NULL || c->next == NULL) c = head_client;
+		else c = c->next;
 		check_focus(c);
 	}
 }
@@ -234,11 +184,6 @@ void redraw_taskbar(void)
 
 	for (c = head_client, i=0; c; c = c->next, i++)
 	{
-		if (c->iconic)
-		{
-			i--;
-			continue;
-		}
 		button_startx = (unsigned int)(i * button_width);
 		button_iwidth = (unsigned int)(((i+1) * button_width) - button_startx);
 		if (button_startx != 0)
@@ -353,11 +298,10 @@ float get_button_width(void)
 	Client *c = head_client;
 	while (c != NULL)
 	{
-		if (!c->iconic)
-		{
-			nwins++;
-		}
+		nwins++;
 		c = c->next;
 	}
 	return (((float)DisplayWidth(dpy, screen)) / nwins);
 }
+
+

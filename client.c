@@ -185,7 +185,7 @@ void remove_client(Client *c, int mode)
 	}
 	if (c == last_focused_client)
 	{
-		last_focused_client = 0;
+		last_focused_client = NULL;
 	}
 	free(c);
 
@@ -330,6 +330,7 @@ void set_shape(Client *c)
 void check_focus(Client *c)
 {
 	Client *old_focused;
+	if (c->iconic) unhide(c); // deiconify
 	XSetInputFocus(dpy, c->window, RevertToNone, CurrentTime);
 	XInstallColormap(dpy, c->cmap);
 	if (c != last_focused_client)

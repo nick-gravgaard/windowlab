@@ -153,9 +153,9 @@ void fix_position(Client *c)
 	{
 		c->x = 0;
 	}
-	if (c->y <= (BARHEIGHT() + BW(c)))
+	if (c->y < BARHEIGHT() + BW(c))
 	{
-		c->y = (BARHEIGHT() + BW(c));
+		c->y = BARHEIGHT() + BW(c);
 	}
 
 	if (c->x + c->width + BW(c) >= xmax)
@@ -164,17 +164,23 @@ void fix_position(Client *c)
 	}
 	if (c->y + c->height + BARHEIGHT() + BW(c) >= ymax)
 	{
-		c->y = (ymax - c->height) - BARHEIGHT();
+		c->y = ymax - c->height - BARHEIGHT() + BW(c);
 	}
 
 	c->x -= BW(c);
 	c->y -= BW(c);
 }
 
+/* If this is the fullscreen client we don't take BARHEIGHT() into account
+ * because the titlebar isn't being drawn on the window. */
+
 void refix_position(Client *c, XConfigureRequestEvent *e)
 {
 	unsigned int xmax = DisplayWidth(dpy, screen);
 	unsigned int ymax = DisplayHeight(dpy, screen);
+	unsigned int has_decor = 1;
+
+	if (fullscreen_client == c) has_decor = 0;
 
 	if (c->width < MINWINWIDTH - BW(c))
 	{
@@ -192,9 +198,9 @@ void refix_position(Client *c, XConfigureRequestEvent *e)
 		c->width = xmax;
 		e->value_mask |= CWWidth;
 	}
-	if (c->height + (BARHEIGHT() * 2) + BW(c) > ymax)
+	if (c->height + ((BARHEIGHT() * 2) * has_decor) + BW(c) > ymax)
 	{
-		c->height = ymax - (BARHEIGHT() * 2);
+		c->height = ymax - ((BARHEIGHT() * 2) * has_decor);
 		e->value_mask |= CWHeight;
 	}
 
@@ -203,9 +209,9 @@ void refix_position(Client *c, XConfigureRequestEvent *e)
 		c->x = 0 - BW(c);
 		e->value_mask |= CWX;
 	}
-	if (c->y <= BARHEIGHT() * 2)
+	if (c->y < (BARHEIGHT() * 2) * has_decor)
 	{
-		c->y = BARHEIGHT() * 2;
+		c->y = (BARHEIGHT() * 2) * has_decor;
 		e->value_mask |= CWY;
 	}
 
@@ -215,9 +221,9 @@ void refix_position(Client *c, XConfigureRequestEvent *e)
 		e->value_mask |= CWX;
 	}
 	// note that this next bit differs from fix_position() because here we ensure that the titlebar is visible as opposed to the whole window
-	if (c->y + BARHEIGHT() >= ymax)
+	if (c->y + (BARHEIGHT() * has_decor) >= ymax)
 	{
-		c->y = ymax - BARHEIGHT() - BW(c);
+		c->y = ymax - (BARHEIGHT() * has_decor) - BW(c);
 		e->value_mask |= CWY;
 	}
 }

@@ -21,7 +21,7 @@
 #ifndef WINDOWLAB_H
 #define WINDOWLAB_H
 
-#define VERSION "1.11"
+#define VERSION "1.12"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -66,7 +66,6 @@
 #define KEY_CYCLENEXT	XK_F10
 #define KEY_FULLSCREEN	XK_F11
 #define KEY_TOGGLEZ	XK_F12
-
 
 /* A few useful masks made up out of X's basic ones. `ChildMask' is a
  * silly name, but oh well. */
@@ -199,7 +198,8 @@ struct _MenuItem
 extern Display *dpy;
 extern Window root;
 extern int screen;
-extern Client *head_client, *last_focused_client;
+extern Client *head_client, *last_focused_client, *fullscreen_client;
+extern Rect fs_prevdims;
 extern XFontStruct *font;
 #ifdef XFT
 extern XftFont *xftfont;
@@ -243,6 +243,7 @@ extern void move(Client *);
 extern void raise_lower(Client *);
 extern void resize(Client *);
 extern void hide(Client *);
+extern void unhide(Client *);
 void toggle_fullscreen(Client *);
 extern void send_wm_delete(Client *);
 extern void write_titletext(Client *, Window);
@@ -270,8 +271,8 @@ extern XftDraw *tbxftdraw;
 #endif
 extern void make_taskbar(void);
 extern void click_taskbar(unsigned int);
-extern void cycle_previous(Client *);
-extern void cycle_next(Client *);
+extern void cycle_previous(void);
+extern void cycle_next(void);
 extern void rclick_taskbar(void);
 extern void rclick_root(void);
 extern void redraw_taskbar(void);
@@ -283,3 +284,4 @@ extern unsigned int num_menuitems;
 extern void get_menuitems(void);
 extern void free_menuitems(void);
 #endif /* WINDOWLAB_H */
+

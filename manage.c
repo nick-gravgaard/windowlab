@@ -53,24 +53,24 @@ void resize(Client *c)
 
 void hide(Client *c)
 {
-	if (!c->ignore_unmap)
-	{
-		c->ignore_unmap++;
-	}
-	if (!c->iconic)
-	{
-		c->iconic++;
-		redraw_taskbar();
-	}
+	if (!c->ignore_unmap) c->ignore_unmap++;
+	c->iconic = 1;
 	XUnmapWindow(dpy, c->frame);
 	XUnmapWindow(dpy, c->window);
 	set_wm_state(c, IconicState);
 }
 
+void unhide(Client *c)
+{
+	if (c->ignore_unmap) c->ignore_unmap--;
+	c->iconic = 0;
+	XMapWindow(dpy, c->window);
+	XMapRaised(dpy, c->frame);
+	set_wm_state(c, NormalState);
+}
+
 void toggle_fullscreen(Client *c)
 {
-	static Client *fullscreen_client;
-	static Rect fs_prevdims;
 	if (c && !c->trans)
 	{
 		if (c == fullscreen_client) // reset to original size
@@ -141,6 +141,10 @@ void send_wm_delete(Client *c)
 	{
 		XKillClient(dpy, c->window);
 	}
+	if (c == last_focused_client)
+	{
+		last_focused_client = NULL;
+	}
 }
 
 static void drag(Client *c)
@@ -162,8 +166,8 @@ static void drag(Client *c)
 	bound.width = (dw - bound.x - (c->width - bound.x)) + 1;
 	bound.y = mousey - c->y;
 	bound.height = (dh - bound.y - (c->height - bound.y)) + 1;
-	bound.y += (BARHEIGHT() + BARHEIGHT());
-	bound.height += c->height - (BARHEIGHT() + BARHEIGHT());
+	bound.y += BARHEIGHT() * 2;
+	bound.height += c->height - (BARHEIGHT() * 2);
 
 	constraint_win = XCreateWindow(dpy, root, bound.x, bound.y, bound.width, bound.height, 0, CopyFromParent, InputOnly, CopyFromParent, 0, &pattr);
 	XMapWindow(dpy, constraint_win);
@@ -440,3 +444,4 @@ void write_titletext(Client *c, Window bar_win)
 #endif
 	}
 }
+

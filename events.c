@@ -103,10 +103,10 @@ static void handle_key_event(XKeyEvent *e)
 	switch (key)
 	{
 		case KEY_CYCLEPREV:
-			cycle_previous(last_focused_client);
+			cycle_previous();
 			break;
 		case KEY_CYCLENEXT:
-			cycle_next(last_focused_client);
+			cycle_next();
 			break;
 		case KEY_FULLSCREEN:
 			toggle_fullscreen(last_focused_client);
@@ -242,9 +242,8 @@ static void handle_windowbar_click(XButtonEvent *e, Client *c)
 	}
 }
 
-/* return which button was clicked - this is a multiple of BARHEIGHT()
- * from the right hand side. We only care about 0, 1 and 2.
- */
+/* Return which button was clicked - this is a multiple of BARHEIGHT()
+ * from the right hand side. We only care about 0, 1 and 2. */
 
 static int box_clicked(Client *c, int x)
 {
@@ -271,10 +270,10 @@ static int box_clicked(Client *c, int x)
  * ones that are masked in by e->value_mask will be looked at by the X
  * server.
  *
- * I'm pretty tempted to ignore managed clients that want their z-order
- * changed. From what I can remember, clients are supposed to have been
- * written so that they are aware that their requirements may not be
- * met by the window manager, so I may yet do this. */
+ * We ignore managed clients that want their z-order changed. From what
+ * I can remember, clients are supposed to have been written so that
+ * they are aware that their requirements may not be met by the window
+ * manager. */
 
 static void handle_configure_request(XConfigureRequestEvent *e)
 {
@@ -296,8 +295,8 @@ static void handle_configure_request(XConfigureRequestEvent *e)
 		wc.width = c->width;
 		wc.height = c->height + BARHEIGHT();
 		wc.border_width = BW(c);
-		wc.sibling = e->above;
-		wc.stack_mode = e->detail;
+		//wc.sibling = e->above;
+		//wc.stack_mode = e->detail;
 		XConfigureWindow(dpy, c->frame, e->value_mask, &wc);
 #ifdef SHAPE
 		if (e->value_mask & (CWWidth|CWHeight))
@@ -318,8 +317,8 @@ static void handle_configure_request(XConfigureRequestEvent *e)
 
 	wc.width = e->width;
 	wc.height = e->height;
-	wc.sibling = e->above;
-	wc.stack_mode = e->detail;
+	//wc.sibling = e->above;
+	//wc.stack_mode = e->detail;
 	XConfigureWindow(dpy, e->window, e->value_mask, &wc);
 }
 
@@ -331,21 +330,8 @@ static void handle_configure_request(XConfigureRequestEvent *e)
 static void handle_map_request(XMapRequestEvent *e)
 {
 	Client *c = find_client(e->window, WINDOW);
-	if (c)
-	{
-		XMapWindow(dpy, c->window);
-		XMapRaised(dpy, c->frame);
-		set_wm_state(c, NormalState);
-		if (c->iconic)
-		{
-			c->iconic--;
-			redraw_taskbar();
-		}
-	}
-	else
-	{
-		make_new_client(e->window);
-	}
+	if (c) unhide(c);
+	else make_new_client(e->window);
 }
 
 /* See windowlab.h for the intro to this one. If this is a window we

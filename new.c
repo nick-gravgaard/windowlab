@@ -132,7 +132,7 @@ void make_new_client(Window w)
 		if (get_wm_state(c) == IconicState)
 		{
 			c->ignore_unmap++;
-			c->iconic++;
+			c->iconic = 1;
 			XUnmapWindow(dpy, c->window);
 		}
 		else

@@ -1,6 +1,6 @@
 xterm:xterm
 gedit:gedit
-Nautilus:nautilus
+Nautilus:nautilus --no-desktop
 Mozilla:mozilla
 XMMS:xmms
 xv:xv
