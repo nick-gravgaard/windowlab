@@ -426,15 +426,20 @@ static int get_incsize(Client *c, int *x_ret, int *y_ret, Rect *newdims, int mod
 			(c->size->flags & PMinSize) ? c->size->min_width : 0;
 		basey = (c->size->flags & PBaseSize) ? c->size->base_height :
 			(c->size->flags & PMinSize) ? c->size->min_height : 0;
+		// work around broken apps that set their resize increments to 0
 		if (mode == PIXELS)
 		{
-			*x_ret = newdims->width - ((newdims->width - basex) % c->size->width_inc);
-			*y_ret = newdims->height - ((newdims->height - basey) % c->size->height_inc);
+			if (c->size->width_inc != 0)
+				*x_ret = newdims->width - ((newdims->width - basex) % c->size->width_inc);
+			if (c->size->height_inc != 0)
+				*y_ret = newdims->height - ((newdims->height - basey) % c->size->height_inc);
 		}
 		else // INCREMENTS
 		{
-			*x_ret = (newdims->width - basex) / c->size->width_inc;
-			*y_ret = (newdims->height - basey) / c->size->height_inc;
+			if (c->size->width_inc != 0)
+				*x_ret = (newdims->width - basex) / c->size->width_inc;
+			if (c->size->height_inc != 0)
+				*y_ret = (newdims->height - basey) / c->size->height_inc;
 		}
 		return 1;
 	}

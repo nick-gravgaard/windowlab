@@ -1,3 +1,11 @@
+1.16 (2003-10-04)
+
+* integrated more changes from David Lawrence Ramsey:
+	* ConfigureRequest handler modified so that refix_position() is called before gravity ids reapplied (this allows refix_position() to be much simpler)
+	* resize increments of zero are now handled properly
+	* some changes to the minimum size #defines
+
+
 1.15 (2003-08-17)
 
 * integrated more changes from David Lawrence Ramsey:

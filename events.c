@@ -287,8 +287,8 @@ static void handle_configure_request(XConfigureRequestEvent *e)
 		if (e->value_mask & CWY) c->y = e->y;
 		if (e->value_mask & CWWidth) c->width = e->width;
 		if (e->value_mask & CWHeight) c->height = e->height;
-		gravitate(c, APPLY_GRAVITY);
 		refix_position(c, e);
+		gravitate(c, APPLY_GRAVITY);
 		// configure the frame
 		wc.x = c->x;
 		wc.y = c->y - BARHEIGHT();

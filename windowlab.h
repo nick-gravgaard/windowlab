@@ -21,7 +21,7 @@
 #ifndef WINDOWLAB_H
 #define WINDOWLAB_H
 
-#define VERSION "1.14"
+#define VERSION "1.16"
 
 #include <limits.h>
 #include <stdio.h>
@@ -40,15 +40,13 @@
 #include <X11/Xft/Xft.h>
 #endif
 
-/* Here are the default settings. Change to suit your taste. If you
- * aren't sure about DEF_FONT, change it to "fixed"; almost all X
- * installations will have that available. */
-
+// Here are the default settings. Change to suit your taste. If you aren't sure about DEF_FONT, change it to "fixed"; almost all X installations will have that available.
 #ifdef XFT
 #define DEF_FONT "-*-arial-medium-r-*-*-*-80-*-*-*-*-*-*"
 #else
 #define DEF_FONT "lucidasans-10"
 #endif
+
 // use named colours, #rgb, #rrggbb or #rrrgggbbb format
 #define DEF_BORDER "#000"
 #define DEF_TEXT "#000"
@@ -60,24 +58,19 @@
 #define DEF_BORDERWIDTH 2
 #define ACTIVE_SHADOW 0x2000 // eg #fff becomes #ddd
 #define SPACE 3
-#define MINSIZE 15
-#define MINWINWIDTH 80
-#define MINWINHEIGHT 80
+
 // keys may be used by other apps, so change them here
 #define KEY_CYCLEPREV XK_F9
 #define KEY_CYCLENEXT XK_F10
 #define KEY_FULLSCREEN XK_F11
 #define KEY_TOGGLEZ XK_F12
 
-/* A few useful masks made up out of X's basic ones. `ChildMask' is a
- * silly name, but oh well. */
-
+// a few useful masks made up out of X's basic ones. `ChildMask' is a silly name, but oh well.
 #define ChildMask (SubstructureRedirectMask|SubstructureNotifyMask)
 #define ButtonMask (ButtonPressMask|ButtonReleaseMask)
 #define MouseMask (ButtonMask|PointerMotionMask)
 
-// Shorthand for wordy function calls
-
+// shorthand for wordy function calls
 #define setmouse(w, x, y) XWarpPointer(dpy, None, w, 0, 0, 0, 0, x, y)
 #define ungrab() XUngrabPointer(dpy, CurrentTime)
 #define grab(w, mask, curs) \
@@ -91,49 +84,45 @@
 		XGrabKey(dpy, XKeysymToKeycode(dpy, keysym), numlockmask|LockMask|mask, w, True, GrabModeAsync, GrabModeAsync); \
 	}
 
-/* I wanna know who the morons who prototyped these functions as
- * implicit int are...  */
-
+// I wanna know who the morons who prototyped these functions as implicit int are...
 #define lower_win(c) ((void) XLowerWindow(dpy, (c)->frame))
 #define raise_win(c) ((void) XRaiseWindow(dpy, (c)->frame))
 
-// Border width accessor to handle hints/no hints
-
+// border width accessor to handle hints/no hints
 #ifdef MWM_HINTS
 #define BORDERWIDTH(c) ((c)->has_border ? opt_borderwidth : 0)
 #else
 #define BORDERWIDTH(c) (opt_borderwidth)
 #endif
 
-// Bar height
+// bar height
 #ifdef XFT
 #define BARHEIGHT() (xftfont->ascent + xftfont->descent + 2*SPACE + 1)
 #else
 #define BARHEIGHT() (font->ascent + font->descent + 2*SPACE + 1)
 #endif
 
-// Multipliers for calling gravitate
+// minimum window width and height, enough for 3 buttons and a bit of titlebar
+#define MINWINWIDTH (BARHEIGHT() * 4)
+#define MINWINHEIGHT (BARHEIGHT() * 4)
 
+// multipliers for calling gravitate
 #define APPLY_GRAVITY 1
 #define REMOVE_GRAVITY -1
 
-// Modes to call get_incsize with
-
+// modes to call get_incsize with
 #define PIXELS 0
 #define INCREMENTS 1
 
-// Modes for find_client
-
+// modes for find_client
 #define WINDOW 0
 #define FRAME 1
 
-// Modes for remove_client
-
+// modes for remove_client
 #define WITHDRAW 0
 #define REMAP 1
 
-// Stuff for the menu file
-
+// stuff for the menu file
 #define MAX_MENUITEMS_SIZE sizeof(MenuItem) * 64
 #define STR_SIZE 128
 #define NO_MENU_LABEL "xterm"
@@ -193,8 +182,7 @@ struct _MenuItem
 	unsigned int x, width;
 };
 
-/* Below here are (mainly generated with cproto) declarations and
- * prototypes for each file. */
+// Below here are (mainly generated with cproto) declarations and prototypes for each file.
 
 // main.c
 extern Display *dpy;
@@ -287,4 +275,3 @@ extern unsigned int num_menuitems;
 extern void get_menuitems(void);
 extern void free_menuitems(void);
 #endif /* WINDOWLAB_H */
-
