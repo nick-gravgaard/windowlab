@@ -143,13 +143,13 @@ static void handle_button_press(XButtonEvent *e)
 		{
 			if (e->button == Button1)
 			{
-				click_taskbar(e->x);
+				lclick_taskbar(e->x);
 			}
 			else
 			{
 				if (e->button == Button3)
 				{
-					rclick_taskbar();
+					rclick_taskbar(e->x);
 				}
 			}
 		}
@@ -182,7 +182,7 @@ static void handle_button_press(XButtonEvent *e)
 
 static void handle_windowbar_click(XButtonEvent *e, Client *c)
 {
-	int in_box, in_box_down, in_box_up, win_ypos;
+	unsigned int in_box, in_box_down, in_box_up, win_ypos;
 	XEvent ev;
 
 	in_box_down = box_clicked(c, e->x);
@@ -253,7 +253,7 @@ static unsigned int box_clicked(Client *c, unsigned int x)
 	int pix_from_right = c->width - x;
 	if (pix_from_right < 0)
 	{
-		return -1; // outside window
+		return UINT_MAX; // outside window
 	}
 	else
 	{

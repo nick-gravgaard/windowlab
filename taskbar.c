@@ -51,23 +51,6 @@ void make_taskbar(void)
 #endif
 }
 
-void click_taskbar(unsigned int x)
-{
-	float button_width;
-	unsigned int button_clicked, i;
-	Client *c;
-	if (head_client)
-	{
-		c = head_client;
-		button_width = get_button_width();
-		button_clicked = (unsigned int)(x / button_width);
-		for (i = 0; i < button_clicked; i++) c = c->next;
-		if (c->iconic) unhide(c);
-		check_focus(c);
-		raise_lower(c);
-	}
-}
-
 void cycle_previous()
 {
 	Client *c = last_focused_client;
@@ -97,20 +80,85 @@ void cycle_next()
 	}
 }
 
-void rclick_taskbar(void)
+void lclick_taskbar(unsigned int x)
 {
 	XEvent ev;
-
-	int boundx, boundy, boundw, boundh, mousex, mousey, dw, current_item = -1;
+	int boundx, boundy, boundw, boundh, mousex, mousey;
 	Window constraint_win;
 	XSetWindowAttributes pattr;
 
-	dw = DisplayWidth(dpy, screen);
+	float button_width;
+	unsigned int button_clicked, old_button_clicked, i;
+	Client *c, *exposed_c;
+	if (head_client)
+	{
+		get_mouse_position(&mousex, &mousey);
+
+		boundx = 0;
+		boundy = 0;
+		boundw = DisplayWidth(dpy, screen);
+		boundh = BARHEIGHT();
+
+		constraint_win = XCreateWindow(dpy, root, boundx, boundy, boundw, boundh, 0, CopyFromParent, InputOnly, CopyFromParent, 0, &pattr);
+		XMapWindow(dpy, constraint_win);
+
+		if (!(XGrabPointer(dpy, root, False, MouseMask, GrabModeAsync, GrabModeAsync, constraint_win, None, CurrentTime) == GrabSuccess))
+		{
+			return;
+		}
+
+		button_width = get_button_width();
+
+		button_clicked = (unsigned int)(x / button_width);
+		for (i = 0, c = head_client; i < button_clicked; i++) c = c->next;
+		check_focus(c);
+		raise_lower(c);
+
+		do
+		{
+			XMaskEvent(dpy, ExposureMask|MouseMask, &ev);
+			switch (ev.type)
+			{
+				case Expose:
+					exposed_c = find_client(ev.xexpose.window, FRAME);
+					if (exposed_c)
+					{
+						redraw(exposed_c);
+					}
+					break;
+				case MotionNotify:
+					old_button_clicked = button_clicked;
+					button_clicked = (unsigned int)(ev.xmotion.x / button_width);
+					if (button_clicked != old_button_clicked)
+					{
+						for (i = 0, c = head_client; i < button_clicked; i++) c = c->next;
+						check_focus(c);
+						raise_lower(c);
+					}
+					break;
+			}
+		}
+		while (ev.type != ButtonPress && ev.type != ButtonRelease);
+
+		XUnmapWindow(dpy, constraint_win);
+		XDestroyWindow(dpy, constraint_win);
+		ungrab();
+	}
+}
+
+void rclick_taskbar(unsigned int x)
+{
+	XEvent ev;
+	int boundx, boundy, boundw, boundh, mousex, mousey;
+	unsigned int current_item = UINT_MAX;
+	Window constraint_win;
+	XSetWindowAttributes pattr;
+
 	get_mouse_position(&mousex, &mousey);
 
 	boundx = 0;
-	boundw = dw;
 	boundy = 0;
+	boundw = DisplayWidth(dpy, screen);
 	boundh = BARHEIGHT();
 
 	constraint_win = XCreateWindow(dpy, root, boundx, boundy, boundw, boundh, 0, CopyFromParent, InputOnly, CopyFromParent, 0, &pattr);
@@ -122,6 +170,7 @@ void rclick_taskbar(void)
 	}
 	draw_menubar();
 	update_menuitem(UINT_MAX); // force initial highlight
+	current_item = update_menuitem(x);
 	do
 	{
 		XMaskEvent(dpy, MouseMask, &ev);
@@ -131,7 +180,7 @@ void rclick_taskbar(void)
 				current_item = update_menuitem(ev.xmotion.x);
 				break;
 			case ButtonRelease:
-				if (current_item != -1)
+				if (current_item != UINT_MAX)
 				{
 					fork_exec(menuitems[current_item].command);
 				}
@@ -162,7 +211,7 @@ void rclick_root(void)
 			if (ev.xmotion.y < BARHEIGHT())
 			{
 				ungrab();
-				rclick_taskbar();
+				rclick_taskbar(ev.xmotion.x);
 				return;
 			}
 		}
@@ -204,11 +253,11 @@ void redraw_taskbar(void)
 		{
 #ifdef XFT
 			XftDrawString8(tbxftdraw, &xft_detail,
-				xftfont, button_startx + SPACE + (DEF_BORDERWIDTH/2), SPACE + xftfont->ascent,
+				xftfont, button_startx + SPACE, SPACE + xftfont->ascent,
 				c->name, strlen(c->name));
 #else
 			XDrawString(dpy, taskbar, text_gc,
-				button_startx + SPACE + (DEF_BORDERWIDTH/2), SPACE + font->ascent,
+				button_startx + SPACE, SPACE + font->ascent,
 				c->name, strlen(c->name));
 #endif
 		}
@@ -242,6 +291,11 @@ unsigned int update_menuitem(unsigned int mousex)
 {
 	static unsigned int last_item; // retain value from last call
 	unsigned int i;
+	if (mousex == UINT_MAX) // entered function to set last_item
+	{
+		last_item = num_menuitems;
+		return UINT_MAX;
+	}
 	for (i = 0; i < num_menuitems; i++)
 	{
 		if ((mousex >= menuitems[i].x) && (mousex <= (menuitems[i].x + menuitems[i].width)))
@@ -269,7 +323,7 @@ unsigned int update_menuitem(unsigned int mousex)
 	}
 	else // no item selected
 	{
-		return -1;
+		return UINT_MAX;
 	}
 }
 

@@ -21,7 +21,7 @@
 #ifndef WINDOWLAB_H
 #define WINDOWLAB_H
 
-#define VERSION "1.18"
+#define VERSION "1.19"
 
 #include <limits.h>
 #include <stdio.h>
@@ -264,10 +264,10 @@ extern Window taskbar;
 extern XftDraw *tbxftdraw;
 #endif
 extern void make_taskbar(void);
-extern void click_taskbar(unsigned int);
 extern void cycle_previous(void);
 extern void cycle_next(void);
-extern void rclick_taskbar(void);
+extern void lclick_taskbar(unsigned int);
+extern void rclick_taskbar(unsigned int);
 extern void rclick_root(void);
 extern void redraw_taskbar(void);
 float get_button_width(void);

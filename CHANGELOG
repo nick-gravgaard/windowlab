@@ -1,3 +1,10 @@
+1.19 (2003-11-14)
+
+* users can now click and drag the mouse pointer over the taskbar to quickly find different windows
+* fixed bug where a menu item would not be lauched unless the cursor was moved
+* corrected amount that taskbar items text are indented to match that of windows titlebars
+
+
 1.18 (2003-11-03)
 
 * small bug fix in window titlebar drawing

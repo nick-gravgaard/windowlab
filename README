@@ -9,7 +9,23 @@ WindowLab is a small and simple window manager of novel design.
 
 It's click-to-focus, shares its window depth policy with the Amiga, and has a window resizing/reshaping method similar to that of 8-1/2 from Plan 9. WindowLab maintains the illusion of direct manipulation by constraining the mouse pointer when appropriate, ie when a window cannot be dragged any further in one direction. The pointer is also constrained vertically (effectively making the target menu items infinitely tall according to Fitts's law) when it's in the menubar to reduce pointing time.
 
-No fundamental changes to functionality are planned, and future releases will consist of bug fixes and code tidying.
+No major changes to functionality are planned.
+
+
+
+WHY USE WINDOWLAB?
+
+* It allows the focussed window to be below other windows that you still need to look at. Windows style always-on-top modes are not as good as WindowLabs model (click-to- focus but not click-to-front) because an always-on-top window will still obscure other always-on-top windows when it's clicked on, and it's less intuitive (each window may or may not have always-on-topness set)
+
+* Windows can be moved and resized (reshaped) in one motion. A side effect of having a reshape button on each windows titlebar is that windows do not need easily draggable (and hence big) borders
+
+* It's very quick and easy to launch an application from the menu - it's easier to slam the pointer into the top of the screen and then make small adjustments to hit the target then it is to use a Windows style hierarchical "start" menu or a Blackbox style popup menu, and by constraining the pointer to the menu bar you can be less accurate (and thus faster) because once the pointer is in the menu bar you don't have to worry about vertical movements. You can left click to quickly leave the menu
+
+* You can quickly access a window and bring it to the front by clicking on it in the taskbar - this solves the only problem with the click-to-focus but not click-to-front model - having to slide partially obscured windows around to get to their toggle-depth buttons
+
+* When you have many windows open and lose track of which window you want next you can click on a taskbar item, and if it's not the right one, slide the pointer over the other items in the taskbar (with the mouse button still depressed) to see the other windows. Once again, the pointers constrained in the taskbar so that you can make faster and less careful mouse movements
+
+* Constraining windows titlebars to the screen makes it feel snappier and more responsive - try flinging a window around the screen. This also means that you'll never have only a tiny part of a window remaining on screen
 
 
 
@@ -68,6 +84,26 @@ F12 to toggle the windows depth. This is the same as pressing a windows middle b
 WHAT IF I FIND A BUG?
 
 Please email me at nickgravgaard.com. If you know how to fix it, even better.
+
+
+
+DESIGN RATIONALE
+
+Before I started WindowLab, I'd been an Amiga user who had switched to Linux around 1998. To my mind, window managers (like text editors and file managers) are one of the most important parts of any system for the user, and I wasn't satisfied with those that already existed. At that time FVWM2 was the most commonly used Linux window manager but it was far too large for my tastes, and I suspected that one of the reasons for this was that it was designed to handle a million different options. Why have so many settings when I knew how things should be done? ;)
+
+So I started work on my own window manager, basing it on aewm. The most important feature to my mind was to implement the Amigas non click-to-front behaviour, where a focussed window is not necessarily in front of other windows. Realising that it can be hard to get to a windows buttons if it is behind another window, I added a simplified Windows 95 style taskbar so that users could easily access each window.
+
+Another neat feature of the Amigas GUI that had not been done before in an X window manager was the constraining of the pointer when the user tried to drag a window beyond the edge of the screen. In this way, WindowLab treats windows like they are Amiga screens in that a windows titlebar is constrained to the physical screen. At this point I started to think about the issue of launching programs from WindowLab. aewms approach was that taskbars and launching files was not part of the window managers job, and I respected the minimalist reasoning behind this, but since my constrained windows took it for granted that a taskbar existed at the top of the screen, I reasoned that the taskbar was best kept within the window manager. With the taskbar taking up as much space as a menu bar would, I realised that I could reuse space just like the Amiga had done by making a menu bar available when the right mouse button is held down. My twist was that rather than have a proper drop down menu, my menu would consist of "bang" menu items a little like the "Quick Launch" toolbar in Windows 98, and by keeping the menu one level deep, I could reuse the constrained mouse pointer trick to take advantage of Fitts's law.
+
+I have to admit that the Plan 9 style window resizing/reshaping originally came from laziness on my part. aewm has the user click a button on a windows titlebar to start a resize movement. I extended this and partly copied 9wm by allowing the user to select a starting position first. Amusingly I now realise how easy it is to implement conventional draggable window borders, but I am happy enough with the current mechanism to leave it be. There is something nice and uniform about having a button for resizing along with the others.
+
+
+
+TIPS AND TRICKS
+
+WindowLab does not have virtual desktops, but you can use vdesk (http://offog.org/code/), a command-line driven virtual workspace manager that seems to work acceptably. This can be combined with an application launcher such as Pogo (http://www.ibiblio.org/propaganda/pogo/) to give most of the functionality needed.
+
+If you know any other tips for use with WindowLab, please get in contact with me so that I can list them here.
 
 
 
