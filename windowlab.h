@@ -21,7 +21,7 @@
 #ifndef WINDOWLAB_H
 #define WINDOWLAB_H
 
-#define VERSION "1.16"
+#define VERSION "1.17"
 
 #include <limits.h>
 #include <stdio.h>
@@ -50,7 +50,7 @@
 // use named colours, #rgb, #rrggbb or #rrrgggbbb format
 #define DEF_BORDER "#000"
 #define DEF_TEXT "#000"
-#define DEF_ACTIVE "#fd0"
+#define DEF_ACTIVE "#99d" // "#fd0"
 #define DEF_INACTIVE "#aaa"
 #define DEF_MENU "#ddd"
 #define DEF_SELECTED "#aad"
@@ -97,9 +97,9 @@
 
 // bar height
 #ifdef XFT
-#define BARHEIGHT() (xftfont->ascent + xftfont->descent + 2*SPACE + 1)
+#define BARHEIGHT() (xftfont->ascent + xftfont->descent + 2*SPACE + 2)
 #else
-#define BARHEIGHT() (font->ascent + font->descent + 2*SPACE + 1)
+#define BARHEIGHT() (font->ascent + font->descent + 2*SPACE + 2)
 #endif
 
 // minimum window width and height, enough for 3 buttons and a bit of titlebar
@@ -225,6 +225,9 @@ extern void gravitate(Client *, int);
 extern void set_shape(Client *);
 #endif
 extern void check_focus(Client *);
+extern void draw_redraw_button(Client *, GC *, GC *);
+extern void draw_toggledepth_button(Client *, GC *, GC *);
+extern void draw_close_button(Client *, GC *, GC *);
 
 // new.c
 extern void make_new_client(Window);

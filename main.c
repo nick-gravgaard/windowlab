@@ -234,6 +234,7 @@ static void setup_display(void)
 	border_gc = XCreateGC(dpy, root, GCFunction|GCForeground|GCLineWidth, &gv);
 
 	gv.foreground = text_col.pixel;
+	gv.line_width = 1;
 	gv.font = font->fid;
 	text_gc = XCreateGC(dpy, root, GCFunction|GCForeground|GCFont, &gv);
 

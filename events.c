@@ -23,8 +23,9 @@
 
 static void handle_key_event(XKeyEvent *);
 static void handle_button_press(XButtonEvent *);
-static void handle_windowbar_click(XButtonEvent *e, Client *c);
-static int box_clicked(Client *c, int x);
+static void handle_windowbar_click(XButtonEvent *, Client *);
+static unsigned int box_clicked(Client *, unsigned int);
+static void draw_button(Client *, GC *, GC *, unsigned int);
 static void handle_configure_request(XConfigureRequestEvent *);
 static void handle_map_request(XMapRequestEvent *);
 static void handle_unmap_event(XUnmapEvent *);
@@ -195,7 +196,9 @@ static void handle_windowbar_click(XButtonEvent *e, Client *c)
 		XGrabServer(dpy);
 
 		in_box = 1;
-		XFillRectangle(dpy, c->frame, depressed_gc, (c->width - ((in_box_down + 1) * BARHEIGHT())) + BORDERWIDTH(c), 0, BARHEIGHT() - BORDERWIDTH(c), BARHEIGHT() - BORDERWIDTH(c));
+
+		draw_button(c, &text_gc, &depressed_gc, in_box_down);
+
 		do
 		{
 			XMaskEvent(dpy, MouseMask, &ev);
@@ -206,17 +209,17 @@ static void handle_windowbar_click(XButtonEvent *e, Client *c)
 				if ((win_ypos <= BARHEIGHT()) && (win_ypos >= BORDERWIDTH(c)) && (in_box_up == in_box_down))
 				{
 					in_box = 1;
-					XFillRectangle(dpy, c->frame, depressed_gc, (c->width - ((in_box_down + 1) * BARHEIGHT())) + BORDERWIDTH(c), 0, BARHEIGHT() - BORDERWIDTH(c), BARHEIGHT() - BORDERWIDTH(c));
+					draw_button(c, &text_gc, &depressed_gc, in_box_down);
 				}
 				else
 				{
 					in_box = 0;
-					XFillRectangle(dpy, c->frame, active_gc, (c->width - ((in_box_down + 1) * BARHEIGHT())) + BORDERWIDTH(c), 0, BARHEIGHT() - BORDERWIDTH(c), BARHEIGHT() - BORDERWIDTH(c));
+					draw_button(c, &text_gc, &active_gc, in_box_down);
 				}
 			}
 		}
 		while (ev.type != ButtonRelease);
-		XFillRectangle(dpy, c->frame, active_gc, (c->width - ((in_box_down + 1) * BARHEIGHT())) + BORDERWIDTH(c), 0, BARHEIGHT() - BORDERWIDTH(c), BARHEIGHT() - BORDERWIDTH(c));
+		draw_button(c, &text_gc, &active_gc, in_box_down);
 
 		XUngrabServer(dpy);
 		ungrab();
@@ -245,16 +248,32 @@ static void handle_windowbar_click(XButtonEvent *e, Client *c)
 /* Return which button was clicked - this is a multiple of BARHEIGHT()
  * from the right hand side. We only care about 0, 1 and 2. */
 
-static int box_clicked(Client *c, int x)
+static unsigned int box_clicked(Client *c, unsigned int x)
 {
-	int pix_from_right = (c->width - x) + BORDERWIDTH(c);
+	int pix_from_right = c->width - x;
 	if (pix_from_right < 0)
 	{
 		return -1; // outside window
 	}
 	else
 	{
-		return (pix_from_right / BARHEIGHT());
+		return (pix_from_right / ((BARHEIGHT() - BORDERWIDTH(c)) + 1));
+	}
+}
+
+static void draw_button(Client *c, GC *detail_gc, GC *background_gc, unsigned int which_box)
+{
+	switch (which_box)
+	{
+		case 0:
+			draw_close_button(c, detail_gc, background_gc);
+			break;
+		case 1:
+			draw_toggledepth_button(c, detail_gc, background_gc);
+			break;
+		case 2:
+			draw_redraw_button(c, detail_gc, background_gc);
+			break;
 	}
 }
 
