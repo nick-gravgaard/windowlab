@@ -59,8 +59,7 @@ void set_wm_state(Client *c, int state)
 	data[0] = state;
 	data[1] = None; //Icon? We don't need no steenking icon.
 
-	XChangeProperty(dpy, c->window, wm_state, wm_state,
-		32, PropModeReplace, (unsigned char *)data, 2);
+	XChangeProperty(dpy, c->window, wm_state, wm_state, 32, PropModeReplace, (unsigned char *)data, 2);
 
 	if (state == IconicState)
 	{
@@ -85,9 +84,7 @@ long get_wm_state(Client *c)
 	unsigned long items_read, items_left;
 	unsigned char *data;
 
-	if (XGetWindowProperty(dpy, c->window, wm_state, 0L, 2L, False,
-		wm_state, &real_type, &real_format, &items_read, &items_left,
-		&data) == Success && items_read)
+	if (XGetWindowProperty(dpy, c->window, wm_state, 0L, 2L, False, wm_state, &real_type, &real_format, &items_read, &items_left, &data) == Success && items_read)
 	{
 		state = *(long *)data;
 		XFree(data);
@@ -203,9 +200,15 @@ void remove_client(Client *c, int mode)
 
 void redraw(Client *c)
 {
-	if (c == fullscreen_client) return;
+	if (c == fullscreen_client)
+	{
+		return;
+	}
 #ifdef MWM_HINTS
-	if (!c->has_title) return;
+	if (!c->has_title)
+	{
+		return;
+	}
 #endif
 	XDrawLine(dpy, c->frame, border_gc, 0, BARHEIGHT() - DEF_BORDERWIDTH + DEF_BORDERWIDTH / 2, c->width, BARHEIGHT() - DEF_BORDERWIDTH + DEF_BORDERWIDTH / 2);
 	// clear text part of bar
@@ -220,13 +223,9 @@ void redraw(Client *c)
 	if (!c->trans && c->name != NULL)
 	{
 #ifdef XFT
-		XftDrawString8(c->xftdraw, &xft_detail,
-			xftfont, SPACE, SPACE + xftfont->ascent,
-			(unsigned char *)c->name, strlen(c->name));
+		XftDrawString8(c->xftdraw, &xft_detail, xftfont, SPACE, SPACE + xftfont->ascent, (unsigned char *)c->name, strlen(c->name));
 #else
-		XDrawString(dpy, c->frame, text_gc,
-			SPACE, SPACE + font->ascent,
-			c->name, strlen(c->name));
+		XDrawString(dpy, c->frame, text_gc, SPACE, SPACE + font->ascent, c->name, strlen(c->name));
 #endif
 	}
 	if (c == last_focused_client)
@@ -254,8 +253,7 @@ void redraw(Client *c)
 void gravitate(Client *c, int multiplier)
 {
 	int dy = 0;
-	int gravity = (c->size->flags & PWinGravity) ?
-		c->size->win_gravity : NorthWestGravity;
+	int gravity = (c->size->flags & PWinGravity) ? c->size->win_gravity : NorthWestGravity;
 
 	switch (gravity)
 	{
@@ -289,20 +287,17 @@ void set_shape(Client *c)
 	dummy = XShapeGetRectangles(dpy, c->window, ShapeBounding, &n, &order);
 	if (n > 1)
 	{
-		XShapeCombineShape(dpy, c->frame, ShapeBounding,
-			0, BARHEIGHT(), c->window, ShapeBounding, ShapeSet);
+		XShapeCombineShape(dpy, c->frame, ShapeBounding, 0, BARHEIGHT(), c->window, ShapeBounding, ShapeSet);
 		temp.x = -BORDERWIDTH(c);
 		temp.y = -BORDERWIDTH(c);
 		temp.width = c->width + (2 * BORDERWIDTH(c));
 		temp.height = BARHEIGHT() + BORDERWIDTH(c);
-		XShapeCombineRectangles(dpy, c->frame, ShapeBounding,
-			0, 0, &temp, 1, ShapeUnion, YXBanded);
+		XShapeCombineRectangles(dpy, c->frame, ShapeBounding, 0, 0, &temp, 1, ShapeUnion, YXBanded);
 		temp.x = 0;
 		temp.y = 0;
 		temp.width = c->width;
 		temp.height = BARHEIGHT() - BORDERWIDTH(c);
-		XShapeCombineRectangles(dpy, c->frame, ShapeClip,
-			0, BARHEIGHT(), &temp, 1, ShapeUnion, YXBanded);
+		XShapeCombineRectangles(dpy, c->frame, ShapeClip, 0, BARHEIGHT(), &temp, 1, ShapeUnion, YXBanded);
 		c->has_been_shaped = 1;
 	}
 	else
@@ -314,8 +309,7 @@ void set_shape(Client *c)
 			temp.y = -BORDERWIDTH(c);
 			temp.width = c->width + (2 * BORDERWIDTH(c));
 			temp.height = c->height + BARHEIGHT() + (2 * BORDERWIDTH(c));
-			XShapeCombineRectangles(dpy, c->frame, ShapeBounding,
-				0, 0, &temp, 1, ShapeSet, YXBanded);
+			XShapeCombineRectangles(dpy, c->frame, ShapeBounding, 0, 0, &temp, 1, ShapeSet, YXBanded);
 		}
 	}
 	XFree(dummy);

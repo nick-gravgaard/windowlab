@@ -21,8 +21,8 @@
 #ifndef WINDOWLAB_H
 #define WINDOWLAB_H
 
-#define VERSION "1.26"
-#define RELEASEDATE "2005-02-23"
+#define VERSION "1.27"
+#define RELEASEDATE "2005-04-16"
 
 #include <limits.h>
 #include <stdio.h>
@@ -163,7 +163,8 @@ struct _Client
 	Colormap cmap;
 	int x, y, width, height;
 	int ignore_unmap;
-	int iconic;
+	int hidden;
+	int was_hidden;
 #ifdef SHAPE
 	Bool has_been_shaped;
 #endif

@@ -125,7 +125,7 @@ static void handle_key_press(XKeyEvent *e)
 }
 
 /* Someone clicked a button. If it was on the root, we get the click
- * be default. If it's on a window frame, we get it as well. If it's
+ * by default. If it's on a window frame, we get it as well. If it's
  * on a client window, it may still fall through to us if the client
  * doesn't select for mouse-click events. */
 
@@ -257,15 +257,15 @@ static void handle_windowbar_click(XButtonEvent *e, Client *c)
 
 static unsigned int box_clicked(Client *c, unsigned int x)
 {
-        int pix_from_right = c->width - x;
-        if (pix_from_right < 0)
-        {
-                return UINT_MAX; // outside window
-        }
-        else
-        {
-                return (pix_from_right / (BARHEIGHT() - DEF_BORDERWIDTH));
-        }
+	int pix_from_right = c->width - x;
+	if (pix_from_right < 0)
+	{
+		return UINT_MAX; // outside window
+	}
+	else
+	{
+		return (pix_from_right / (BARHEIGHT() - DEF_BORDERWIDTH));
+	}
 }
 
 static void draw_button(Client *c, GC *detail_gc, GC *background_gc, unsigned int which_box)
@@ -299,7 +299,7 @@ static void draw_button(Client *c, GC *detail_gc, GC *background_gc, unsigned in
  * We ignore managed clients that want their z-order changed and
  * managed fullscreen clients that want their size and/or position
  * changed (except to update their size and/or position for when
- * fullscreen mode is toggled off).  From what I can remember, clients
+ * fullscreen mode is toggled off). From what I can remember, clients
  * are supposed to have been written so that they are aware that their
  * requirements may not be met by the window manager. */
 
@@ -310,20 +310,44 @@ static void handle_configure_request(XConfigureRequestEvent *e)
 
 	if (fullscreen_client != NULL && c == fullscreen_client)
 	{
-		if (e->value_mask & CWX) fs_prevdims.x = e->x;
-		if (e->value_mask & CWY) fs_prevdims.y = e->y;
-		if (e->value_mask & CWWidth) fs_prevdims.width = e->width;
-		if (e->value_mask & CWHeight) fs_prevdims.height = e->height;
+		if (e->value_mask & CWX)
+		{
+			fs_prevdims.x = e->x;
+		}
+		if (e->value_mask & CWY)
+		{
+			fs_prevdims.y = e->y;
+		}
+		if (e->value_mask & CWWidth)
+		{
+			fs_prevdims.width = e->width;
+		}
+		if (e->value_mask & CWHeight)
+		{
+			fs_prevdims.height = e->height;
+		}
 		return;
 	}
 
 	if (c != NULL)
 	{
 		gravitate(c, REMOVE_GRAVITY);
-		if (e->value_mask & CWX) c->x = e->x;
-		if (e->value_mask & CWY) c->y = e->y;
-		if (e->value_mask & CWWidth) c->width = e->width;
-		if (e->value_mask & CWHeight) c->height = e->height;
+		if (e->value_mask & CWX)
+		{
+			c->x = e->x;
+		}
+		if (e->value_mask & CWY)
+		{
+			c->y = e->y;
+		}
+		if (e->value_mask & CWWidth)
+		{
+			c->width = e->width;
+		}
+		if (e->value_mask & CWHeight)
+		{
+			c->height = e->height;
+		}
 		refix_position(c, e);
 		gravitate(c, APPLY_GRAVITY);
 		// configure the frame
@@ -367,8 +391,14 @@ static void handle_configure_request(XConfigureRequestEvent *e)
 static void handle_map_request(XMapRequestEvent *e)
 {
 	Client *c = find_client(e->window, WINDOW);
-	if (c != NULL) unhide(c);
-	else make_new_client(e->window);
+	if (c != NULL)
+	{
+		unhide(c);
+	}
+	else
+	{
+		make_new_client(e->window);
+	}
 }
 
 /* See windowlab.h for the intro to this one. If this is a window we
@@ -422,8 +452,7 @@ static void handle_destroy_event(XDestroyWindowEvent *e)
 static void handle_client_message(XClientMessageEvent *e)
 {
 	Client *c = find_client(e->window, WINDOW);
-	if (c != NULL && e->message_type == wm_change_state &&
-		e->format == 32 && e->data.l[0] == IconicState)
+	if (c != NULL && e->message_type == wm_change_state && e->format == 32 && e->data.l[0] == IconicState)
 	{
 		hide(c);
 	}

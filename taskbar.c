@@ -37,17 +37,12 @@ void make_taskbar(void)
 	pattr.background_pixel = empty_col.pixel;
 	pattr.border_pixel = border_col.pixel;
 	pattr.event_mask = ChildMask|ButtonPressMask|ExposureMask|EnterWindowMask;
-	taskbar = XCreateWindow(dpy, root,
-		0 - DEF_BORDERWIDTH, 0 - DEF_BORDERWIDTH, DisplayWidth(dpy, screen), BARHEIGHT() - DEF_BORDERWIDTH, DEF_BORDERWIDTH,
-		DefaultDepth(dpy, screen), CopyFromParent, DefaultVisual(dpy, screen),
-		CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWEventMask, &pattr);
+	taskbar = XCreateWindow(dpy, root, 0 - DEF_BORDERWIDTH, 0 - DEF_BORDERWIDTH, DisplayWidth(dpy, screen), BARHEIGHT() - DEF_BORDERWIDTH, DEF_BORDERWIDTH, DefaultDepth(dpy, screen), CopyFromParent, DefaultVisual(dpy, screen), CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWEventMask, &pattr);
 
 	XMapWindow(dpy, taskbar);
 
 #ifdef XFT
-	tbxftdraw = XftDrawCreate(dpy, (Drawable) taskbar,
-		DefaultVisual(dpy, DefaultScreen(dpy)),
-		DefaultColormap(dpy, DefaultScreen(dpy)));
+	tbxftdraw = XftDrawCreate(dpy, (Drawable) taskbar, DefaultVisual(dpy, DefaultScreen(dpy)), DefaultColormap(dpy, DefaultScreen(dpy)));
 #endif
 }
 
@@ -57,12 +52,24 @@ void cycle_previous(void)
 	Client *original_c = c;
 	if (head_client != NULL && head_client->next != NULL) // at least 2 windows exist
 	{
-		if (c == NULL) c = head_client;
-		if (c == head_client) original_c = NULL;
+		if (c == NULL)
+		{
+			c = head_client;
+		}
+		if (c == head_client)
+		{
+			original_c = NULL;
+		}
 		do
 		{
-			if (c->next == NULL) c = head_client;
-			else c = c->next;
+			if (c->next == NULL)
+			{
+				c = head_client;
+			}
+			else
+			{
+				c = c->next;
+			}
 		}
 		while (c->next != original_c);
 		raise_lower(c);
@@ -75,11 +82,67 @@ void cycle_next(void)
 	Client *c = last_focused_client;
 	if (head_client != NULL && head_client->next != NULL) // at least 2 windows exist
 	{
-		if (c == NULL || c->next == NULL) c = head_client;
+		if (c == NULL || c->next == NULL)
+		{
+			c = head_client;
+		}
 		else c = c->next;
 		raise_lower(c);
 		check_focus(c);
 	}
+}
+
+void remember_hidden(void)
+{
+	Client *c;
+	for (c = head_client; c != NULL; c = c->next)
+	{
+		c->was_hidden = c->hidden;
+	}
+}
+
+void forget_hidden(void)
+{
+	Client *c;
+	for (c = head_client; c != NULL; c = c->next)
+	{
+		if (c == last_focused_client)
+		{
+			c->was_hidden = c->hidden;
+		}
+		else
+		{
+			c->was_hidden = 0;
+		}
+	}
+}
+
+void lclick_taskbutton(Client *old_c, Client *c)
+{
+	if (old_c != NULL)
+	{
+		if (old_c->was_hidden)
+		{
+			hide(old_c);
+		}
+	}
+
+	if (c->hidden)
+	{
+		unhide(c);
+	}
+	else
+	{
+		if (c->was_hidden)
+		{
+			hide(c);
+		}
+		else
+		{
+			raise_lower(c);
+		}
+	}
+	check_focus(c);
 }
 
 void lclick_taskbar(unsigned int x)
@@ -92,9 +155,11 @@ void lclick_taskbar(unsigned int x)
 
 	float button_width;
 	unsigned int button_clicked, old_button_clicked, i;
-	Client *c, *exposed_c;
+	Client *c, *exposed_c, *old_c;
 	if (head_client != NULL)
 	{
+		remember_hidden();
+
 		get_mouse_position(&mousex, &mousey);
 
 		bounddims.x = 0;
@@ -114,10 +179,12 @@ void lclick_taskbar(unsigned int x)
 		button_width = get_button_width();
 
 		button_clicked = (unsigned int)(x / button_width);
-		for (i = 0, c = head_client; i < button_clicked; i++) c = c->next;
+		for (i = 0, c = head_client; i < button_clicked; i++)
+		{
+			c = c->next;
+		}
 
-		raise_lower(c);
-		check_focus(c);
+		lclick_taskbutton(NULL, c);
 
 		do
 		{
@@ -136,9 +203,12 @@ void lclick_taskbar(unsigned int x)
 					button_clicked = (unsigned int)(ev.xmotion.x / button_width);
 					if (button_clicked != old_button_clicked)
 					{
-						for (i = 0, c = head_client; i < button_clicked; i++) c = c->next;
-						raise_lower(c);
-						check_focus(c);
+						old_c = c;
+						for (i = 0, c = head_client; i < button_clicked; i++)
+						{
+							c = c->next;
+						}
+						lclick_taskbutton(old_c, c);
 					}
 					break;
 				case KeyPress:
@@ -151,6 +221,8 @@ void lclick_taskbar(unsigned int x)
 		XUnmapWindow(dpy, constraint_win);
 		XDestroyWindow(dpy, constraint_win);
 		ungrab();
+
+		forget_hidden();
 	}
 }
 
@@ -249,7 +321,10 @@ void redraw_taskbar(void)
 	button_width = get_button_width();
 	XClearWindow(dpy, taskbar);
 
-	if (showing_taskbar == 0) return;
+	if (showing_taskbar == 0)
+	{
+		return;
+	}
 
 	for (c = head_client, i = 0; c != NULL; c = c->next, i++)
 	{
@@ -270,13 +345,9 @@ void redraw_taskbar(void)
 		if (!c->trans && c->name != NULL)
 		{
 #ifdef XFT
-			XftDrawString8(tbxftdraw, &xft_detail,
-				xftfont, button_startx + SPACE, SPACE + xftfont->ascent,
-				(unsigned char *)c->name, strlen(c->name));
+			XftDrawString8(tbxftdraw, &xft_detail, xftfont, button_startx + SPACE, SPACE + xftfont->ascent, (unsigned char *)c->name, strlen(c->name));
 #else
-			XDrawString(dpy, taskbar, text_gc,
-				button_startx + SPACE, SPACE + font->ascent,
-				c->name, strlen(c->name));
+			XDrawString(dpy, taskbar, text_gc, button_startx + SPACE, SPACE + font->ascent, c->name, strlen(c->name));
 #endif
 		}
 	}
@@ -293,13 +364,9 @@ void draw_menubar(void)
 		if (menuitems[i].label && menuitems[i].command)
 		{
 #ifdef XFT
-			XftDrawString8(tbxftdraw, &xft_detail, xftfont,
-				menuitems[i].x + (SPACE * 2), xftfont->ascent + SPACE,
-				(unsigned char *)menuitems[i].label, strlen(menuitems[i].label));
+			XftDrawString8(tbxftdraw, &xft_detail, xftfont, menuitems[i].x + (SPACE * 2), xftfont->ascent + SPACE, (unsigned char *)menuitems[i].label, strlen(menuitems[i].label));
 #else
-			XDrawString(dpy, taskbar, text_gc,
-				menuitems[i].x + (SPACE * 2), font->ascent + SPACE,
-				menuitems[i].label, strlen(menuitems[i].label));
+			XDrawString(dpy, taskbar, text_gc, menuitems[i].x + (SPACE * 2), font->ascent + SPACE, menuitems[i].label, strlen(menuitems[i].label));
 #endif
 		}
 	}
@@ -356,13 +423,9 @@ void draw_menuitem(unsigned int index, unsigned int active)
 		XFillRectangle(dpy, taskbar, menu_gc, menuitems[index].x, 0, menuitems[index].width, BARHEIGHT() - DEF_BORDERWIDTH);
 	}
 #ifdef XFT
-	XftDrawString8(tbxftdraw, &xft_detail, xftfont,
-		menuitems[index].x + (SPACE * 2), xftfont->ascent + SPACE,
-		(unsigned char *)menuitems[index].label, strlen(menuitems[index].label));
+	XftDrawString8(tbxftdraw, &xft_detail, xftfont, menuitems[index].x + (SPACE * 2), xftfont->ascent + SPACE, (unsigned char *)menuitems[index].label, strlen(menuitems[index].label));
 #else
-	XDrawString(dpy, taskbar, text_gc,
-		menuitems[index].x + (SPACE * 2), font->ascent + SPACE,
-		menuitems[index].label, strlen(menuitems[index].label));
+	XDrawString(dpy, taskbar, text_gc, menuitems[index].x + (SPACE * 2), font->ascent + SPACE, menuitems[index].label, strlen(menuitems[index].label));
 #endif
 }
 

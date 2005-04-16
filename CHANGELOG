@@ -1,3 +1,8 @@
+1.27 (2005-04-16)
+
+* hidden windows are now shown and re-hidden when their taskbar button is dragged over
+
+
 1.26 (2005-02-23)
 
 * integrated more changes from David Lawrence Ramsey:

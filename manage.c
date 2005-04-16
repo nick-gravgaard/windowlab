@@ -25,42 +25,47 @@ static int get_incsize(Client *, unsigned int *, unsigned int *, Rect *, int);
 
 void raise_lower(Client *c)
 {
-	if (c->iconic)
+	if (c == topmost_client)
 	{
-		unhide(c);
-		topmost_client = c;
+		lower_win(c);
+		topmost_client = NULL; // lazy but amiwm does similar
 	}
 	else
 	{
-		if (c != topmost_client)
-		{
-			raise_win(c);
-			topmost_client = c;
-		}
-		else
-		{
-			lower_win(c);
-			topmost_client = NULL; // lazy but amiwm does similar
-		}
+		raise_win(c);
+		topmost_client = c;
 	}
 }
 
+/* Increment ignore_unmap here and decrement it in handle_unmap_event in
+ * events.c */
+
 void hide(Client *c)
 {
-	if (!c->ignore_unmap) c->ignore_unmap++;
-	c->iconic = 1;
-	XUnmapWindow(dpy, c->frame);
-	XUnmapWindow(dpy, c->window);
-	set_wm_state(c, IconicState);
+	if (!c->hidden)
+	{
+		c->ignore_unmap++;
+		c->hidden = 1;
+		if (c == topmost_client)
+		{
+			topmost_client = NULL;
+		}
+		XUnmapWindow(dpy, c->frame);
+		XUnmapWindow(dpy, c->window);
+		set_wm_state(c, IconicState);
+	}
 }
 
 void unhide(Client *c)
 {
-	if (c->ignore_unmap) c->ignore_unmap--;
-	c->iconic = 0;
-	XMapWindow(dpy, c->window);
-	XMapRaised(dpy, c->frame);
-	set_wm_state(c, NormalState);
+	if (c->hidden)
+	{
+		c->hidden = 0;
+		topmost_client = c;
+		XMapWindow(dpy, c->window);
+		XMapRaised(dpy, c->frame);
+		set_wm_state(c, NormalState);
+	}
 }
 
 void toggle_fullscreen(Client *c)
@@ -538,24 +543,30 @@ static int get_incsize(Client *c, unsigned int *x_ret, unsigned int *y_ret, Rect
 	int basex, basey;
 	if (c->size->flags & PResizeInc)
 	{
-		basex = (c->size->flags & PBaseSize) ? c->size->base_width :
-			(c->size->flags & PMinSize) ? c->size->min_width : 0;
-		basey = (c->size->flags & PBaseSize) ? c->size->base_height :
-			(c->size->flags & PMinSize) ? c->size->min_height : 0;
+		basex = (c->size->flags & PBaseSize) ? c->size->base_width : (c->size->flags & PMinSize) ? c->size->min_width : 0;
+		basey = (c->size->flags & PBaseSize) ? c->size->base_height : (c->size->flags & PMinSize) ? c->size->min_height : 0;
 		// work around broken apps that set their resize increments to 0
 		if (mode == PIXELS)
 		{
 			if (c->size->width_inc != 0)
+			{
 				*x_ret = newdims->width - ((newdims->width - basex) % c->size->width_inc);
+			}
 			if (c->size->height_inc != 0)
+			{
 				*y_ret = newdims->height - ((newdims->height - basey) % c->size->height_inc);
+			}
 		}
 		else // INCREMENTS
 		{
 			if (c->size->width_inc != 0)
+			{
 				*x_ret = (newdims->width - basex) / c->size->width_inc;
+			}
 			if (c->size->height_inc != 0)
+			{
 				*y_ret = (newdims->height - basey) / c->size->height_inc;
+			}
 		}
 		return 1;
 	}
@@ -565,18 +576,17 @@ static int get_incsize(Client *c, unsigned int *x_ret, unsigned int *y_ret, Rect
 void write_titletext(Client *c, Window bar_win)
 {
 #ifdef MWM_HINTS
-	if (!c->has_title) return;
+	if (!c->has_title)
+	{
+		return;
+	}
 #endif
 	if (!c->trans && c->name != NULL)
 	{
 #ifdef XFT
-		XftDrawString8(c->xftdraw, &xft_detail,
-			xftfont, SPACE, SPACE + xftfont->ascent,
-			(unsigned char *)c->name, strlen(c->name));
+		XftDrawString8(c->xftdraw, &xft_detail, xftfont, SPACE, SPACE + xftfont->ascent, (unsigned char *)c->name, strlen(c->name));
 #else
-		XDrawString(dpy, bar_win, text_gc,
-			SPACE, SPACE + font->ascent,
-			c->name, strlen(c->name));
+		XDrawString(dpy, bar_win, text_gc, SPACE, SPACE + font->ascent, c->name, strlen(c->name));
 #endif
 	}
 }

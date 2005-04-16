@@ -29,7 +29,7 @@ static PropMwmHints *get_mwm_hints(Window);
 /* Set up a client structure for the new (not-yet-mapped) window. The
  * confusing bit is that we have to ignore 2 unmap events if the
  * client was already mapped but has IconicState set (for instance,
- * when we are the second window manager in a session).  That's
+ * when we are the second window manager in a session). That's
  * because there's one for the reparent (which happens on all viewable
  * windows) and then another for the unmapping itself. */
 
@@ -72,7 +72,8 @@ void make_new_client(Window w)
 
 	c->window = w;
 	c->ignore_unmap = 0;
-	c->iconic = 0;
+	c->hidden = 0;
+	c->was_hidden = 0;
 #ifdef SHAPE
 	c->has_been_shaped = 0;
 #endif
@@ -89,10 +90,9 @@ void make_new_client(Window w)
 
 	if ((mhints = get_mwm_hints(c->window)))
 	{
-		if (mhints->flags & MWM_HINTS_DECORATIONS
-				&& !(mhints->decorations & MWM_DECOR_ALL))
+		if (mhints->flags & MWM_HINTS_DECORATIONS && !(mhints->decorations & MWM_DECOR_ALL))
 		{
-			c->has_title  = mhints->decorations & MWM_DECOR_TITLE;
+			c->has_title = mhints->decorations & MWM_DECOR_TITLE;
 			c->has_border = mhints->decorations & MWM_DECOR_BORDER;
 		}
 		XFree(mhints);
@@ -122,9 +122,7 @@ void make_new_client(Window w)
 	reparent(c);
 
 #ifdef XFT
-	c->xftdraw = XftDrawCreate(dpy, (Drawable) c->frame,
-		DefaultVisual(dpy, DefaultScreen(dpy)),
-		DefaultColormap(dpy, DefaultScreen(dpy)));
+	c->xftdraw = XftDrawCreate(dpy, (Drawable) c->frame, DefaultVisual(dpy, DefaultScreen(dpy)), DefaultColormap(dpy, DefaultScreen(dpy)));
 #endif
 
 	if (attr.map_state == IsViewable)
@@ -132,7 +130,7 @@ void make_new_client(Window w)
 		if (get_wm_state(c) == IconicState)
 		{
 			c->ignore_unmap++;
-			c->iconic = 1;
+			c->hidden = 1;
 			XUnmapWindow(dpy, c->window);
 		}
 		else
@@ -175,10 +173,7 @@ static PropMwmHints *get_mwm_hints(Window w)
 	unsigned long items_read, items_left;
 	unsigned char *data;
 
-	if (XGetWindowProperty(dpy, w, mwm_hints, 0L, 20L, False,
-		mwm_hints, &real_type, &real_format, &items_read, &items_left,
-		&data) == Success
-		&& items_read >= PROP_MOTIF_WM_HINTS_ELEMENTS)
+	if (XGetWindowProperty(dpy, w, mwm_hints, 0L, 20L, False, mwm_hints, &real_type, &real_format, &items_read, &items_left, &data) == Success && items_read >= PROP_MOTIF_WM_HINTS_ELEMENTS)
 	{
 		return (PropMwmHints *)data;
 	}
@@ -191,7 +186,7 @@ static PropMwmHints *get_mwm_hints(Window w)
 
 /* Figure out where to map the window. c->x, c->y, c->width, and
  * c->height actually start out with values in them (whatever the
- * client passed to XCreateWindow).  Program-specified hints will
+ * client passed to XCreateWindow). Program-specified hints will
  * override these, but anything set by the program will be
  * sanity-checked before it is used. PSize is ignored completely,
  * because GTK sets it to 200x200 for almost everything. User-
@@ -257,10 +252,7 @@ static void reparent(Client *c)
 	pattr.background_pixel = empty_col.pixel;
 	pattr.border_pixel = border_col.pixel;
 	pattr.event_mask = ChildMask|ButtonPressMask|ExposureMask|EnterWindowMask;
-	c->frame = XCreateWindow(dpy, root,
-		c->x, c->y - BARHEIGHT(), c->width, c->height + BARHEIGHT(), BORDERWIDTH(c),
-		DefaultDepth(dpy, screen), CopyFromParent, DefaultVisual(dpy, screen),
-		CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWEventMask, &pattr);
+	c->frame = XCreateWindow(dpy, root, c->x, c->y - BARHEIGHT(), c->width, c->height + BARHEIGHT(), BORDERWIDTH(c), DefaultDepth(dpy, screen), CopyFromParent, DefaultVisual(dpy, screen), CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWEventMask, &pattr);
 
 #ifdef SHAPE
 	if (shape)

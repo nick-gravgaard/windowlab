@@ -121,8 +121,7 @@ void get_mouse_position(int *x, int *y)
 	int win_x, win_y;
 	unsigned int mask;
 
-	XQueryPointer(dpy, root, &mouse_root, &mouse_win,
-		x, y, &win_x, &win_y, &mask);
+	XQueryPointer(dpy, root, &mouse_root, &mouse_win, x, y, &win_x, &win_y, &mask);
 }
 
 /* If this is the fullscreen client we don't take BARHEIGHT() into account
@@ -184,10 +183,22 @@ void refix_position(Client *c, XConfigureRequestEvent *e)
 	olddims.width = c->width;
 	olddims.height = c->height;
 	fix_position(c);
-	if (olddims.x != c->x) e->value_mask |= CWX;
-	if (olddims.y != c->y) e->value_mask |= CWY;
-	if (olddims.width != c->width) e->value_mask |= CWWidth;
-	if (olddims.height != c->height) e->value_mask |= CWHeight;
+	if (olddims.x != c->x)
+	{
+		e->value_mask |= CWX;
+	}
+	if (olddims.y != c->y)
+	{
+		e->value_mask |= CWY;
+	}
+	if (olddims.width != c->width)
+	{
+		e->value_mask |= CWWidth;
+	}
+	if (olddims.height != c->height)
+	{
+		e->value_mask |= CWHeight;
+	}
 }
 
 void copy_dims(Rect *sourcedims, Rect *destdims)
@@ -295,10 +306,7 @@ void dump(Client *c)
 {
 	if (c != NULL)
 	{
-		err("%s\n\t%s, %s, ignore %d\n"
-			"\tframe %#lx, win %#lx, geom %dx%d+%d+%d",
-			c->name, show_state(c), show_grav(c), c->ignore_unmap,
-			c->frame, c->window, c->width, c->height, c->x, c->y);
+		err("%s\n\t%s, %s, ignore %d, was_hidden %d\n\tframe %#lx, win %#lx, geom %dx%d+%d+%d", c->name, show_state(c), show_grav(c), c->ignore_unmap, c->was_hidden, c->frame, c->window, c->width, c->height, c->x, c->y);
 	}
 }
 

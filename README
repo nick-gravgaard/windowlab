@@ -13,7 +13,7 @@ It's click-to-focus but not raise-on-focus and has a window resizing mechanism t
 
 WHY USE WINDOWLAB?
 
-* It allows the focussed window to be below other windows that you still need to look at (click-to-focus but not raise-on-focus) without using convoluted Windows style always-on-top modes
+* It allows the focused window to be below other windows that you still need to look at (click-to-focus but not raise-on-focus) without using convoluted Windows style always-on-top modes
 
 * One or many edges of a window can be changed in one action without having to click on thin window borders. As with much in WindowLab this allows faster use with less accuracy
 
@@ -103,7 +103,7 @@ DESIGN RATIONALE
 
 Before I started WindowLab, I'd been an Amiga user who had switched to Linux around 1998. To my mind, window managers (like text editors and file managers) are one of the most important parts of any system for the user, and I wasn't satisfied with those that already existed. At that time FVWM2 was the most commonly used Linux window manager but it was far too large for my tastes, and I suspected that one of the reasons for this was that it was designed to handle so many different options.
 
-So I started work on my own window manager, basing it on aewm. The most important feature to my mind was to implement the Amiga's click-to-focus but not raise-on-focus behaviour, where a focussed window is not necessarily in front of other windows. Realising that it can be hard to get to a windows buttons if it is behind another window, I added a simplified Windows 95 style taskbar so that users could easily access each window.
+So I started work on my own window manager, basing it on aewm. The most important feature to my mind was to implement the Amiga's click-to-focus but not raise-on-focus behaviour, where a focused window is not necessarily in front of other windows. Realising that it can be hard to get to a windows buttons if it is behind another window, I added a simplified Windows 95 style taskbar so that users could easily access each window.
 
 Another neat feature of the Amiga's GUI that had not been done before in an X window manager was the constraining of the pointer when the user tried to drag a window beyond the edge of the screen. In this way, WindowLab treats windows like they are Amiga screens in that a window's titlebar is constrained to the physical screen. At this point I started to think about the issue of launching programs from WindowLab. aewm's approach was that taskbars and launching files was not part of the window manager's job, and I respected the minimalist reasoning behind this, but since my constrained windows took it for granted that a taskbar existed at the top of the screen, I reasoned that the taskbar was best kept within the window manager. With the taskbar taking up as much space as a menu bar would, I realised that I could reuse space just like the Amiga had done by making a menu bar available when the right mouse button is held down. My twist was that rather than have drop down menus, my menubar would consist of "bang" menu items a little like the "Quick Launch" toolbar in Windows 98, and by keeping the menu one level deep, I could reuse the constrained mouse pointer trick to make target menu items easier to hit (infinitely tall according to Fitts's law).
 
@@ -115,13 +115,13 @@ TIPS AND TRICKS
 
 * It is not the window manager's job to set the root window's pointer cursor or background image but you can use "xsetroot -cursor_name top_left_arrow" to set the pointer and xv, xloadimage or xpmroot to set a background image.
 
-* Pierre Lambion has written a utility called GTK Monitor which is useful because it allows the current time and system load information to appear in WindowLab's taskbar.
-
 * WindowLab does not have virtual desktops, but you can use vdesk, a command-line driven virtual workspace manager that I've been told works acceptably. This can be combined with a separate application launcher (or WindowLab's built-in menubar) to give most of the functionality needed.
 
 * If you are locked into the menubar and want to get out of it, click the left mouse button
 
 * Use Alt + F11 to toggle fullscreen mode on before watching video applications
+
+* Chris Turkel (zizban (at) adelphia (dot) net) managed to get WindowLab working on Solaris 10 x86. You can get his notes at http://nickgravgaard.com/windowlab/solaris.txt
 
 If you know any other tips for use with WindowLab, please get in contact with me so that I can list them here.
 
