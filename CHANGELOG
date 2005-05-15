@@ -1,3 +1,12 @@
+1.28 (2005-05-15)
+
+* when the focused window is closed or hidden, focus is returned to the previous window
+* fixed serious problem with using a modifier key for resizing that occurred on some systems
+* changed resizing to use alt instead of the Windows key
+* fixed bug when using alt-tab/alt-q to switch focus to a hidden window
+* changed default fontname to work with Xorg
+
+
 1.27 (2005-04-16)
 
 * hidden windows are now shown and re-hidden when their taskbar button is dragged over

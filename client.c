@@ -60,14 +60,6 @@ void set_wm_state(Client *c, int state)
 	data[1] = None; //Icon? We don't need no steenking icon.
 
 	XChangeProperty(dpy, c->window, wm_state, wm_state, 32, PropModeReplace, (unsigned char *)data, 2);
-
-	if (state == IconicState)
-	{
-		if (c == last_focused_client)
-		{
-			last_focused_client = NULL;
-		}
-	}
 }
 
 /* If we can't find a WM_STATE we're going to have to assume
@@ -181,9 +173,9 @@ void remove_client(Client *c, int mode)
 	{
 		XFree(c->size);
 	}
-	if (c == last_focused_client)
+	if (c == focused_client)
 	{
-		last_focused_client = NULL;
+		check_focus(get_prev_focused());
 	}
 	if (c == fullscreen_client)
 	{
@@ -212,7 +204,7 @@ void redraw(Client *c)
 #endif
 	XDrawLine(dpy, c->frame, border_gc, 0, BARHEIGHT() - DEF_BORDERWIDTH + DEF_BORDERWIDTH / 2, c->width, BARHEIGHT() - DEF_BORDERWIDTH + DEF_BORDERWIDTH / 2);
 	// clear text part of bar
-	if (c == last_focused_client)
+	if (c == focused_client)
 	{
 		XFillRectangle(dpy, c->frame, active_gc, 0, 0, c->width - ((BARHEIGHT() - DEF_BORDERWIDTH) * 3), BARHEIGHT() - DEF_BORDERWIDTH);
 	}
@@ -228,7 +220,7 @@ void redraw(Client *c)
 		XDrawString(dpy, c->frame, text_gc, SPACE, SPACE + font->ascent, c->name, strlen(c->name));
 #endif
 	}
-	if (c == last_focused_client)
+	if (c == focused_client)
 	{
 		draw_hide_button(c, &text_gc, &active_gc);
 		draw_toggledepth_button(c, &text_gc, &active_gc);
@@ -318,20 +310,42 @@ void set_shape(Client *c)
 
 void check_focus(Client *c)
 {
-	Client *old_focused;
-	XSetInputFocus(dpy, c->window, RevertToNone, CurrentTime);
-	XInstallColormap(dpy, c->cmap);
-	if (c != last_focused_client)
+	if (c != NULL)
 	{
-		old_focused = last_focused_client;
-		last_focused_client = c;
-		redraw(c);
-		if (old_focused)
+		Client *old_focused;
+		XSetInputFocus(dpy, c->window, RevertToNone, CurrentTime);
+		XInstallColormap(dpy, c->cmap);
+		if (c != focused_client)
 		{
-			redraw(old_focused);
+			old_focused = focused_client;
+			focused_client = c;
+			focus_count++;
+			c->focus_order = focus_count;
+			redraw(c);
+			if (old_focused)
+			{
+				redraw(old_focused);
+			}
+			redraw_taskbar();
 		}
-		redraw_taskbar();
 	}
+}
+
+Client *get_prev_focused(void)
+{
+	Client *c = head_client;
+	Client *prev_focused = c;
+	unsigned int highest = 0;
+	while (c != NULL)
+	{
+		if (!c->hidden && c->focus_order > highest)
+		{
+			highest = c->focus_order;
+			prev_focused = c;
+		}
+		c = c->next;
+	}
+	return prev_focused;
 }
 
 void draw_hide_button(Client *c, GC *detail_gc, GC *background_gc)
@@ -349,7 +363,6 @@ void draw_hide_button(Client *c, GC *detail_gc, GC *background_gc)
 	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 2, topleft_offset + 6, x + topleft_offset + 1, topleft_offset + 7);
 	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 2, topleft_offset + 4, x + topleft_offset + 0, topleft_offset + 4);
 	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 2, topleft_offset + 2, x + topleft_offset + 1, topleft_offset + 1);
-
 }
 
 void draw_toggledepth_button(Client *c, GC *detail_gc, GC *background_gc)

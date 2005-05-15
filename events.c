@@ -103,12 +103,6 @@ static void handle_key_press(XKeyEvent *e)
 	KeySym key = XKeycodeToKeysym(dpy, e->keycode, 0);
 	switch (key)
 	{
-		case KEY_RESIZE:
-			if (last_focused_client != fullscreen_client)
-			{
-				resize(last_focused_client);
-			}
-			break;
 		case KEY_CYCLEPREV:
 			cycle_previous();
 			break;
@@ -116,10 +110,10 @@ static void handle_key_press(XKeyEvent *e)
 			cycle_next();
 			break;
 		case KEY_FULLSCREEN:
-			toggle_fullscreen(last_focused_client);
+			toggle_fullscreen(focused_client);
 			break;
 		case KEY_TOGGLEZ:
-			raise_lower(last_focused_client);
+			raise_lower(focused_client);
 			break;
 	}
 }
@@ -133,7 +127,28 @@ static void handle_button_press(XButtonEvent *e)
 {
 	Client *c;
 
-	if (e->window == root)
+	if (e->state & MODIFIER)
+	{
+		if (focused_client != NULL && focused_client != fullscreen_client)
+		{
+			if (e->window == focused_client->frame)
+			{
+				// dragging from inside the window, outwards
+				resize(focused_client, 1);
+			}
+			else
+			{
+				// dragging from outside the window, inwards
+				resize(focused_client, 0);
+			}
+		}
+		else
+		{
+			// pass event on
+			XAllowEvents(dpy, ReplayPointer, CurrentTime);
+		}
+	}
+	else if (e->window == root)
 	{
 #ifdef DEBUG
 		dump_clients();
@@ -143,46 +158,37 @@ static void handle_button_press(XButtonEvent *e)
 			rclick_root();
 		}
 	}
+	else if (e->window == taskbar)
+	{
+		if (e->button == Button1)
+		{
+			lclick_taskbar(e->x);
+		}
+		else if (e->button == Button3)
+		{
+			rclick_taskbar(e->x);
+		}
+	}
 	else
 	{
-		if (e->window == taskbar)
+		// pass event on
+		XAllowEvents(dpy, ReplayPointer, CurrentTime);
+		if (e->button == Button1)
 		{
-			if (e->button == Button1)
+			c = find_client(e->window, FRAME);
+			if (c != NULL)
 			{
-				lclick_taskbar(e->x);
-			}
-			else
-			{
-				if (e->button == Button3)
+				// click-to-focus
+				check_focus(c);
+				if (e->y < BARHEIGHT())
 				{
-					rclick_taskbar(e->x);
+					handle_windowbar_click(e, c);
 				}
 			}
 		}
-		else
+		else if (e->button == Button3)
 		{
-			// pass event on
-			XAllowEvents(dpy, ReplayPointer, CurrentTime);
-			if (e->button == Button1)
-			{
-				c = find_client(e->window, FRAME);
-				if (c != NULL)
-				{
-					// click-to-focus
-					check_focus(c);
-					if (e->y < BARHEIGHT())
-					{
-						handle_windowbar_click(e, c);
-					}
-				}
-			}
-			else
-			{
-				if (e->button == Button3)
-				{
-					rclick_root();
-				}
-			}
+			rclick_root();
 		}
 	}
 }

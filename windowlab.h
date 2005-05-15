@@ -21,8 +21,8 @@
 #ifndef WINDOWLAB_H
 #define WINDOWLAB_H
 
-#define VERSION "1.27"
-#define RELEASEDATE "2005-04-16"
+#define VERSION "1.28"
+#define RELEASEDATE "2005-05-15"
 
 #include <limits.h>
 #include <stdio.h>
@@ -47,7 +47,7 @@
 #ifdef XFT
 #define DEF_FONT "-bitstream-bitstream vera sans-medium-r-*-*-*-100-*-*-*-*-*-*"
 #else
-#define DEF_FONT "lucidasans-10"
+#define DEF_FONT "-b&h-lucida-medium-r-*-*-10-*-*-*-*-*-*-*"
 #endif
 
 // use named colours, #rgb, #rrggbb or #rrrgggbbb format
@@ -62,9 +62,11 @@
 #define ACTIVE_SHADOW 0x2000 // eg #fff becomes #ddd
 #define SPACE 3
 
-// keys may be used by other apps, so change them here
-#define KEY_RESIZE XK_Super_L // XK_Super_L is the left Windows key
+// change MODIFIER to None to remove the need to hold down a modifier key
+// the Windows key should be Mod4Mask and the Alt key is Mod1Mask
+#define MODIFIER Mod1Mask
 
+// keys may be used by other apps, so change them here
 #define KEY_CYCLEPREV XK_Tab
 #define KEY_CYCLENEXT XK_q
 #define KEY_FULLSCREEN XK_F11
@@ -161,10 +163,11 @@ struct _Client
 	XSizeHints *size;
 	Window window, frame, trans;
 	Colormap cmap;
-	int x, y, width, height;
+	unsigned int x, y, width, height;
 	int ignore_unmap;
-	int hidden;
-	int was_hidden;
+	unsigned int hidden;
+	unsigned int was_hidden;
+	unsigned int focus_order;
 #ifdef SHAPE
 	Bool has_been_shaped;
 #endif
@@ -197,8 +200,8 @@ struct _MenuItem
 extern Display *dpy;
 extern Window root;
 extern int screen;
-extern Client *head_client, *last_focused_client, *topmost_client, *fullscreen_client;
-extern unsigned int in_taskbar, showing_taskbar;
+extern Client *head_client, *focused_client, *topmost_client, *fullscreen_client;
+extern unsigned int in_taskbar, showing_taskbar, focus_count;
 extern Rect fs_prevdims;
 extern XFontStruct *font;
 #ifdef XFT
@@ -233,6 +236,7 @@ extern void gravitate(Client *, int);
 extern void set_shape(Client *);
 #endif
 extern void check_focus(Client *);
+extern Client *get_prev_focused(void);
 extern void draw_hide_button(Client *, GC *, GC *);
 extern void draw_toggledepth_button(Client *, GC *, GC *);
 extern void draw_close_button(Client *, GC *, GC *);
@@ -243,7 +247,7 @@ extern void make_new_client(Window);
 // manage.c
 extern void move(Client *);
 extern void raise_lower(Client *);
-extern void resize(Client *);
+extern void resize(Client *, unsigned int);
 extern void hide(Client *);
 extern void unhide(Client *);
 extern void toggle_fullscreen(Client *);

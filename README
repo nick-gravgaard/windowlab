@@ -71,7 +71,7 @@ Window titlebars must always be fully on-screen and cannot overlap the taskbar a
 
 The taskbar should list all windows currently in use. Clicking on a windows taskbar item will give that window focus and act as a click on that windows middle-gadget - ie toggle that windows Z order (depth).
 
-To resize the active window hold down the left windows key and push against the windows edges with a mouse button down.
+To resize the active window hold down alt and push against the windows edges with a mouse button down.
 
 If you right click outside a client window, WindowLab's taskbar becomes a menubar. Releasing the right mouse button over a selected menu item will start a corresponding external program. The menu labels and commands are defined in either ~/.windowlab/menurc or /etc/X11/windowlab/menurc if the first file cannot be opened.
 
@@ -81,7 +81,7 @@ The GIMP:gimp
 
 WindowLab positions new windows (that don't specify their location) according to the coordinates of the mouse - the top-left hand corner of a new window is set to the location of the mouse pointer (if necessary the window will be moved to ensure that all of it is on the screen).
 
-WindowLab has the following keyboard controls. Hold Alt and press:
+WindowLab has the following keyboard controls. Hold down alt and press:
 
 * tab to give focus to the previous window
 
@@ -124,12 +124,6 @@ TIPS AND TRICKS
 * Chris Turkel (zizban (at) adelphia (dot) net) managed to get WindowLab working on Solaris 10 x86. You can get his notes at http://nickgravgaard.com/windowlab/solaris.txt
 
 If you know any other tips for use with WindowLab, please get in contact with me so that I can list them here.
-
-
-
-KNOWN ISSUES
-
-* Depending on how your system handles the keyboard you may have problems with the windows key. If you encounter problems please look at https://bugs.freedesktop.org/show_bug.cgi?id=587 for info on how to solve them. Alternatively you can use another key by changing the value of KEY_RESIZE in windowlab.h and recompiling.
 
 
 

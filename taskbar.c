@@ -46,52 +46,6 @@ void make_taskbar(void)
 #endif
 }
 
-void cycle_previous(void)
-{
-	Client *c = last_focused_client;
-	Client *original_c = c;
-	if (head_client != NULL && head_client->next != NULL) // at least 2 windows exist
-	{
-		if (c == NULL)
-		{
-			c = head_client;
-		}
-		if (c == head_client)
-		{
-			original_c = NULL;
-		}
-		do
-		{
-			if (c->next == NULL)
-			{
-				c = head_client;
-			}
-			else
-			{
-				c = c->next;
-			}
-		}
-		while (c->next != original_c);
-		raise_lower(c);
-		check_focus(c);
-	}
-}
-
-void cycle_next(void)
-{
-	Client *c = last_focused_client;
-	if (head_client != NULL && head_client->next != NULL) // at least 2 windows exist
-	{
-		if (c == NULL || c->next == NULL)
-		{
-			c = head_client;
-		}
-		else c = c->next;
-		raise_lower(c);
-		check_focus(c);
-	}
-}
-
 void remember_hidden(void)
 {
 	Client *c;
@@ -106,7 +60,7 @@ void forget_hidden(void)
 	Client *c;
 	for (c = head_client; c != NULL; c = c->next)
 	{
-		if (c == last_focused_client)
+		if (c == focused_client)
 		{
 			c->was_hidden = c->hidden;
 		}
@@ -334,7 +288,7 @@ void redraw_taskbar(void)
 		{
 			XDrawLine(dpy, taskbar, border_gc, button_startx - 1, 0, button_startx - 1, BARHEIGHT() - DEF_BORDERWIDTH);
 		}
-		if (c == last_focused_client)
+		if (c == focused_client)
 		{
 			XFillRectangle(dpy, taskbar, active_gc, button_startx, 0, button_iwidth, BARHEIGHT() - DEF_BORDERWIDTH);
 		}
@@ -439,4 +393,48 @@ float get_button_width(void)
 		c = c->next;
 	}
 	return ((float)(DisplayWidth(dpy, screen) + DEF_BORDERWIDTH)) / nwins;
+}
+
+void cycle_previous(void)
+{
+	Client *c = focused_client;
+	Client *original_c = c;
+	if (head_client != NULL && head_client->next != NULL) // at least 2 windows exist
+	{
+		if (c == NULL)
+		{
+			c = head_client;
+		}
+		if (c == head_client)
+		{
+			original_c = NULL;
+		}
+		do
+		{
+			if (c->next == NULL)
+			{
+				c = head_client;
+			}
+			else
+			{
+				c = c->next;
+			}
+		}
+		while (c->next != original_c);
+		lclick_taskbutton(NULL, c);
+	}
+}
+
+void cycle_next(void)
+{
+	Client *c = focused_client;
+	if (head_client != NULL && head_client->next != NULL) // at least 2 windows exist
+	{
+		if (c == NULL || c->next == NULL)
+		{
+			c = head_client;
+		}
+		else c = c->next;
+		lclick_taskbutton(NULL, c);
+	}
 }

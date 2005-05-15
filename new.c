@@ -59,9 +59,9 @@ void make_new_client(Window w)
 	}
 	c->next = NULL;
 
-	if (last_focused_client == NULL)
+	if (focused_client == NULL)
 	{
-		last_focused_client = c; // check every time? This should only be done at the start
+		focused_client = c; // check every time? This should only be done at the start
 	}
 
 	XGrabServer(dpy);

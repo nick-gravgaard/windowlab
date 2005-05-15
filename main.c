@@ -38,9 +38,10 @@ Atom wm_state, wm_change_state, wm_protos, wm_delete, wm_cmapwins;
 #ifdef MWM_HINTS
 Atom mwm_hints;
 #endif
-Client *head_client = NULL, *last_focused_client = NULL, *topmost_client = NULL, *fullscreen_client = NULL;
+Client *head_client = NULL, *focused_client = NULL, *topmost_client = NULL, *fullscreen_client = NULL;
 unsigned int in_taskbar = 0; // actually, we don't know yet
 unsigned int showing_taskbar = 1;
+unsigned int focus_count = 0;
 Rect fs_prevdims;
 char *opt_font = DEF_FONT;
 char *opt_border = DEF_BORDER;
@@ -256,11 +257,8 @@ static void setup_display(void)
 	sattr.event_mask = ChildMask|ColormapChangeMask|ButtonMask;
 	XChangeWindowAttributes(dpy, root, CWEventMask, &sattr);
 
-	grab_keysym(root, None, KEY_RESIZE);
-
-	// change Mod1Mask to None to remove the need to hold down Alt
-	grab_keysym(root, Mod1Mask, KEY_CYCLEPREV);
-	grab_keysym(root, Mod1Mask, KEY_CYCLENEXT);
-	grab_keysym(root, Mod1Mask, KEY_FULLSCREEN);
-	grab_keysym(root, Mod1Mask, KEY_TOGGLEZ);
+	grab_keysym(root, MODIFIER, KEY_CYCLEPREV);
+	grab_keysym(root, MODIFIER, KEY_CYCLENEXT);
+	grab_keysym(root, MODIFIER, KEY_FULLSCREEN);
+	grab_keysym(root, MODIFIER, KEY_TOGGLEZ);
 }
