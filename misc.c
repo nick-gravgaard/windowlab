@@ -310,7 +310,7 @@ void dump(Client *c)
 	}
 }
 
-void dump_clients()
+void dump_clients(void)
 {
 	Client *c = head_client;
 	while (c != NULL)

@@ -173,13 +173,14 @@ void remove_client(Client *c, int mode)
 	{
 		XFree(c->size);
 	}
-	if (c == focused_client)
-	{
-		check_focus(get_prev_focused());
-	}
 	if (c == fullscreen_client)
 	{
 		fullscreen_client = NULL;
+	}
+	if (c == focused_client)
+	{
+		focused_client = NULL;
+		check_focus(get_prev_focused());
 	}
 	free(c);
 
@@ -296,7 +297,7 @@ void set_shape(Client *c)
 	{
 		if (c->has_been_shaped)
 		{
-			//I can't find a 'remove all shaping' function...
+			// I can't find a 'remove all shaping' function...
 			temp.x = -BORDERWIDTH(c);
 			temp.y = -BORDERWIDTH(c);
 			temp.width = c->width + (2 * BORDERWIDTH(c));
@@ -322,7 +323,7 @@ void check_focus(Client *c)
 			focus_count++;
 			c->focus_order = focus_count;
 			redraw(c);
-			if (old_focused)
+			if (old_focused != NULL)
 			{
 				redraw(old_focused);
 			}

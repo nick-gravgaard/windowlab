@@ -556,7 +556,7 @@ static void handle_enter_event(XCrossingEvent *e)
 static void handle_colormap_change(XColormapEvent *e)
 {
 	Client *c = find_client(e->window, WINDOW);
-	//if (c != NULL && e->c_new) //use c_new for c++
+	//if (c != NULL && e->c_new) // use c_new for c++
 	if (c != NULL && e->new)
 	{
 		c->cmap = e->colormap;

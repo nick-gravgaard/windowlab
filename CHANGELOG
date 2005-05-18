@@ -1,3 +1,10 @@
+1.29 (2005-05-18)
+
+* integrated more changes from David Lawrence Ramsey:
+	* a segfault that occurred when removing clients was fixed
+	* some cosmetic code changes were made
+
+
 1.28 (2005-05-15)
 
 * when the focused window is closed or hidden, focus is returned to the previous window
