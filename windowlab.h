@@ -21,8 +21,8 @@
 #ifndef WINDOWLAB_H
 #define WINDOWLAB_H
 
-#define VERSION "1.29"
-#define RELEASEDATE "2005-05-18"
+#define VERSION "1.30"
+#define RELEASEDATE "2005-05-23"
 
 #include <limits.h>
 #include <stdio.h>
@@ -247,7 +247,7 @@ extern void make_new_client(Window);
 // manage.c
 extern void move(Client *);
 extern void raise_lower(Client *);
-extern void resize(Client *, unsigned int);
+extern void resize(Client *, unsigned int, unsigned int);
 extern void hide(Client *);
 extern void unhide(Client *);
 extern void toggle_fullscreen(Client *);

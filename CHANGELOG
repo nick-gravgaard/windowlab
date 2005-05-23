@@ -1,3 +1,9 @@
+1.30 (2005-05-23)
+
+* a bug that prevented windows from being made smaller from a side that was at the edge of the screen was fixed
+* a bug that caused the first clients taskbar button to disappear when all clients were hidden was fixed
+
+
 1.29 (2005-05-18)
 
 * integrated more changes from David Lawrence Ramsey:

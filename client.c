@@ -313,29 +313,31 @@ void check_focus(Client *c)
 {
 	if (c != NULL)
 	{
-		Client *old_focused;
 		XSetInputFocus(dpy, c->window, RevertToNone, CurrentTime);
 		XInstallColormap(dpy, c->cmap);
-		if (c != focused_client)
+	}
+	if (c != focused_client)
+	{
+		Client *old_focused = focused_client;
+		focused_client = c;
+		focus_count++;
+		if (c != NULL)
 		{
-			old_focused = focused_client;
-			focused_client = c;
-			focus_count++;
 			c->focus_order = focus_count;
 			redraw(c);
-			if (old_focused != NULL)
-			{
-				redraw(old_focused);
-			}
-			redraw_taskbar();
 		}
+		if (old_focused != NULL)
+		{
+			redraw(old_focused);
+		}
+		redraw_taskbar();
 	}
 }
 
 Client *get_prev_focused(void)
 {
 	Client *c = head_client;
-	Client *prev_focused = c;
+	Client *prev_focused = NULL;
 	unsigned int highest = 0;
 	while (c != NULL)
 	{

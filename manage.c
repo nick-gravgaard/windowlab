@@ -231,14 +231,25 @@ void move(Client *c)
 	XDestroyWindow(dpy, constraint_win);
 }
 
-void resize(Client *c, unsigned int dragging_outwards)
+void resize(Client *c, unsigned int x, unsigned int y)
 {
 	XEvent ev;
 	Client *exposed_c;
 	Rect newdims, recalceddims, bounddims;
-	int dw, dh;
+	unsigned int dragging_outwards, dw, dh;
 	Window constraint_win, resize_win, resizebar_win;
 	XSetWindowAttributes pattr, resize_pattr, resizebar_pattr;
+
+	if ((x > c->x && x < (c->x + c->width)) && (y > c->y && y < (c->y + c->height)))
+	{
+		// inside the window, dragging outwards
+		dragging_outwards = 1;
+	}
+	else
+	{
+		// outside the window, dragging inwards
+		dragging_outwards = 0;
+	}
 
 	dw = DisplayWidth(dpy, screen);
 	dh = DisplayHeight(dpy, screen);
@@ -317,7 +328,7 @@ void resize(Client *c, unsigned int dragging_outwards)
 							XMoveResizeWindow(dpy, constraint_win, bounddims.x, bounddims.y, bounddims.width, bounddims.height);
 							in_taskbar = 0;
 						}
-							// dragging from inside the window, outwards
+						// inside the window, dragging outwards
 						if (dragging_outwards)
 						{
 							if (ev.xmotion.x < newdims.x)
@@ -343,8 +354,8 @@ void resize(Client *c, unsigned int dragging_outwards)
 								bottomedge_changed = 1;
 							}
 						}
-							// dragging from outside the window, inwards
-							else
+						// outside the window, dragging inwards
+						else
 						{
 							unsigned int above_win, below_win, leftof_win, rightof_win;
 							unsigned int in_win;
@@ -391,7 +402,7 @@ void resize(Client *c, unsigned int dragging_outwards)
 						if (leftedge_changed || rightedge_changed || topedge_changed || bottomedge_changed)
 						{
 							copy_dims(&newdims, &recalceddims);
-								recalceddims.height -= BARHEIGHT();
+							recalceddims.height -= BARHEIGHT();
 
 							if (get_incsize(c, (unsigned int *)&newwidth, (unsigned int *)&newheight, &recalceddims, PIXELS))
 							{
@@ -416,7 +427,7 @@ void resize(Client *c, unsigned int dragging_outwards)
 								}
 							}
 
-								recalceddims.height += BARHEIGHT();
+							recalceddims.height += BARHEIGHT();
 							limit_size(c, &recalceddims);
 
 							XMoveResizeWindow(dpy, resize_win, recalceddims.x, recalceddims.y, recalceddims.width, recalceddims.height);

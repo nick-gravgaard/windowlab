@@ -131,16 +131,7 @@ static void handle_button_press(XButtonEvent *e)
 	{
 		if (focused_client != NULL && focused_client != fullscreen_client)
 		{
-			if (e->window == focused_client->frame)
-			{
-				// dragging from inside the window, outwards
-				resize(focused_client, 1);
-			}
-			else
-			{
-				// dragging from outside the window, inwards
-				resize(focused_client, 0);
-			}
+			resize(focused_client, e->x_root, e->y_root);
 		}
 		else
 		{
