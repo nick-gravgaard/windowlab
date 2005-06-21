@@ -1,3 +1,11 @@
+1.31 (2005-06-21)
+
+* more resizing bugs were fixed
+* integrated changes from Roland Haas (thanks!):
+	* window borders are now taken into account properly when resizing
+	* bugs with XFT fonts when resizing were fixed
+
+
 1.30 (2005-05-23)
 
 * a bug that prevented windows from being made smaller from a side that was at the edge of the screen was fixed

@@ -71,7 +71,8 @@ void unhide(Client *c)
 
 void toggle_fullscreen(Client *c)
 {
-	unsigned int xoffset, yoffset, maxwinwidth, maxwinheight;
+	int xoffset, yoffset;
+	int maxwinwidth, maxwinheight;
 	if (c != NULL && !c->trans)
 	{
 		if (c == fullscreen_client) // reset to original size
@@ -231,7 +232,7 @@ void move(Client *c)
 	XDestroyWindow(dpy, constraint_win);
 }
 
-void resize(Client *c, unsigned int x, unsigned int y)
+void resize(Client *c, int x, int y)
 {
 	XEvent ev;
 	Client *exposed_c;
@@ -240,7 +241,7 @@ void resize(Client *c, unsigned int x, unsigned int y)
 	Window constraint_win, resize_win, resizebar_win;
 	XSetWindowAttributes pattr, resize_pattr, resizebar_pattr;
 
-	if ((x > c->x && x < (c->x + c->width)) && (y > c->y && y < (c->y + c->height)))
+	if (x > c->x + BORDERWIDTH(c) && x < (c->x + c->width) - BORDERWIDTH(c) && y > (c->y - BARHEIGHT()) + BORDERWIDTH(c) && y < (c->y + c->height) - BORDERWIDTH(c))
 	{
 		// inside the window, dragging outwards
 		dragging_outwards = 1;
@@ -290,10 +291,13 @@ void resize(Client *c, unsigned int x, unsigned int y)
 	resizebar_win = XCreateWindow(dpy, resize_win, -DEF_BORDERWIDTH, -DEF_BORDERWIDTH, newdims.width, BARHEIGHT() - DEF_BORDERWIDTH, DEF_BORDERWIDTH, DefaultDepth(dpy, screen), CopyFromParent, DefaultVisual(dpy, screen), CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWEventMask, &resizebar_pattr);
 	XMapRaised(dpy, resizebar_win);
 
+#ifdef XFT
+	// temporarily swap drawables in order to draw on the resize windows XFT context
+	XftDrawChange(c->xftdraw, (Drawable) resizebar_win);
+#endif
+
 	// hide real windows frame
 	XUnmapWindow(dpy, c->frame);
-
-	write_titletext(c, resizebar_win);
 
 	do
 	{
@@ -301,10 +305,17 @@ void resize(Client *c, unsigned int x, unsigned int y)
 		switch (ev.type)
 		{
 			case Expose:
-				exposed_c = find_client(ev.xexpose.window, FRAME);
-				if (exposed_c)
+				if (ev.xexpose.window == resizebar_win)
 				{
-					redraw(exposed_c);
+					write_titletext(c, resizebar_win);
+				}
+				else
+				{
+					exposed_c = find_client(ev.xexpose.window, FRAME);
+					if (exposed_c)
+					{
+						redraw(exposed_c);
+					}
 				}
 				break;
 			case MotionNotify:
@@ -331,26 +342,26 @@ void resize(Client *c, unsigned int x, unsigned int y)
 						// inside the window, dragging outwards
 						if (dragging_outwards)
 						{
-							if (ev.xmotion.x < newdims.x)
+							if (ev.xmotion.x < newdims.x + BORDERWIDTH(c))
 							{
-								newdims.width += newdims.x - ev.xmotion.x;
-								newdims.x = ev.xmotion.x;
+								newdims.width += newdims.x + BORDERWIDTH(c) - ev.xmotion.x;
+								newdims.x = ev.xmotion.x - BORDERWIDTH(c);
 								leftedge_changed = 1;
 							}
-							else if (ev.xmotion.x > newdims.x + newdims.width)
+							else if (ev.xmotion.x > newdims.x + newdims.width + BORDERWIDTH(c))
 							{
-								newdims.width = ev.xmotion.x - newdims.x;
+								newdims.width = (ev.xmotion.x - newdims.x - BORDERWIDTH(c)) + 1;
 								rightedge_changed = 1;
 							}
-							if (ev.xmotion.y < newdims.y)
+							if (ev.xmotion.y < newdims.y + BORDERWIDTH(c))
 							{
-								newdims.height += newdims.y - ev.xmotion.y;
-								newdims.y = ev.xmotion.y;
+								newdims.height += newdims.y + BORDERWIDTH(c) - ev.xmotion.y;
+								newdims.y = ev.xmotion.y - BORDERWIDTH(c);
 								topedge_changed = 1;
 							}
-							else if (ev.xmotion.y > newdims.y + newdims.height)
+							else if (ev.xmotion.y > newdims.y + newdims.height + BORDERWIDTH(c))
 							{
-								newdims.height = ev.xmotion.y - newdims.y;
+								newdims.height = (ev.xmotion.y - newdims.y - BORDERWIDTH(c)) + 1;
 								bottomedge_changed = 1;
 							}
 						}
@@ -360,40 +371,40 @@ void resize(Client *c, unsigned int x, unsigned int y)
 							unsigned int above_win, below_win, leftof_win, rightof_win;
 							unsigned int in_win;
 
-							above_win = (ev.xmotion.y < newdims.y);
-							below_win = (ev.xmotion.y > newdims.y + newdims.height);
-							leftof_win = (ev.xmotion.x < newdims.x);
-							rightof_win = (ev.xmotion.x > newdims.x + newdims.width);
+							above_win = (ev.xmotion.y < newdims.y + BORDERWIDTH(c));
+							below_win = (ev.xmotion.y > newdims.y + newdims.height + BORDERWIDTH(c));
+							leftof_win = (ev.xmotion.x < newdims.x + BORDERWIDTH(c));
+							rightof_win = (ev.xmotion.x > newdims.x + newdims.width + BORDERWIDTH(c));
 
 							in_win = ((!above_win) && (!below_win) && (!leftof_win) && (!rightof_win));
 
 							if (in_win)
 							{
 								unsigned int from_left, from_right, from_top, from_bottom;
-								from_left = ev.xmotion.x - newdims.x;
-								from_right = newdims.width - from_left;
-								from_top = ev.xmotion.y - newdims.y;
-								from_bottom = newdims.height - from_top;
+								from_left = ev.xmotion.x - newdims.x - BORDERWIDTH(c);
+								from_right = newdims.x + newdims.width + BORDERWIDTH(c) - ev.xmotion.x;
+								from_top = ev.xmotion.y - newdims.y - BORDERWIDTH(c);
+								from_bottom = newdims.y + newdims.height + BORDERWIDTH(c) - ev.xmotion.y;
 								if (from_left < from_right && from_left < from_top && from_left < from_bottom)
 								{
-									newdims.width -= ev.xmotion.x - newdims.x;
-									newdims.x = ev.xmotion.x;
+									newdims.width -= ev.xmotion.x - newdims.x - BORDERWIDTH(c);
+									newdims.x = ev.xmotion.x - BORDERWIDTH(c);
 									leftedge_changed = 1;
 								}
 								else if (from_right < from_top && from_right < from_bottom)
 								{
-									newdims.width = ev.xmotion.x - newdims.x;
+									newdims.width = ev.xmotion.x - newdims.x - BORDERWIDTH(c);
 									rightedge_changed = 1;
 								}
 								else if (from_top < from_bottom)
 								{
-									newdims.height -= ev.xmotion.y - newdims.y;
-									newdims.y = ev.xmotion.y;
+									newdims.height -= ev.xmotion.y - newdims.y - BORDERWIDTH(c);
+									newdims.y = ev.xmotion.y - BORDERWIDTH(c);
 									topedge_changed = 1;
 								}
 								else
 								{
-									newdims.height = ev.xmotion.y - newdims.y;
+									newdims.height = ev.xmotion.y - newdims.y - BORDERWIDTH(c);
 									bottomedge_changed = 1;
 								}
 							}
@@ -432,7 +443,6 @@ void resize(Client *c, unsigned int x, unsigned int y)
 
 							XMoveResizeWindow(dpy, resize_win, recalceddims.x, recalceddims.y, recalceddims.width, recalceddims.height);
 							XResizeWindow(dpy, resizebar_win, recalceddims.width, BARHEIGHT() - DEF_BORDERWIDTH);
-							write_titletext(c, resizebar_win);
 						}
 					}
 				}
@@ -445,8 +455,8 @@ void resize(Client *c, unsigned int x, unsigned int y)
 	ungrab();
 	c->x = recalceddims.x;
 	c->y = recalceddims.y + BARHEIGHT();
-	c->width = recalceddims.width;// + 1;
-	c->height = recalceddims.height - BARHEIGHT();// + 1;
+	c->width = recalceddims.width;
+	c->height = recalceddims.height - BARHEIGHT();
 
 	XMoveResizeWindow(dpy, c->frame, c->x, c->y - BARHEIGHT(), c->width, c->height + BARHEIGHT());
 	XResizeWindow(dpy, c->window, c->width, c->height);
@@ -458,6 +468,12 @@ void resize(Client *c, unsigned int x, unsigned int y)
 
 	send_config(c);
 	XDestroyWindow(dpy, constraint_win);
+
+#ifdef XFT
+	// reset the drawable
+	XftDrawChange(c->xftdraw, (Drawable) c->frame);
+#endif
+	
 	XDestroyWindow(dpy, resizebar_win);
 	XDestroyWindow(dpy, resize_win);
 }
@@ -501,13 +517,13 @@ static void limit_size(Client *c, Rect *newdims)
 		newdims->height = MINWINHEIGHT;
 	}
 
-	if (newdims->width > dw - 1)
+	if (newdims->width > dw)
 	{
-		newdims->width = dw - 1;
+		newdims->width = dw;
 	}
-	if (newdims->height > (dh - BARHEIGHT()) - 1)
+	if (newdims->height > (dh - BARHEIGHT()))
 	{
-		newdims->height = (dh - BARHEIGHT()) - 1;
+		newdims->height = (dh - BARHEIGHT());
 	}
 }
 
