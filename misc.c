@@ -69,7 +69,7 @@ void sig_handler(int signal)
 	}
 }
 
-int handle_xerror(Display *dpy, XErrorEvent *e)
+int handle_xerror(Display *dsply, XErrorEvent *e)
 {
 	Client *c = find_client(e->resourceid, WINDOW);
 
@@ -81,7 +81,7 @@ int handle_xerror(Display *dpy, XErrorEvent *e)
 	else
 	{
 		char msg[255];
-		XGetErrorText(dpy, e->error_code, msg, sizeof msg);
+		XGetErrorText(dsply, e->error_code, msg, sizeof msg);
 		err("X error (%#lx): %s", e->resourceid, msg);
 	}
 
@@ -94,8 +94,10 @@ int handle_xerror(Display *dpy, XErrorEvent *e)
 
 /* Ick. Argh. You didn't see this function. */
 
-int ignore_xerror(Display *dpy, XErrorEvent *e)
+int ignore_xerror(Display *dsply, XErrorEvent *e)
 {
+	(void) dsply;
+	(void) e;
 	return 0;
 }
 
@@ -112,7 +114,7 @@ int send_xmessage(Window w, Atom a, long x)
 	e.data.l[0] = x;
 	e.data.l[1] = CurrentTime;
 
-	return XSendEvent(dpy, w, False, NoEventMask, (XEvent *)&e);
+	return XSendEvent(dsply, w, False, NoEventMask, (XEvent *)&e);
 }
 
 void get_mouse_position(int *x, int *y)
@@ -121,7 +123,7 @@ void get_mouse_position(int *x, int *y)
 	int win_x, win_y;
 	unsigned int mask;
 
-	XQueryPointer(dpy, root, &mouse_root, &mouse_win, x, y, &win_x, &win_y, &mask);
+	XQueryPointer(dsply, root, &mouse_root, &mouse_win, x, y, &win_x, &win_y, &mask);
 }
 
 /* If this is the fullscreen client we don't take BARHEIGHT() into account
@@ -129,9 +131,9 @@ void get_mouse_position(int *x, int *y)
 
 void fix_position(Client *c)
 {
-	unsigned int xmax = DisplayWidth(dpy, screen);
-	unsigned int ymax = DisplayHeight(dpy, screen);
-	unsigned int titlebarheight;
+	int xmax = DisplayWidth(dsply, screen);
+	int ymax = DisplayHeight(dsply, screen);
+	int titlebarheight;
 	
 	titlebarheight = (fullscreen_client == c) ? 0 : BARHEIGHT();
 
@@ -332,7 +334,7 @@ static void quit_nicely(void)
 
 	free_menuitems();
 
-	XQueryTree(dpy, root, &dummyw1, &dummyw2, &wins, &nwins);
+	XQueryTree(dsply, root, &dummyw1, &dummyw2, &wins, &nwins);
 	for (i = 0; i < nwins; i++)
 	{
 		c = find_client(wins[i], FRAME);
@@ -343,17 +345,17 @@ static void quit_nicely(void)
 	}
 	XFree(wins);
 
-	XFreeFont(dpy, font);
+	XFreeFont(dsply, font);
 #ifdef XFT
-	XftFontClose(dpy, xftfont);
+	XftFontClose(dsply, xftfont);
 #endif
-	XFreeCursor(dpy, moveresize_curs);
-	XFreeGC(dpy, border_gc);
-	XFreeGC(dpy, text_gc);
+	XFreeCursor(dsply, resize_curs);
+	XFreeGC(dsply, border_gc);
+	XFreeGC(dsply, text_gc);
 
-	XInstallColormap(dpy, DefaultColormap(dpy, screen));
-	XSetInputFocus(dpy, PointerRoot, RevertToNone, CurrentTime);
+	XInstallColormap(dsply, DefaultColormap(dsply, screen));
+	XSetInputFocus(dsply, PointerRoot, RevertToNone, CurrentTime);
 
-	XCloseDisplay(dpy);
+	XCloseDisplay(dsply);
 	exit(0);
 }

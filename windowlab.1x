@@ -14,9 +14,9 @@ It's click-to-focus but not raise-on-focus and has a window resizing mechanism t
 WindowLab places a taskbar at the top of the screen and adds a bar to the top of each window. These bars consist of a draggable area, and three icons on the right hand side. When clicked, these icons:
 .PP
 * hide the window
-.PP
+.br
 * toggle the windows Z order Amiga style (if it's not at the front, bring it to the front, otherwise send it to the back)
-.PP
+.br
 * close the window
 .PP
 Window titlebars must always be fully on-screen and cannot overlap the taskbar at the top of the screen.
@@ -25,9 +25,15 @@ The taskbar should list all windows currently in use. Clicking on a windows task
 .PP
 To resize the active window hold down alt and push against the windows edges with a mouse button down.
 .PP
-If you right click outside a client window, WindowLab's taskbar becomes a menubar. Releasing the right mouse button over a selected menu item will start a corresponding external program. The menu labels and commands are defined in either ~/.windowlab/menurc or /etc/X11/windowlab/menurc if the first file cannot be opened.
+If you right click outside a client window, WindowLab's taskbar becomes a menubar. Releasing the right mouse button over a selected menu item will start a corresponding external program. WindowLab will look in each of the following files in turn for definitions of the menu labels and commands:
 .PP
-An example menurc file is included (menurc.sample). Each line in the menurc file should have the menu label, a colon, and then the corresponding command, ie:
+* ~/\.windowlab/windowlab\.menurc
+.br
+* \.\./etc/windowlab\.menurc (from the directory containing the executable)
+.br
+* /etc/X11/windowlab/windowlab\.menurc
+.PP
+Each line in the menurc file should have the menu label, a colon, and then the corresponding command, ie:
 .PP
 The GIMP:gimp
 .PP
@@ -36,11 +42,11 @@ WindowLab positions new windows (that don't specify their location) according to
 WindowLab has the following keyboard controls. Hold down alt and press:
 .PP
 * tab to give focus to the previous window
-.PP
+.br
 * q to give focus to the next window
-.PP
+.br
 * F11 to toggle fullscreen mode on and off for non transient windows
-.PP
+.br
 * F12 to toggle the windows depth. This is the same as pressing a windows middle button
 .SH OPTIONS
 .TP

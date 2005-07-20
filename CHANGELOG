@@ -1,3 +1,15 @@
+1.32 (2005-07-20)
+
+* the executable has been made relocatable
+* double clicking on a windows titlebar toggles its depth (based on code from Roland Haas)
+* integrated changes from Mike M. Volokhov (thanks!):
+	* a segfault when using realloc() with menu items was fixed
+* integrated more changes from Roland Haas:
+	* fixed bug with applications that start in iconic mode
+	* -display option added
+	* the initial position and size hints in WM_HINTS are now ignored since they are flagged as obsolete in the manpage of SetWMHints
+
+
 1.31 (2005-06-21)
 
 * more resizing bugs were fixed

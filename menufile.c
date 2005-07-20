@@ -32,15 +32,38 @@ void get_menuitems(void)
 {
 	unsigned int i, button_startx = 0;
 	FILE *menufile = NULL;
-	char defmenurc[STR_SIZE];
+	char menurcpath[PATH_MAX];
+	extern int errno;
 
 	menuitems = malloc(MAX_MENUITEMS_SIZE);
 	memset(menuitems, '\0', MAX_MENUITEMS_SIZE);
 
-	snprintf(defmenurc, sizeof defmenurc, "%s/.windowlab/menurc", getenv("HOME"));
-	if ((menufile = fopen(defmenurc, "r")) == NULL)
+	snprintf(menurcpath, sizeof menurcpath, "%s/.windowlab/windowlab.menurc", getenv("HOME"));
+#ifdef DEBUG
+	printf("trying to open: %s\n", menurcpath);
+#endif
+	if ((menufile = fopen(menurcpath, "r")) == NULL)
 	{
-		menufile = fopen(DEF_MENURC, "r");
+		// get location of the executable
+		if (readlink("/proc/self/exe", menurcpath, PATH_MAX) == -1)
+		{
+			err("readlink() /proc/self/exe failed: %s\n", strerror(errno));
+			menurcpath[0] = '.';
+			menurcpath[1] = '\0';
+		}
+		*(strrchr(menurcpath, '/')) = '\0';
+		*(strrchr(menurcpath, '/')) = '\0';
+		strncat(menurcpath, "/etc/windowlab.menurc", PATH_MAX);
+#ifdef DEBUG
+		printf("trying to open: %s\n", menurcpath);
+#endif
+		if ((menufile = fopen(menurcpath, "r")) == NULL)
+		{
+#ifdef DEBUG
+			printf("trying to open: %s\n", DEF_MENURC);
+#endif
+			menufile = fopen(DEF_MENURC, "r");
+		}
 	}
 	if (menufile != NULL)
 	{
@@ -72,7 +95,7 @@ void get_menuitems(void)
 	else
 	{
 		// one menu item - xterm
-		fprintf(stderr, "WindowLab: can't find ~/.windowlab/menurc or /etc/X11/windowlab/menurc\n");
+		err("can't find ~/.windowlab/windowlab.menurc, %s or " DEF_MENURC "\n", menurcpath);
 		menuitems[0].command = malloc(strlen(NO_MENU_COMMAND) + 1);
 		strcpy(menuitems[0].command, NO_MENU_COMMAND);
 		menuitems[0].label = malloc(strlen(NO_MENU_LABEL) + 1);
@@ -80,13 +103,13 @@ void get_menuitems(void)
 		num_menuitems = 1;
 	}
 
-	realloc((void *)menuitems, MAX_MENUITEMS_SIZE);
+	menuitems = realloc((void *)menuitems, MAX_MENUITEMS_SIZE);
 
 	for (i = 0; i < num_menuitems; i++)
 	{
 		menuitems[i].x = button_startx;
 #ifdef XFT
-		XftTextExtents8(dpy, xftfont, (unsigned char *)menuitems[i].label, strlen(menuitems[i].label), &extents);
+		XftTextExtents8(dsply, xftfont, (unsigned char *)menuitems[i].label, strlen(menuitems[i].label), &extents);
 		menuitems[i].width = extents.width + (SPACE * 4);
 #else
 		menuitems[i].width = XTextWidth(font, menuitems[i].label, strlen(menuitems[i].label)) + (SPACE * 4);

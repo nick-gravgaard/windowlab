@@ -23,7 +23,7 @@
 #include <X11/cursorfont.h>
 #include "windowlab.h"
 
-Display *dpy = NULL;
+Display *dsply = NULL;
 Window root;
 int screen;
 XFontStruct *font = NULL;
@@ -33,7 +33,7 @@ XftColor xft_detail;
 #endif
 GC string_gc, border_gc, text_gc, active_gc, depressed_gc, inactive_gc, menu_gc, selected_gc, empty_gc;
 XColor border_col, text_col, active_col, depressed_col, inactive_col, menu_col, selected_col, empty_col;
-Cursor moveresize_curs;
+Cursor resize_curs;
 Atom wm_state, wm_change_state, wm_protos, wm_delete, wm_cmapwins;
 #ifdef MWM_HINTS
 Atom mwm_hints;
@@ -51,6 +51,7 @@ char *opt_inactive = DEF_INACTIVE;
 char *opt_menu = DEF_MENU;
 char *opt_selected = DEF_SELECTED;
 char *opt_empty = DEF_EMPTY;
+char *opt_display = NULL;
 #ifdef SHAPE
 Bool shape;
 int shape_event;
@@ -82,13 +83,14 @@ int main(int argc, char **argv)
 		OPT_STR("-menu", opt_menu)
 		OPT_STR("-selected", opt_selected)
 		OPT_STR("-empty", opt_empty)
+		OPT_STR("-display", opt_display)
 		if (strcmp(argv[i], "-about") == 0)
 		{
 			printf("WindowLab " VERSION " (" RELEASEDATE "), Copyright (c) 2001-2005 Nick Gravgaard\nWindowLab comes with ABSOLUTELY NO WARRANTY.\nThis is free software, and you are welcome to redistribute it\nunder certain conditions; view the LICENCE file for details.\n");
 			exit(0);
 		}
 		// shouldn't get here; must be a bad option
-		err("usage:\n  windowlab [options]\n\noptions are:\n  -font <font>\n  -border|-text|-active|-inactive|-menu|-selected|-empty <color>\n  -about");
+		err("usage:\n  windowlab [options]\n\noptions are:\n  -font <font>\n  -border|-text|-active|-inactive|-menu|-selected|-empty <color>\n  -about\n  -display <display>");
 		return 2;
 	}
 
@@ -113,10 +115,10 @@ static void scan_wins(void)
 	Window dummyw1, dummyw2, *wins;
 	XWindowAttributes attr;
 
-	XQueryTree(dpy, root, &dummyw1, &dummyw2, &wins, &nwins);
+	XQueryTree(dsply, root, &dummyw1, &dummyw2, &wins, &nwins);
 	for (i = 0; i < nwins; i++)
 	{
-		XGetWindowAttributes(dpy, wins[i], &attr);
+		XGetWindowAttributes(dsply, wins[i], &attr);
 		if (!attr.override_redirect && attr.map_state == IsViewable)
 		{
 			make_new_client(wins[i]);
@@ -131,39 +133,39 @@ static void setup_display(void)
 	XGCValues gv;
 	XSetWindowAttributes sattr;
 	XModifierKeymap *modmap;
-	unsigned int i, j;
+	int i, j;
 #ifdef SHAPE
 	int dummy;
 #endif
 
-	dpy = XOpenDisplay(NULL);
+	dsply = XOpenDisplay(opt_display);
 
-	if (dpy == NULL)
+	if (dsply == NULL)
 	{
 		err("can't open display! check your DISPLAY variable.");
 		exit(1);
 	}
 
 	XSetErrorHandler(handle_xerror);
-	screen = DefaultScreen(dpy);
-	root = RootWindow(dpy, screen);
+	screen = DefaultScreen(dsply);
+	root = RootWindow(dsply, screen);
 
-	wm_state = XInternAtom(dpy, "WM_STATE", False);
-	wm_change_state = XInternAtom(dpy, "WM_CHANGE_STATE", False);
-	wm_protos = XInternAtom(dpy, "WM_PROTOCOLS", False);
-	wm_delete = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
-	wm_cmapwins = XInternAtom(dpy, "WM_COLORMAP_WINDOWS", False);
+	wm_state = XInternAtom(dsply, "WM_STATE", False);
+	wm_change_state = XInternAtom(dsply, "WM_CHANGE_STATE", False);
+	wm_protos = XInternAtom(dsply, "WM_PROTOCOLS", False);
+	wm_delete = XInternAtom(dsply, "WM_DELETE_WINDOW", False);
+	wm_cmapwins = XInternAtom(dsply, "WM_COLORMAP_WINDOWS", False);
 #ifdef MWM_HINTS
-	mwm_hints = XInternAtom(dpy, _XA_MWM_HINTS, False);
+	mwm_hints = XInternAtom(dsply, _XA_MWM_HINTS, False);
 #endif
 
-	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_border, &border_col, &dummyc);
-	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_text, &text_col, &dummyc);
-	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_active, &active_col, &dummyc);
-	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_inactive, &inactive_col, &dummyc);
-	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_menu, &menu_col, &dummyc);
-	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_selected, &selected_col, &dummyc);
-	XAllocNamedColor(dpy, DefaultColormap(dpy, screen), opt_empty, &empty_col, &dummyc);
+	XAllocNamedColor(dsply, DefaultColormap(dsply, screen), opt_border, &border_col, &dummyc);
+	XAllocNamedColor(dsply, DefaultColormap(dsply, screen), opt_text, &text_col, &dummyc);
+	XAllocNamedColor(dsply, DefaultColormap(dsply, screen), opt_active, &active_col, &dummyc);
+	XAllocNamedColor(dsply, DefaultColormap(dsply, screen), opt_inactive, &inactive_col, &dummyc);
+	XAllocNamedColor(dsply, DefaultColormap(dsply, screen), opt_menu, &menu_col, &dummyc);
+	XAllocNamedColor(dsply, DefaultColormap(dsply, screen), opt_selected, &selected_col, &dummyc);
+	XAllocNamedColor(dsply, DefaultColormap(dsply, screen), opt_empty, &empty_col, &dummyc);
 
 	depressed_col.pixel = active_col.pixel;
 	depressed_col.red = active_col.red - ACTIVE_SHADOW;
@@ -172,7 +174,7 @@ static void setup_display(void)
 	depressed_col.red = depressed_col.red <= (USHRT_MAX - ACTIVE_SHADOW) ? depressed_col.red : 0;
 	depressed_col.green = depressed_col.green <= (USHRT_MAX - ACTIVE_SHADOW) ? depressed_col.green : 0;
 	depressed_col.blue = depressed_col.blue <= (USHRT_MAX - ACTIVE_SHADOW) ? depressed_col.blue : 0;
-	XAllocColor(dpy, DefaultColormap(dpy, screen), &depressed_col);
+	XAllocColor(dsply, DefaultColormap(dsply, screen), &depressed_col);
 
 #ifdef XFT
 	xft_detail.color.red = text_col.red;
@@ -181,14 +183,14 @@ static void setup_display(void)
 	xft_detail.color.alpha = 0xffff;
 	xft_detail.pixel = text_col.pixel;
 
-	xftfont = XftFontOpenXlfd(dpy, DefaultScreen(dpy), opt_font);
+	xftfont = XftFontOpenXlfd(dsply, DefaultScreen(dsply), opt_font);
 	if (xftfont == NULL)
 	{
 		err("font '%s' not found", opt_font);
 		exit(1);
 	}
 #else
-	font = XLoadQueryFont(dpy, opt_font);
+	font = XLoadQueryFont(dsply, opt_font);
 	if (font == NULL)
 	{
 		err("XLoadQueryFont(): font '%s' not found", opt_font);
@@ -197,19 +199,19 @@ static void setup_display(void)
 #endif
 
 #ifdef SHAPE
-	shape = XShapeQueryExtension(dpy, &shape_event, &dummy);
+	shape = XShapeQueryExtension(dsply, &shape_event, &dummy);
 #endif
 
-	moveresize_curs = XCreateFontCursor(dpy, XC_fleur);
+	resize_curs = XCreateFontCursor(dsply, XC_fleur);
 
 	/* find out which modifier is NumLock - we'll use this when grabbing
 	 * every combination of modifiers we can think of */
-	modmap = XGetModifierMapping(dpy);
+	modmap = XGetModifierMapping(dsply);
 	for (i = 0; i < 8; i++)
 	{
 		for (j = 0; j < modmap->max_keypermod; j++)
 		{
-			if (modmap->modifiermap[i * modmap->max_keypermod + j] == XKeysymToKeycode(dpy, XK_Num_Lock))
+			if (modmap->modifiermap[i * modmap->max_keypermod + j] == XKeysymToKeycode(dsply, XK_Num_Lock))
 			{
 				numlockmask = (1 << i);
 #ifdef DEBUG
@@ -224,38 +226,38 @@ static void setup_display(void)
 
 	gv.foreground = border_col.pixel;
 	gv.line_width = DEF_BORDERWIDTH;
-	border_gc = XCreateGC(dpy, root, GCFunction|GCForeground|GCLineWidth, &gv);
+	border_gc = XCreateGC(dsply, root, GCFunction|GCForeground|GCLineWidth, &gv);
 
 	gv.foreground = text_col.pixel;
 	gv.line_width = 1;
 
 #ifdef XFT
-	text_gc = XCreateGC(dpy, root, GCFunction|GCForeground, &gv);
+	text_gc = XCreateGC(dsply, root, GCFunction|GCForeground, &gv);
 #else
 	gv.font = font->fid;
-	text_gc = XCreateGC(dpy, root, GCFunction|GCForeground|GCFont, &gv);
+	text_gc = XCreateGC(dsply, root, GCFunction|GCForeground|GCFont, &gv);
 #endif
 
 	gv.foreground = active_col.pixel;
-	active_gc = XCreateGC(dpy, root, GCFunction|GCForeground, &gv);
+	active_gc = XCreateGC(dsply, root, GCFunction|GCForeground, &gv);
 
 	gv.foreground = depressed_col.pixel;
-	depressed_gc = XCreateGC(dpy, root, GCFunction|GCForeground, &gv);
+	depressed_gc = XCreateGC(dsply, root, GCFunction|GCForeground, &gv);
 
 	gv.foreground = inactive_col.pixel;
-	inactive_gc = XCreateGC(dpy, root, GCFunction|GCForeground, &gv);
+	inactive_gc = XCreateGC(dsply, root, GCFunction|GCForeground, &gv);
 
 	gv.foreground = menu_col.pixel;
-	menu_gc = XCreateGC(dpy, root, GCFunction|GCForeground, &gv);
+	menu_gc = XCreateGC(dsply, root, GCFunction|GCForeground, &gv);
 
 	gv.foreground = selected_col.pixel;
-	selected_gc = XCreateGC(dpy, root, GCFunction|GCForeground, &gv);
+	selected_gc = XCreateGC(dsply, root, GCFunction|GCForeground, &gv);
 
 	gv.foreground = empty_col.pixel;
-	empty_gc = XCreateGC(dpy, root, GCFunction|GCForeground, &gv);
+	empty_gc = XCreateGC(dsply, root, GCFunction|GCForeground, &gv);
 
 	sattr.event_mask = ChildMask|ColormapChangeMask|ButtonMask;
-	XChangeWindowAttributes(dpy, root, CWEventMask, &sattr);
+	XChangeWindowAttributes(dsply, root, CWEventMask, &sattr);
 
 	grab_keysym(root, MODIFIER, KEY_CYCLEPREV);
 	grab_keysym(root, MODIFIER, KEY_CYCLENEXT);

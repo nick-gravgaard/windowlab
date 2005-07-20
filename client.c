@@ -59,7 +59,7 @@ void set_wm_state(Client *c, int state)
 	data[0] = state;
 	data[1] = None; //Icon? We don't need no steenking icon.
 
-	XChangeProperty(dpy, c->window, wm_state, wm_state, 32, PropModeReplace, (unsigned char *)data, 2);
+	XChangeProperty(dsply, c->window, wm_state, wm_state, 32, PropModeReplace, (unsigned char *)data, 2);
 }
 
 /* If we can't find a WM_STATE we're going to have to assume
@@ -76,7 +76,7 @@ long get_wm_state(Client *c)
 	unsigned long items_read, items_left;
 	unsigned char *data;
 
-	if (XGetWindowProperty(dpy, c->window, wm_state, 0L, 2L, False, wm_state, &real_type, &real_format, &items_read, &items_left, &data) == Success && items_read)
+	if (XGetWindowProperty(dsply, c->window, wm_state, 0L, 2L, False, wm_state, &real_type, &real_format, &items_read, &items_left, &data) == Success && items_read)
 	{
 		state = *(long *)data;
 		XFree(data);
@@ -102,7 +102,7 @@ void send_config(Client *c)
 	ce.above = None;
 	ce.override_redirect = 0;
 
-	XSendEvent(dpy, c->window, False, StructureNotifyMask, (XEvent *)&ce);
+	XSendEvent(dsply, c->window, False, StructureNotifyMask, (XEvent *)&ce);
 }
 
 /* After pulling my hair out trying to find some way to tell if a
@@ -120,11 +120,11 @@ void remove_client(Client *c, int mode)
 {
 	Client *p;
 
-	XGrabServer(dpy);
+	XGrabServer(dsply);
 	XSetErrorHandler(ignore_xerror);
 
 #ifdef DEBUG
-	err("removing %s, %d: %d left", c->name, mode, XPending(dpy));
+	err("removing %s, %d: %d left", c->name, mode, XPending(dsply));
 #endif
 
 	if (mode == WITHDRAW)
@@ -133,23 +133,23 @@ void remove_client(Client *c, int mode)
 	}
 	else //REMAP
 	{
-		XMapWindow(dpy, c->window);
+		XMapWindow(dsply, c->window);
 	}
 	gravitate(c, REMOVE_GRAVITY);
-	XReparentWindow(dpy, c->window, root, c->x, c->y);
+	XReparentWindow(dsply, c->window, root, c->x, c->y);
 #ifdef MWM_HINTS
 	if (c->has_border)
 	{
-		XSetWindowBorderWidth(dpy, c->window, 1);
+		XSetWindowBorderWidth(dsply, c->window, 1);
 	}
 #else
-	XSetWindowBorderWidth(dpy, c->window, 1);
+	XSetWindowBorderWidth(dsply, c->window, 1);
 #endif
 #ifdef XFT
 	XftDrawDestroy(c->xftdraw);
 #endif
-	XRemoveFromSaveSet(dpy, c->window);
-	XDestroyWindow(dpy, c->frame);
+	XRemoveFromSaveSet(dsply, c->window);
+	XDestroyWindow(dsply, c->frame);
 
 	if (head_client == c)
 	{
@@ -184,9 +184,9 @@ void remove_client(Client *c, int mode)
 	}
 	free(c);
 
-	XSync(dpy, False);
+	XSync(dsply, False);
 	XSetErrorHandler(handle_xerror);
-	XUngrabServer(dpy);
+	XUngrabServer(dsply);
 
 	redraw_taskbar();
 }
@@ -203,22 +203,22 @@ void redraw(Client *c)
 		return;
 	}
 #endif
-	XDrawLine(dpy, c->frame, border_gc, 0, BARHEIGHT() - DEF_BORDERWIDTH + DEF_BORDERWIDTH / 2, c->width, BARHEIGHT() - DEF_BORDERWIDTH + DEF_BORDERWIDTH / 2);
+	XDrawLine(dsply, c->frame, border_gc, 0, BARHEIGHT() - DEF_BORDERWIDTH + DEF_BORDERWIDTH / 2, c->width, BARHEIGHT() - DEF_BORDERWIDTH + DEF_BORDERWIDTH / 2);
 	// clear text part of bar
 	if (c == focused_client)
 	{
-		XFillRectangle(dpy, c->frame, active_gc, 0, 0, c->width - ((BARHEIGHT() - DEF_BORDERWIDTH) * 3), BARHEIGHT() - DEF_BORDERWIDTH);
+		XFillRectangle(dsply, c->frame, active_gc, 0, 0, c->width - ((BARHEIGHT() - DEF_BORDERWIDTH) * 3), BARHEIGHT() - DEF_BORDERWIDTH);
 	}
 	else
 	{
-		XFillRectangle(dpy, c->frame, inactive_gc, 0, 0, c->width - ((BARHEIGHT() - DEF_BORDERWIDTH) * 3), BARHEIGHT() - DEF_BORDERWIDTH);
+		XFillRectangle(dsply, c->frame, inactive_gc, 0, 0, c->width - ((BARHEIGHT() - DEF_BORDERWIDTH) * 3), BARHEIGHT() - DEF_BORDERWIDTH);
 	}
 	if (!c->trans && c->name != NULL)
 	{
 #ifdef XFT
 		XftDrawString8(c->xftdraw, &xft_detail, xftfont, SPACE, SPACE + xftfont->ascent, (unsigned char *)c->name, strlen(c->name));
 #else
-		XDrawString(dpy, c->frame, text_gc, SPACE, SPACE + font->ascent, c->name, strlen(c->name));
+		XDrawString(dsply, c->frame, text_gc, SPACE, SPACE + font->ascent, c->name, strlen(c->name));
 #endif
 	}
 	if (c == focused_client)
@@ -277,20 +277,20 @@ void set_shape(Client *c)
 	int n, order;
 	XRectangle temp, *dummy;
 
-	dummy = XShapeGetRectangles(dpy, c->window, ShapeBounding, &n, &order);
+	dummy = XShapeGetRectangles(dsply, c->window, ShapeBounding, &n, &order);
 	if (n > 1)
 	{
-		XShapeCombineShape(dpy, c->frame, ShapeBounding, 0, BARHEIGHT(), c->window, ShapeBounding, ShapeSet);
+		XShapeCombineShape(dsply, c->frame, ShapeBounding, 0, BARHEIGHT(), c->window, ShapeBounding, ShapeSet);
 		temp.x = -BORDERWIDTH(c);
 		temp.y = -BORDERWIDTH(c);
 		temp.width = c->width + (2 * BORDERWIDTH(c));
 		temp.height = BARHEIGHT() + BORDERWIDTH(c);
-		XShapeCombineRectangles(dpy, c->frame, ShapeBounding, 0, 0, &temp, 1, ShapeUnion, YXBanded);
+		XShapeCombineRectangles(dsply, c->frame, ShapeBounding, 0, 0, &temp, 1, ShapeUnion, YXBanded);
 		temp.x = 0;
 		temp.y = 0;
 		temp.width = c->width;
 		temp.height = BARHEIGHT() - BORDERWIDTH(c);
-		XShapeCombineRectangles(dpy, c->frame, ShapeClip, 0, BARHEIGHT(), &temp, 1, ShapeUnion, YXBanded);
+		XShapeCombineRectangles(dsply, c->frame, ShapeClip, 0, BARHEIGHT(), &temp, 1, ShapeUnion, YXBanded);
 		c->has_been_shaped = 1;
 	}
 	else
@@ -302,7 +302,7 @@ void set_shape(Client *c)
 			temp.y = -BORDERWIDTH(c);
 			temp.width = c->width + (2 * BORDERWIDTH(c));
 			temp.height = c->height + BARHEIGHT() + (2 * BORDERWIDTH(c));
-			XShapeCombineRectangles(dpy, c->frame, ShapeBounding, 0, 0, &temp, 1, ShapeSet, YXBanded);
+			XShapeCombineRectangles(dsply, c->frame, ShapeBounding, 0, 0, &temp, 1, ShapeSet, YXBanded);
 		}
 	}
 	XFree(dummy);
@@ -313,8 +313,8 @@ void check_focus(Client *c)
 {
 	if (c != NULL)
 	{
-		XSetInputFocus(dpy, c->window, RevertToNone, CurrentTime);
-		XInstallColormap(dpy, c->cmap);
+		XSetInputFocus(dsply, c->window, RevertToNone, CurrentTime);
+		XInstallColormap(dsply, c->cmap);
 	}
 	if (c != focused_client)
 	{
@@ -353,44 +353,44 @@ Client *get_prev_focused(void)
 
 void draw_hide_button(Client *c, GC *detail_gc, GC *background_gc)
 {
-	unsigned int x, topleft_offset;
+	int x, topleft_offset;
 	x = c->width - ((BARHEIGHT() - DEF_BORDERWIDTH) * 3);
 	topleft_offset = (BARHEIGHT() / 2) - 5; // 5 being ~half of 9
-	XFillRectangle(dpy, c->frame, *background_gc, x, 0, BARHEIGHT() - DEF_BORDERWIDTH, BARHEIGHT() - DEF_BORDERWIDTH);
+	XFillRectangle(dsply, c->frame, *background_gc, x, 0, BARHEIGHT() - DEF_BORDERWIDTH, BARHEIGHT() - DEF_BORDERWIDTH);
 
-	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 4, topleft_offset + 2, x + topleft_offset + 4, topleft_offset + 0);
-	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 6, topleft_offset + 2, x + topleft_offset + 7, topleft_offset + 1);
-	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 6, topleft_offset + 4, x + topleft_offset + 8, topleft_offset + 4);
-	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 6, topleft_offset + 6, x + topleft_offset + 7, topleft_offset + 7);
-	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 4, topleft_offset + 6, x + topleft_offset + 4, topleft_offset + 8);
-	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 2, topleft_offset + 6, x + topleft_offset + 1, topleft_offset + 7);
-	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 2, topleft_offset + 4, x + topleft_offset + 0, topleft_offset + 4);
-	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 2, topleft_offset + 2, x + topleft_offset + 1, topleft_offset + 1);
+	XDrawLine(dsply, c->frame, *detail_gc, x + topleft_offset + 4, topleft_offset + 2, x + topleft_offset + 4, topleft_offset + 0);
+	XDrawLine(dsply, c->frame, *detail_gc, x + topleft_offset + 6, topleft_offset + 2, x + topleft_offset + 7, topleft_offset + 1);
+	XDrawLine(dsply, c->frame, *detail_gc, x + topleft_offset + 6, topleft_offset + 4, x + topleft_offset + 8, topleft_offset + 4);
+	XDrawLine(dsply, c->frame, *detail_gc, x + topleft_offset + 6, topleft_offset + 6, x + topleft_offset + 7, topleft_offset + 7);
+	XDrawLine(dsply, c->frame, *detail_gc, x + topleft_offset + 4, topleft_offset + 6, x + topleft_offset + 4, topleft_offset + 8);
+	XDrawLine(dsply, c->frame, *detail_gc, x + topleft_offset + 2, topleft_offset + 6, x + topleft_offset + 1, topleft_offset + 7);
+	XDrawLine(dsply, c->frame, *detail_gc, x + topleft_offset + 2, topleft_offset + 4, x + topleft_offset + 0, topleft_offset + 4);
+	XDrawLine(dsply, c->frame, *detail_gc, x + topleft_offset + 2, topleft_offset + 2, x + topleft_offset + 1, topleft_offset + 1);
 }
 
 void draw_toggledepth_button(Client *c, GC *detail_gc, GC *background_gc)
 {
-	unsigned int x, topleft_offset;
+	int x, topleft_offset;
 	x = c->width - ((BARHEIGHT() - DEF_BORDERWIDTH) * 2);
 	topleft_offset = (BARHEIGHT() / 2) - 6; // 6 being ~half of 11
-	XFillRectangle(dpy, c->frame, *background_gc, x, 0, BARHEIGHT() - DEF_BORDERWIDTH, BARHEIGHT() - DEF_BORDERWIDTH);
+	XFillRectangle(dsply, c->frame, *background_gc, x, 0, BARHEIGHT() - DEF_BORDERWIDTH, BARHEIGHT() - DEF_BORDERWIDTH);
 
-	XDrawRectangle(dpy, c->frame, *detail_gc, x + topleft_offset, topleft_offset, 7, 7);
-	XDrawRectangle(dpy, c->frame, *detail_gc, x + topleft_offset + 3, topleft_offset + 3, 7, 7);
+	XDrawRectangle(dsply, c->frame, *detail_gc, x + topleft_offset, topleft_offset, 7, 7);
+	XDrawRectangle(dsply, c->frame, *detail_gc, x + topleft_offset + 3, topleft_offset + 3, 7, 7);
 }
 
 void draw_close_button(Client *c, GC *detail_gc, GC *background_gc)
 {
-	unsigned int x, topleft_offset;
+	int x, topleft_offset;
 	x = c->width - (BARHEIGHT() - DEF_BORDERWIDTH);
 	topleft_offset = (BARHEIGHT() / 2) - 5; // 5 being ~half of 9
-	XFillRectangle(dpy, c->frame, *background_gc, x, 0, BARHEIGHT() - DEF_BORDERWIDTH, BARHEIGHT() - DEF_BORDERWIDTH);
+	XFillRectangle(dsply, c->frame, *background_gc, x, 0, BARHEIGHT() - DEF_BORDERWIDTH, BARHEIGHT() - DEF_BORDERWIDTH);
 
-	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 1, topleft_offset, x + topleft_offset + 8, topleft_offset + 7);
-	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 1, topleft_offset + 1, x + topleft_offset + 7, topleft_offset + 7);
-	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset, topleft_offset + 1, x + topleft_offset + 7, topleft_offset + 8);
+	XDrawLine(dsply, c->frame, *detail_gc, x + topleft_offset + 1, topleft_offset, x + topleft_offset + 8, topleft_offset + 7);
+	XDrawLine(dsply, c->frame, *detail_gc, x + topleft_offset + 1, topleft_offset + 1, x + topleft_offset + 7, topleft_offset + 7);
+	XDrawLine(dsply, c->frame, *detail_gc, x + topleft_offset, topleft_offset + 1, x + topleft_offset + 7, topleft_offset + 8);
 
-	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset, topleft_offset + 7, x + topleft_offset + 7, topleft_offset);
-	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 1, topleft_offset + 7, x + topleft_offset + 7, topleft_offset + 1);
-	XDrawLine(dpy, c->frame, *detail_gc, x + topleft_offset + 1, topleft_offset + 8, x + topleft_offset + 8, topleft_offset + 1);
+	XDrawLine(dsply, c->frame, *detail_gc, x + topleft_offset, topleft_offset + 7, x + topleft_offset + 7, topleft_offset);
+	XDrawLine(dsply, c->frame, *detail_gc, x + topleft_offset + 1, topleft_offset + 7, x + topleft_offset + 7, topleft_offset + 1);
+	XDrawLine(dsply, c->frame, *detail_gc, x + topleft_offset + 1, topleft_offset + 8, x + topleft_offset + 8, topleft_offset + 1);
 }

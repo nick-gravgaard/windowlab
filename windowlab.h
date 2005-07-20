@@ -21,13 +21,15 @@
 #ifndef WINDOWLAB_H
 #define WINDOWLAB_H
 
-#define VERSION "1.31"
-#define RELEASEDATE "2005-06-21"
+#define VERSION "1.32"
+#define RELEASEDATE "2005-07-20"
 
+#include <errno.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
@@ -72,6 +74,9 @@
 #define KEY_FULLSCREEN XK_F11
 #define KEY_TOGGLEZ XK_F12
 
+// max time between clicks in double click
+#define DEF_DBLCLKTIME 400
+
 // a few useful masks made up out of X's basic ones. `ChildMask' is a silly name, but oh well.
 #define ChildMask (SubstructureRedirectMask|SubstructureNotifyMask)
 #define ButtonMask (ButtonPressMask|ButtonReleaseMask)
@@ -81,22 +86,22 @@
 #define ABS(x) (((x) < 0) ? -(x) : (x))
 
 // shorthand for wordy function calls
-#define setmouse(w, x, y) XWarpPointer(dpy, None, w, 0, 0, 0, 0, x, y)
-#define ungrab() XUngrabPointer(dpy, CurrentTime)
+#define setmouse(w, x, y) XWarpPointer(dsply, None, w, 0, 0, 0, 0, x, y)
+#define ungrab() XUngrabPointer(dsply, CurrentTime)
 #define grab(w, mask, curs) \
-	(XGrabPointer(dpy, w, False, mask, GrabModeAsync, GrabModeAsync, None, curs, CurrentTime) == GrabSuccess)
+	(XGrabPointer(dsply, w, False, mask, GrabModeAsync, GrabModeAsync, None, curs, CurrentTime) == GrabSuccess)
 #define grab_keysym(w, mask, keysym) \
-	XGrabKey(dpy, XKeysymToKeycode(dpy, keysym), mask, w, True, GrabModeAsync, GrabModeAsync); \
-	XGrabKey(dpy, XKeysymToKeycode(dpy, keysym), LockMask|mask, w, True, GrabModeAsync, GrabModeAsync); \
+	XGrabKey(dsply, XKeysymToKeycode(dsply, keysym), mask, w, True, GrabModeAsync, GrabModeAsync); \
+	XGrabKey(dsply, XKeysymToKeycode(dsply, keysym), LockMask|mask, w, True, GrabModeAsync, GrabModeAsync); \
 	if (numlockmask) \
 	{ \
-		XGrabKey(dpy, XKeysymToKeycode(dpy, keysym), numlockmask|mask, w, True, GrabModeAsync, GrabModeAsync); \
-		XGrabKey(dpy, XKeysymToKeycode(dpy, keysym), numlockmask|LockMask|mask, w, True, GrabModeAsync, GrabModeAsync); \
+		XGrabKey(dsply, XKeysymToKeycode(dsply, keysym), numlockmask|mask, w, True, GrabModeAsync, GrabModeAsync); \
+		XGrabKey(dsply, XKeysymToKeycode(dsply, keysym), numlockmask|LockMask|mask, w, True, GrabModeAsync, GrabModeAsync); \
 	}
 
 // I wanna know who the morons who prototyped these functions as implicit int are...
-#define lower_win(c) ((void) XLowerWindow(dpy, (c)->frame))
-#define raise_win(c) ((void) XRaiseWindow(dpy, (c)->frame))
+#define lower_win(c) ((void) XLowerWindow(dsply, (c)->frame))
+#define raise_win(c) ((void) XRaiseWindow(dsply, (c)->frame))
 
 // border width accessor to handle hints/no hints
 #ifdef MWM_HINTS
@@ -163,7 +168,8 @@ struct _Client
 	XSizeHints *size;
 	Window window, frame, trans;
 	Colormap cmap;
-	unsigned int x, y, width, height;
+	int x, y;
+	int width, height;
 	int ignore_unmap;
 	unsigned int hidden;
 	unsigned int was_hidden;
@@ -183,7 +189,8 @@ typedef struct _Rect Rect;
 
 struct _Rect
 {
-	unsigned int x, y, width, height;
+	int x, y;
+	int width, height;
 };
 
 typedef struct _MenuItem MenuItem;
@@ -191,13 +198,14 @@ typedef struct _MenuItem MenuItem;
 struct _MenuItem
 {
 	char *command, *label;
-	unsigned int x, width;
+	int x;
+	int width;
 };
 
 // Below here are (mainly generated with cproto) declarations and prototypes for each file.
 
 // main.c
-extern Display *dpy;
+extern Display *dsply;
 extern Window root;
 extern int screen;
 extern Client *head_client, *focused_client, *topmost_client, *fullscreen_client;
@@ -210,7 +218,7 @@ extern XftColor xft_detail;
 #endif
 extern GC border_gc, text_gc, active_gc, depressed_gc, inactive_gc, menu_gc, selected_gc, empty_gc;
 extern XColor border_col, text_col, active_col, depressed_col, inactive_col, menu_col, selected_col, empty_col;
-extern Cursor moveresize_curs;
+extern Cursor resize_curs;
 extern Atom wm_state, wm_change_state, wm_protos, wm_delete, wm_cmapwins;
 #ifdef MWM_HINTS
 extern Atom mwm_hints;
@@ -279,8 +287,8 @@ extern XftDraw *tbxftdraw;
 extern void make_taskbar(void);
 extern void cycle_previous(void);
 extern void cycle_next(void);
-extern void lclick_taskbar(unsigned int);
-extern void rclick_taskbar(unsigned int);
+extern void lclick_taskbar(int);
+extern void rclick_taskbar(int);
 extern void rclick_root(void);
 extern void redraw_taskbar(void);
 extern float get_button_width(void);

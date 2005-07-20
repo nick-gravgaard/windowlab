@@ -8,6 +8,6 @@ X-Chat:xchat
 XMMS:xmms
 xv:xv
 The GIMP:gimp
-Edit menu:gvim /etc/X11/windowlab/menurc
+Edit menu:gvim /etc/X11/windowlab/windowlab.menurc
 About:windowlab -about | xmessage -file -
 Quit:skill windowlab

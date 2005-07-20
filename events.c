@@ -24,7 +24,7 @@
 static void handle_key_press(XKeyEvent *);
 static void handle_button_press(XButtonEvent *);
 static void handle_windowbar_click(XButtonEvent *, Client *);
-static unsigned int box_clicked(Client *, unsigned int);
+static unsigned int box_clicked(Client *, int);
 static void draw_button(Client *, GC *, GC *, unsigned int);
 static void handle_configure_request(XConfigureRequestEvent *);
 static void handle_map_request(XMapRequestEvent *);
@@ -48,7 +48,7 @@ void do_event_loop(void)
 
 	for (;;)
 	{
-		XNextEvent(dpy, &ev);
+		XNextEvent(dsply, &ev);
 #ifdef DEBUG
 		show_event(ev);
 #endif
@@ -100,7 +100,7 @@ void do_event_loop(void)
 
 static void handle_key_press(XKeyEvent *e)
 {
-	KeySym key = XKeycodeToKeysym(dpy, e->keycode, 0);
+	KeySym key = XKeycodeToKeysym(dsply, e->keycode, 0);
 	switch (key)
 	{
 		case KEY_CYCLEPREV:
@@ -136,7 +136,7 @@ static void handle_button_press(XButtonEvent *e)
 		else
 		{
 			// pass event on
-			XAllowEvents(dpy, ReplayPointer, CurrentTime);
+			XAllowEvents(dsply, ReplayPointer, CurrentTime);
 		}
 	}
 	else if (e->window == root)
@@ -162,8 +162,6 @@ static void handle_button_press(XButtonEvent *e)
 	}
 	else
 	{
-		// pass event on
-		XAllowEvents(dpy, ReplayPointer, CurrentTime);
 		if (e->button == Button1)
 		{
 			c = find_client(e->window, FRAME);
@@ -171,22 +169,41 @@ static void handle_button_press(XButtonEvent *e)
 			{
 				// click-to-focus
 				check_focus(c);
-				if (e->y < BARHEIGHT())
+				if (e->y < BARHEIGHT() && c != fullscreen_client)
 				{
+					// eat event
+					XAllowEvents(dsply, SyncPointer, CurrentTime);
 					handle_windowbar_click(e, c);
+				}
+				else
+				{
+					// pass event on
+					XAllowEvents(dsply, ReplayPointer, CurrentTime);
 				}
 			}
 		}
-		else if (e->button == Button3)
+		else
 		{
-			rclick_root();
+			if (e->button == Button3)
+			{
+				// pass event on
+				XAllowEvents(dsply, ReplayPointer, CurrentTime);
+				rclick_root();
+			}
+			{
+				// pass event on
+				XAllowEvents(dsply, ReplayPointer, CurrentTime);
+			}
 		}
 	}
 }
 
 static void handle_windowbar_click(XButtonEvent *e, Client *c)
 {
-	unsigned int in_box, in_box_down, in_box_up, win_ypos;
+	static Client * first_click_c;
+	static Time first_click_time;
+	unsigned int in_box, in_box_down, in_box_up;
+	int win_ypos;
 	XEvent ev;
 
 	in_box_down = box_clicked(c, e->x);
@@ -197,7 +214,7 @@ static void handle_windowbar_click(XButtonEvent *e, Client *c)
 			return;
 		}
 
-		XGrabServer(dpy);
+		XGrabServer(dsply);
 
 		in_box = 1;
 
@@ -205,7 +222,7 @@ static void handle_windowbar_click(XButtonEvent *e, Client *c)
 
 		do
 		{
-			XMaskEvent(dpy, MouseMask, &ev);
+			XMaskEvent(dsply, MouseMask, &ev);
 			in_box_up = box_clicked(c, ev.xbutton.x - (c->x + DEF_BORDERWIDTH));
 			win_ypos = (ev.xbutton.y - c->y) + BARHEIGHT();
 			if (ev.type == MotionNotify)
@@ -225,7 +242,7 @@ static void handle_windowbar_click(XButtonEvent *e, Client *c)
 		while (ev.type != ButtonRelease);
 		draw_button(c, &text_gc, &active_gc, in_box_down);
 
-		XUngrabServer(dpy);
+		XUngrabServer(dsply);
 		ungrab();
 		if (in_box)
 		{
@@ -245,6 +262,16 @@ static void handle_windowbar_click(XButtonEvent *e, Client *c)
 	}
 	else if (in_box_down != UINT_MAX)
 	{
+		if (first_click_c == c && (e->time - first_click_time) < DEF_DBLCLKTIME)
+		{
+			raise_lower(c);
+			first_click_c = NULL; // prevent 3rd clicks counting as double clicks
+		}
+		else
+		{
+			first_click_c = c;
+		}
+		first_click_time = e->time;
 		move(c);
 	}
 }
@@ -252,7 +279,7 @@ static void handle_windowbar_click(XButtonEvent *e, Client *c)
 /* Return which button was clicked - this is a multiple of BARHEIGHT()
  * from the right hand side. We only care about 0, 1 and 2. */
 
-static unsigned int box_clicked(Client *c, unsigned int x)
+static unsigned int box_clicked(Client *c, int x)
 {
 	int pix_from_right = c->width - x;
 	if (pix_from_right < 0)
@@ -355,7 +382,7 @@ static void handle_configure_request(XConfigureRequestEvent *e)
 		wc.border_width = DEF_BORDERWIDTH;
 		//wc.sibling = e->above;
 		//wc.stack_mode = e->detail;
-		XConfigureWindow(dpy, c->frame, e->value_mask, &wc);
+		XConfigureWindow(dsply, c->frame, e->value_mask, &wc);
 #ifdef SHAPE
 		if (e->value_mask & (CWWidth|CWHeight))
 		{
@@ -377,7 +404,7 @@ static void handle_configure_request(XConfigureRequestEvent *e)
 	wc.height = e->height;
 	//wc.sibling = e->above;
 	//wc.stack_mode = e->detail;
-	XConfigureWindow(dpy, e->window, e->value_mask, &wc);
+	XConfigureWindow(dsply, e->window, e->value_mask, &wc);
 }
 
 /* Two possiblilies if a client is asking to be mapped. One is that
@@ -474,12 +501,12 @@ static void handle_property_change(XPropertyEvent *e)
 				{
 					XFree(c->name);
 				}
-				XFetchName(dpy, c->window, &c->name);
+				XFetchName(dsply, c->window, &c->name);
 				redraw(c);
 				redraw_taskbar();
 				break;
 			case XA_WM_NORMAL_HINTS:
-				XGetWMNormalHints(dpy, c->window, c->size, &dummy);
+				XGetWMNormalHints(dsply, c->window, c->size, &dummy);
 				break;
 		}
 	}
@@ -530,7 +557,7 @@ static void handle_enter_event(XCrossingEvent *e)
 		c = find_client(e->window, FRAME);
 		if (c != NULL)
 		{
-			XGrabButton(dpy, AnyButton, AnyModifier, c->frame, False, ButtonMask, GrabModeSync, GrabModeSync, None, None);
+			XGrabButton(dsply, AnyButton, AnyModifier, c->frame, False, ButtonMask, GrabModeSync, GrabModeSync, None, None);
 		}
 	}
 }
@@ -551,7 +578,7 @@ static void handle_colormap_change(XColormapEvent *e)
 	if (c != NULL && e->new)
 	{
 		c->cmap = e->colormap;
-		XInstallColormap(dpy, c->cmap);
+		XInstallColormap(dsply, c->cmap);
 	}
 }
 

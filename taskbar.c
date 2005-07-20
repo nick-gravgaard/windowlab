@@ -21,7 +21,7 @@
 #include "windowlab.h"
 
 static void draw_menubar(void);
-static unsigned int update_menuitem(unsigned int);
+static unsigned int update_menuitem(int);
 static void draw_menuitem(unsigned int, unsigned int);
 
 Window taskbar;
@@ -37,12 +37,12 @@ void make_taskbar(void)
 	pattr.background_pixel = empty_col.pixel;
 	pattr.border_pixel = border_col.pixel;
 	pattr.event_mask = ChildMask|ButtonPressMask|ExposureMask|EnterWindowMask;
-	taskbar = XCreateWindow(dpy, root, 0 - DEF_BORDERWIDTH, 0 - DEF_BORDERWIDTH, DisplayWidth(dpy, screen), BARHEIGHT() - DEF_BORDERWIDTH, DEF_BORDERWIDTH, DefaultDepth(dpy, screen), CopyFromParent, DefaultVisual(dpy, screen), CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWEventMask, &pattr);
+	taskbar = XCreateWindow(dsply, root, 0 - DEF_BORDERWIDTH, 0 - DEF_BORDERWIDTH, DisplayWidth(dsply, screen), BARHEIGHT() - DEF_BORDERWIDTH, DEF_BORDERWIDTH, DefaultDepth(dsply, screen), CopyFromParent, DefaultVisual(dsply, screen), CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWEventMask, &pattr);
 
-	XMapWindow(dpy, taskbar);
+	XMapWindow(dsply, taskbar);
 
 #ifdef XFT
-	tbxftdraw = XftDrawCreate(dpy, (Drawable) taskbar, DefaultVisual(dpy, DefaultScreen(dpy)), DefaultColormap(dpy, DefaultScreen(dpy)));
+	tbxftdraw = XftDrawCreate(dsply, (Drawable) taskbar, DefaultVisual(dsply, DefaultScreen(dsply)), DefaultColormap(dsply, DefaultScreen(dsply)));
 #endif
 }
 
@@ -99,7 +99,7 @@ void lclick_taskbutton(Client *old_c, Client *c)
 	check_focus(c);
 }
 
-void lclick_taskbar(unsigned int x)
+void lclick_taskbar(int x)
 {
 	XEvent ev;
 	int mousex, mousey;
@@ -118,15 +118,15 @@ void lclick_taskbar(unsigned int x)
 
 		bounddims.x = 0;
 		bounddims.y = 0;
-		bounddims.width = DisplayWidth(dpy, screen);
+		bounddims.width = DisplayWidth(dsply, screen);
 		bounddims.height = BARHEIGHT();
 
-		constraint_win = XCreateWindow(dpy, root, bounddims.x, bounddims.y, bounddims.width, bounddims.height, 0, CopyFromParent, InputOnly, CopyFromParent, 0, &pattr);
-		XMapWindow(dpy, constraint_win);
+		constraint_win = XCreateWindow(dsply, root, bounddims.x, bounddims.y, bounddims.width, bounddims.height, 0, CopyFromParent, InputOnly, CopyFromParent, 0, &pattr);
+		XMapWindow(dsply, constraint_win);
 
-		if (!(XGrabPointer(dpy, root, False, MouseMask, GrabModeAsync, GrabModeAsync, constraint_win, None, CurrentTime) == GrabSuccess))
+		if (!(XGrabPointer(dsply, root, False, MouseMask, GrabModeAsync, GrabModeAsync, constraint_win, None, CurrentTime) == GrabSuccess))
 		{
-			XDestroyWindow(dpy, constraint_win);
+			XDestroyWindow(dsply, constraint_win);
 			return;
 		}
 
@@ -142,7 +142,7 @@ void lclick_taskbar(unsigned int x)
 
 		do
 		{
-			XMaskEvent(dpy, ExposureMask|MouseMask|KeyMask, &ev);
+			XMaskEvent(dsply, ExposureMask|MouseMask|KeyMask, &ev);
 			switch (ev.type)
 			{
 				case Expose:
@@ -166,21 +166,21 @@ void lclick_taskbar(unsigned int x)
 					}
 					break;
 				case KeyPress:
-					XPutBackEvent(dpy, &ev);
+					XPutBackEvent(dsply, &ev);
 					break;
 			}
 		}
 		while (ev.type != ButtonPress && ev.type != ButtonRelease && ev.type != KeyPress);
 
-		XUnmapWindow(dpy, constraint_win);
-		XDestroyWindow(dpy, constraint_win);
+		XUnmapWindow(dsply, constraint_win);
+		XDestroyWindow(dsply, constraint_win);
 		ungrab();
 
 		forget_hidden();
 	}
 }
 
-void rclick_taskbar(unsigned int x)
+void rclick_taskbar(int x)
 {
 	XEvent ev;
 	int mousex, mousey;
@@ -193,23 +193,23 @@ void rclick_taskbar(unsigned int x)
 
 	bounddims.x = 0;
 	bounddims.y = 0;
-	bounddims.width = DisplayWidth(dpy, screen);
+	bounddims.width = DisplayWidth(dsply, screen);
 	bounddims.height = BARHEIGHT();
 
-	constraint_win = XCreateWindow(dpy, root, bounddims.x, bounddims.y, bounddims.width, bounddims.height, 0, CopyFromParent, InputOnly, CopyFromParent, 0, &pattr);
-	XMapWindow(dpy, constraint_win);
+	constraint_win = XCreateWindow(dsply, root, bounddims.x, bounddims.y, bounddims.width, bounddims.height, 0, CopyFromParent, InputOnly, CopyFromParent, 0, &pattr);
+	XMapWindow(dsply, constraint_win);
 
-	if (!(XGrabPointer(dpy, root, False, MouseMask, GrabModeAsync, GrabModeAsync, constraint_win, None, CurrentTime) == GrabSuccess))
+	if (!(XGrabPointer(dsply, root, False, MouseMask, GrabModeAsync, GrabModeAsync, constraint_win, None, CurrentTime) == GrabSuccess))
 	{
-		XDestroyWindow(dpy, constraint_win);
+		XDestroyWindow(dsply, constraint_win);
 		return;
 	}
 	draw_menubar();
-	update_menuitem(UINT_MAX); // force initial highlight
+	update_menuitem(INT_MAX); // force initial highlight
 	current_item = update_menuitem(x);
 	do
 	{
-		XMaskEvent(dpy, MouseMask|KeyMask, &ev);
+		XMaskEvent(dsply, MouseMask|KeyMask, &ev);
 		switch (ev.type)
 		{
 			case MotionNotify:
@@ -222,15 +222,15 @@ void rclick_taskbar(unsigned int x)
 				}
 				break;
 			case KeyPress:
-				XPutBackEvent(dpy, &ev);
+				XPutBackEvent(dsply, &ev);
 				break;
 		}
 	}
 	while (ev.type != ButtonPress && ev.type != ButtonRelease && ev.type != KeyPress);
 
 	redraw_taskbar();
-	XUnmapWindow(dpy, constraint_win);
-	XDestroyWindow(dpy, constraint_win);
+	XUnmapWindow(dsply, constraint_win);
+	XDestroyWindow(dsply, constraint_win);
 	ungrab();
 }
 
@@ -244,7 +244,7 @@ void rclick_root(void)
 	draw_menubar();
 	do
 	{
-		XMaskEvent(dpy, MouseMask|KeyMask, &ev);
+		XMaskEvent(dsply, MouseMask|KeyMask, &ev);
 		switch (ev.type)
 		{
 			case MotionNotify:
@@ -256,7 +256,7 @@ void rclick_root(void)
 				}
 				break;
 			case KeyPress:
-				XPutBackEvent(dpy, &ev);
+				XPutBackEvent(dsply, &ev);
 				break;
 		}
 	}
@@ -268,12 +268,13 @@ void rclick_root(void)
 
 void redraw_taskbar(void)
 {
-	unsigned int i, button_startx, button_iwidth;
+	unsigned int i;
+	int button_startx, button_iwidth;
 	float button_width;
 	Client *c;
 
 	button_width = get_button_width();
-	XClearWindow(dpy, taskbar);
+	XClearWindow(dsply, taskbar);
 
 	if (showing_taskbar == 0)
 	{
@@ -282,26 +283,26 @@ void redraw_taskbar(void)
 
 	for (c = head_client, i = 0; c != NULL; c = c->next, i++)
 	{
-		button_startx = (unsigned int)(i * button_width);
+		button_startx = (int)(i * button_width);
 		button_iwidth = (unsigned int)(((i + 1) * button_width) - button_startx);
 		if (button_startx != 0)
 		{
-			XDrawLine(dpy, taskbar, border_gc, button_startx - 1, 0, button_startx - 1, BARHEIGHT() - DEF_BORDERWIDTH);
+			XDrawLine(dsply, taskbar, border_gc, button_startx - 1, 0, button_startx - 1, BARHEIGHT() - DEF_BORDERWIDTH);
 		}
 		if (c == focused_client)
 		{
-			XFillRectangle(dpy, taskbar, active_gc, button_startx, 0, button_iwidth, BARHEIGHT() - DEF_BORDERWIDTH);
+			XFillRectangle(dsply, taskbar, active_gc, button_startx, 0, button_iwidth, BARHEIGHT() - DEF_BORDERWIDTH);
 		}
 		else
 		{
-			XFillRectangle(dpy, taskbar, inactive_gc, button_startx, 0, button_iwidth, BARHEIGHT() - DEF_BORDERWIDTH);
+			XFillRectangle(dsply, taskbar, inactive_gc, button_startx, 0, button_iwidth, BARHEIGHT() - DEF_BORDERWIDTH);
 		}
 		if (!c->trans && c->name != NULL)
 		{
 #ifdef XFT
 			XftDrawString8(tbxftdraw, &xft_detail, xftfont, button_startx + SPACE, SPACE + xftfont->ascent, (unsigned char *)c->name, strlen(c->name));
 #else
-			XDrawString(dpy, taskbar, text_gc, button_startx + SPACE, SPACE + font->ascent, c->name, strlen(c->name));
+			XDrawString(dsply, taskbar, text_gc, button_startx + SPACE, SPACE + font->ascent, c->name, strlen(c->name));
 #endif
 		}
 	}
@@ -310,8 +311,8 @@ void redraw_taskbar(void)
 void draw_menubar(void)
 {
 	unsigned int i, dw;
-	dw = DisplayWidth(dpy, screen);
-	XFillRectangle(dpy, taskbar, menu_gc, 0, 0, dw, BARHEIGHT() - DEF_BORDERWIDTH);
+	dw = DisplayWidth(dsply, screen);
+	XFillRectangle(dsply, taskbar, menu_gc, 0, 0, dw, BARHEIGHT() - DEF_BORDERWIDTH);
 
 	for (i = 0; i < num_menuitems; i++)
 	{
@@ -320,17 +321,17 @@ void draw_menubar(void)
 #ifdef XFT
 			XftDrawString8(tbxftdraw, &xft_detail, xftfont, menuitems[i].x + (SPACE * 2), xftfont->ascent + SPACE, (unsigned char *)menuitems[i].label, strlen(menuitems[i].label));
 #else
-			XDrawString(dpy, taskbar, text_gc, menuitems[i].x + (SPACE * 2), font->ascent + SPACE, menuitems[i].label, strlen(menuitems[i].label));
+			XDrawString(dsply, taskbar, text_gc, menuitems[i].x + (SPACE * 2), font->ascent + SPACE, menuitems[i].label, strlen(menuitems[i].label));
 #endif
 		}
 	}
 }
 
-unsigned int update_menuitem(unsigned int mousex)
+unsigned int update_menuitem(int mousex)
 {
 	static unsigned int last_item; // retain value from last call
 	unsigned int i;
-	if (mousex == UINT_MAX) // entered function to set last_item
+	if (mousex == INT_MAX) // entered function to set last_item
 	{
 		last_item = num_menuitems;
 		return UINT_MAX;
@@ -370,16 +371,16 @@ void draw_menuitem(unsigned int index, unsigned int active)
 {
 	if (active)
 	{
-		XFillRectangle(dpy, taskbar, selected_gc, menuitems[index].x, 0, menuitems[index].width, BARHEIGHT() - DEF_BORDERWIDTH);
+		XFillRectangle(dsply, taskbar, selected_gc, menuitems[index].x, 0, menuitems[index].width, BARHEIGHT() - DEF_BORDERWIDTH);
 	}
 	else
 	{
-		XFillRectangle(dpy, taskbar, menu_gc, menuitems[index].x, 0, menuitems[index].width, BARHEIGHT() - DEF_BORDERWIDTH);
+		XFillRectangle(dsply, taskbar, menu_gc, menuitems[index].x, 0, menuitems[index].width, BARHEIGHT() - DEF_BORDERWIDTH);
 	}
 #ifdef XFT
 	XftDrawString8(tbxftdraw, &xft_detail, xftfont, menuitems[index].x + (SPACE * 2), xftfont->ascent + SPACE, (unsigned char *)menuitems[index].label, strlen(menuitems[index].label));
 #else
-	XDrawString(dpy, taskbar, text_gc, menuitems[index].x + (SPACE * 2), font->ascent + SPACE, menuitems[index].label, strlen(menuitems[index].label));
+	XDrawString(dsply, taskbar, text_gc, menuitems[index].x + (SPACE * 2), font->ascent + SPACE, menuitems[index].label, strlen(menuitems[index].label));
 #endif
 }
 
@@ -392,7 +393,7 @@ float get_button_width(void)
 		nwins++;
 		c = c->next;
 	}
-	return ((float)(DisplayWidth(dpy, screen) + DEF_BORDERWIDTH)) / nwins;
+	return ((float)(DisplayWidth(dsply, screen) + DEF_BORDERWIDTH)) / nwins;
 }
 
 void cycle_previous(void)

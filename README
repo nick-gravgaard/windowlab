@@ -73,9 +73,13 @@ The taskbar should list all windows currently in use. Clicking on a windows task
 
 To resize the active window hold down alt and push against the windows edges with a mouse button down.
 
-If you right click outside a client window, WindowLab's taskbar becomes a menubar. Releasing the right mouse button over a selected menu item will start a corresponding external program. The menu labels and commands are defined in either ~/.windowlab/menurc or /etc/X11/windowlab/menurc if the first file cannot be opened.
+If you right click outside a client window, WindowLab's taskbar becomes a menubar. Releasing the right mouse button over a selected menu item will start a corresponding external program. WindowLab will look in each of the following files in turn for definitions of the menu labels and commands:
 
-An example menurc file is included (menurc.sample). Each line in the menurc file should have the menu label, a colon, and then the corresponding command, ie:
+~/.windowlab/windowlab.menurc
+../etc/windowlab.menurc (from the directory containing the executable)
+/etc/X11/windowlab/windowlab.menurc
+
+Each line in the menurc file should have the menu label, a colon, and then the corresponding command, ie:
 
 The GIMP:gimp
 

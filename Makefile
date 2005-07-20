@@ -6,7 +6,7 @@ EXTRA_LIBS += -lXext
 
 # Information about the location of the menurc file
 ifndef MENURC
-MENURC = /etc/X11/windowlab/menurc
+MENURC = /etc/X11/windowlab/windowlab.menurc
 endif
 DEFINES += -DDEF_MENURC="\"$(MENURC)\""
 
@@ -29,7 +29,7 @@ XROOT = /usr/X11R6
 
 CC = gcc
 ifndef CFLAGS
-CFLAGS = -g -O2 -Wall
+CFLAGS = -g -O2 -Wall -W
 endif
 
 BINDIR = $(DESTDIR)$(XROOT)/bin
@@ -55,7 +55,7 @@ $(OBJS): %.o: %.c $(HEADERS)
 install: all
 	mkdir -p $(BINDIR) && install -m 755 -s $(PROG) $(BINDIR)
 	mkdir -p $(MANDIR) && install -m 644 $(MANPAGE) $(MANDIR) && gzip -9vf $(MANDIR)/$(MANPAGE)
-	mkdir -p $(CFGDIR) && cp -i menurc.sample $(CFGDIR)/menurc && chmod 644 $(CFGDIR)/menurc
+	mkdir -p $(CFGDIR) && cp -i windowlab.menurc $(CFGDIR)/windowlab.menurc && chmod 644 $(CFGDIR)/windowlab.menurc
 
 clean:
 	rm -f $(PROG) $(OBJS)

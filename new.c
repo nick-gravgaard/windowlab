@@ -59,16 +59,11 @@ void make_new_client(Window w)
 	}
 	c->next = NULL;
 
-	if (focused_client == NULL)
-	{
-		focused_client = c; // check every time? This should only be done at the start
-	}
+	XGrabServer(dsply);
 
-	XGrabServer(dpy);
-
-	XGetTransientForHint(dpy, w, &c->trans);
-	XFetchName(dpy, w, &c->name);
-	XGetWindowAttributes(dpy, w, &attr);
+	XGetTransientForHint(dsply, w, &c->trans);
+	XFetchName(dsply, w, &c->name);
+	XGetWindowAttributes(dsply, w, &attr);
 
 	c->window = w;
 	c->ignore_unmap = 0;
@@ -83,7 +78,7 @@ void make_new_client(Window w)
 	c->height = attr.height;
 	c->cmap = attr.colormap;
 	c->size = XAllocSizeHints();
-	XGetWMNormalHints(dpy, c->window, c->size, &dummy);
+	XGetWMNormalHints(dsply, c->window, c->size, &dummy);
 #ifdef MWM_HINTS
 	c->has_title = 1;
 	c->has_border = 1;
@@ -99,15 +94,14 @@ void make_new_client(Window w)
 	}
 #endif
 
-	if (attr.map_state == IsViewable)
-	{
-		c->ignore_unmap++;
-	}
-	else
+	// XReparentWindow seems to try an XUnmapWindow, regardless of whether the reparented window is mapped or not
+	c->ignore_unmap++;
+	
+	if (attr.map_state != IsViewable)
 	{
 		init_position(c);
 		set_wm_state(c, NormalState);
-		if ((hints = XGetWMHints(dpy, w)))
+		if ((hints = XGetWMHints(dsply, w)))
 		{
 			if (hints->flags & StateHint)
 			{
@@ -122,42 +116,37 @@ void make_new_client(Window w)
 	reparent(c);
 
 #ifdef XFT
-	c->xftdraw = XftDrawCreate(dpy, (Drawable) c->frame, DefaultVisual(dpy, DefaultScreen(dpy)), DefaultColormap(dpy, DefaultScreen(dpy)));
+	c->xftdraw = XftDrawCreate(dsply, (Drawable) c->frame, DefaultVisual(dsply, DefaultScreen(dsply)), DefaultColormap(dsply, DefaultScreen(dsply)));
 #endif
 
-	if (attr.map_state == IsViewable)
+	if (get_wm_state(c) != IconicState)
 	{
-		if (get_wm_state(c) == IconicState)
-		{
-			c->ignore_unmap++;
-			c->hidden = 1;
-			XUnmapWindow(dpy, c->window);
-		}
-		else
-		{
-			XMapWindow(dpy, c->window);
-			XMapRaised(dpy, c->frame);
-			set_wm_state(c, NormalState);
-		}
+		XMapWindow(dsply, c->window);
+		XMapRaised(dsply, c->frame);
+
+		topmost_client = c;
 	}
 	else
 	{
-		if (get_wm_state(c) == NormalState)
+		c->hidden = 1;
+		if(attr.map_state == IsViewable)
 		{
-			XMapWindow(dpy, c->window);
-			XMapRaised(dpy, c->frame);
+			c->ignore_unmap++;
+			XUnmapWindow(dsply, c->window);
 		}
 	}
 
-	check_focus(c);
-	topmost_client = c;
+	if(!c->hidden) // make the new visible window the focused one
+	{
+		check_focus(c);
+		if (focused_client == NULL)
+		{
+			focused_client = c; // check every time? This should only be done at the start
+		}
+	}
 
-#ifdef DEBUG
-	dump(c);
-#endif
-
-	XSync(dpy, False);
-	XUngrabServer(dpy);
+	XSync(dsply, False);
+	XUngrabServer(dsply);
 
 	redraw_taskbar();
 }
@@ -173,7 +162,7 @@ static PropMwmHints *get_mwm_hints(Window w)
 	unsigned long items_read, items_left;
 	unsigned char *data;
 
-	if (XGetWindowProperty(dpy, w, mwm_hints, 0L, 20L, False, mwm_hints, &real_type, &real_format, &items_read, &items_left, &data) == Success && items_read >= PROP_MOTIF_WM_HINTS_ELEMENTS)
+	if (XGetWindowProperty(dsply, w, mwm_hints, 0L, 20L, False, mwm_hints, &real_type, &real_format, &items_read, &items_left, &data) == Success && items_read >= PROP_MOTIF_WM_HINTS_ELEMENTS)
 	{
 		return (PropMwmHints *)data;
 	}
@@ -186,11 +175,12 @@ static PropMwmHints *get_mwm_hints(Window w)
 
 /* Figure out where to map the window. c->x, c->y, c->width, and
  * c->height actually start out with values in them (whatever the
- * client passed to XCreateWindow). Program-specified hints will
- * override these, but anything set by the program will be
- * sanity-checked before it is used. PSize is ignored completely,
- * because GTK sets it to 200x200 for almost everything. User-
- * specified hints will of course override anything the program says.
+ * client passed to XCreateWindow).
+ *
+ * The ICCM says that there are no position/size fields anymore and
+ * the SetWMNormalHints says that they are obsolete, so we use the values
+ * we got from the window attributes
+ * We honour both program and user preferences
  *
  * If we can't find a reasonable position hint, we make up a position
  * using the relative mouse co-ordinates and window size. To account
@@ -202,37 +192,14 @@ static void init_position(Client *c)
 {
 	int mousex, mousey;
 
-	if (c->size->flags & (USSize))
+	// make sure it's big enough for the 3 buttons and a bit of bar
+	if (c->width < 4 * BARHEIGHT())
 	{
-		c->width = c->size->width;
-		c->height = c->size->height;
+		c->width = 4 * BARHEIGHT();
 	}
-	else
+	if (c->height < BARHEIGHT())
 	{
-		// we would check PSize here, if GTK didn't blow goats
-		// make sure it's big enough for the 3 buttons and a bit of bar
-		if (c->width < 4 * BARHEIGHT())
-		{
-			c->width = 4 * BARHEIGHT();
-		}
-		if (c->height < BARHEIGHT())
-		{
-			c->height = BARHEIGHT();
-		}
-	}
-
-	if (c->size->flags & USPosition)
-	{
-		c->x = c->size->x;
-		c->y = c->size->y;
-	}
-	else
-	{
-		if (c->size->flags & PPosition)
-		{
-			c->x = c->size->x;
-			c->y = c->size->y;
-		}
+		c->height = BARHEIGHT();
 	}
 
 	if (c->x == 0 && c->y == 0)
@@ -252,21 +219,21 @@ static void reparent(Client *c)
 	pattr.background_pixel = empty_col.pixel;
 	pattr.border_pixel = border_col.pixel;
 	pattr.event_mask = ChildMask|ButtonPressMask|ExposureMask|EnterWindowMask;
-	c->frame = XCreateWindow(dpy, root, c->x, c->y - BARHEIGHT(), c->width, c->height + BARHEIGHT(), BORDERWIDTH(c), DefaultDepth(dpy, screen), CopyFromParent, DefaultVisual(dpy, screen), CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWEventMask, &pattr);
+	c->frame = XCreateWindow(dsply, root, c->x, c->y - BARHEIGHT(), c->width, c->height + BARHEIGHT(), BORDERWIDTH(c), DefaultDepth(dsply, screen), CopyFromParent, DefaultVisual(dsply, screen), CWOverrideRedirect|CWBackPixel|CWBorderPixel|CWEventMask, &pattr);
 
 #ifdef SHAPE
 	if (shape)
 	{
-		XShapeSelectInput(dpy, c->window, ShapeNotifyMask);
+		XShapeSelectInput(dsply, c->window, ShapeNotifyMask);
 		set_shape(c);
 	}
 #endif
 
-	XAddToSaveSet(dpy, c->window);
-	XSelectInput(dpy, c->window, ColormapChangeMask|PropertyChangeMask);
-	XSetWindowBorderWidth(dpy, c->window, 0);
-	XResizeWindow(dpy, c->window, c->width, c->height);
-	XReparentWindow(dpy, c->window, c->frame, 0, BARHEIGHT());
+	XAddToSaveSet(dsply, c->window);
+	XSelectInput(dsply, c->window, ColormapChangeMask|PropertyChangeMask);
+	XSetWindowBorderWidth(dsply, c->window, 0);
+	XResizeWindow(dsply, c->window, c->width, c->height);
+	XReparentWindow(dsply, c->window, c->frame, 0, BARHEIGHT());
 
 	send_config(c);
 }
