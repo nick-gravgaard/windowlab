@@ -136,6 +136,7 @@ void make_new_client(Window w)
 		}
 	}
 
+/*
 	if(!c->hidden) // make the new visible window the focused one
 	{
 		check_focus(c);
@@ -144,6 +145,7 @@ void make_new_client(Window w)
 			focused_client = c; // check every time? This should only be done at the start
 		}
 	}
+*/
 
 	XSync(dsply, False);
 	XUngrabServer(dsply);

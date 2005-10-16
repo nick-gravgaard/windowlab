@@ -9,21 +9,23 @@ windowlab \- a window manager for X11
 .B windowlab
 is a small and simple window manager of novel design.
 .PP
-It's click-to-focus but not raise-on-focus and has a window resizing mechanism that allows one or many edges of a window to be changed in one action. WindowLab maintains the illusion of direct manipulation by constraining the mouse pointer when appropriate, ie when a window cannot be dragged any further in one direction. The pointer is also constrained vertically (effectively making the target menu items infinitely tall according to Fitts's law) when it's in the menubar to reduce pointing time.
+It has a click-to-focus but not raise-on-focus policy, a window resizing mechanism that allows one or many edges of a window to be changed in one action, and an innovative menubar that shares the same part of the screen as the taskbar. Window titlebars are prevented from going off the edge of the screen by constraining the mouse pointer, and when appropriate the pointer is also constrained to the taskbar/menubar in order to make target menu items easier to hit.
 .PP
-WindowLab places a taskbar at the top of the screen and adds a bar to the top of each window. These bars consist of a draggable area, and three icons on the right hand side. When clicked, these icons:
+WindowLab places a taskbar at the top of the screen and adds a titlebar to the top of each window. These titlebars consist of a draggable area, and three icons on the right hand side. When left clicked, these icons:
 .PP
 * hide the window
 .br
-* toggle the windows Z order Amiga style (if it's not at the front, bring it to the front, otherwise send it to the back)
+* toggle the window's Z order Amiga style (if it's not at the front, bring it to the front, otherwise send it to the back)
 .br
 * close the window
 .PP
-Window titlebars must always be fully on-screen and cannot overlap the taskbar at the top of the screen.
+Another way of toggling a window's Z order (depth) is by double left clicking on the draggable part of its titlebar.
 .PP
-The taskbar should list all windows currently in use. Clicking on a windows taskbar item will give that window focus and act as a click on that windows middle-gadget - ie toggle that windows Z order (depth).
+Windows' titlebars are prevented from leaving the screen and cannot overlap the taskbar.
 .PP
-To resize the active window hold down alt and push against the windows edges with a mouse button down.
+The taskbar should list all windows currently in use. Left clicking on a window's taskbar item will give that window focus and toggle its Z order (depth).
+.PP
+To resize the active window hold down alt and push against the window's edges with the left mouse button down.
 .PP
 If you right click outside a client window, WindowLab's taskbar becomes a menubar. Releasing the right mouse button over a selected menu item will start a corresponding external program. WindowLab will look in each of the following files in turn for definitions of the menu labels and commands:
 .PP
@@ -33,21 +35,29 @@ If you right click outside a client window, WindowLab's taskbar becomes a menuba
 .br
 * /etc/X11/windowlab/windowlab\.menurc
 .PP
-Each line in the menurc file should have the menu label, a colon, and then the corresponding command, ie:
+Each line in the menurc file should have the menu label, a colon, and then the corresponding command, eg:
 .PP
 The GIMP:gimp
 .PP
-WindowLab positions new windows (that don't specify their location) according to the coordinates of the mouse - the top-left hand corner of a new window is set to the location of the mouse pointer (if necessary the window will be moved to ensure that all of it is on the screen).
+New windows (that don't specify their location) are positioned according to the coordinates of the mouse - the top-left hand corner of a new window is set to the location of the mouse pointer (if necessary the window will be moved to ensure that all of it is on the screen).
 .PP
 WindowLab has the following keyboard controls. Hold down alt and press:
 .PP
-* tab to give focus to the previous window
+*
+.B tab
+to give focus to the previous window
 .br
-* q to give focus to the next window
+*
+.B q
+to give focus to the next window
 .br
-* F11 to toggle fullscreen mode on and off for non transient windows
+*
+.B F11
+to toggle fullscreen mode on and off for non transient windows
 .br
-* F12 to toggle the windows depth. This is the same as pressing a windows middle button
+*
+.B F12
+to toggle the windows depth. This is the same as left clicking a window's middle icon
 .SH OPTIONS
 .TP
 .B -font \fIfont-spec\fP
@@ -61,6 +71,10 @@ for the borders, the text, the active background, the inactive background, the m
 .TP
 .B -about
 Print information to stdout and exit.
+.TP
+.B -display
+Sets which X display will be managed by
+.BR windowlab .
 .SH ENVIRONMENT VARIABLES
 .B DISPLAY
 Sets which X display will be managed by

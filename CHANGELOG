@@ -1,3 +1,16 @@
+1.33 (2005-10-16)
+
+* integrated changes from Dushkin (thanks!):
+	* scrolling the mouse wheel in the taskbar now task switches
+* integrated changes from Antti Nykänen (thanks!):
+	* fixed a crash that occurred on the BSDs (and presumably on other systems without /proc/self/exe)
+* integrated changes from Gregor Imboden (thanks!):
+	* fixed a crash that ocurrred when there are no focused windows and alt + F12 is pressed was fixed
+* events are always replayed rather than sometimes being eaten
+* new windows are no longer given focus
+* added TODO file
+
+
 1.32 (2005-07-20)
 
 * the executable has been made relocatable

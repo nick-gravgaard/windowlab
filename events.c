@@ -151,17 +151,26 @@ static void handle_button_press(XButtonEvent *e)
 	}
 	else if (e->window == taskbar)
 	{
-		if (e->button == Button1)
+		switch (e->button)
 		{
-			lclick_taskbar(e->x);
-		}
-		else if (e->button == Button3)
-		{
-			rclick_taskbar(e->x);
+			case Button1:
+				lclick_taskbar(e->x);
+				break;
+			case Button3:
+				rclick_taskbar(e->x);
+				break;
+			case Button4: // mouse wheel up
+				cycle_previous();
+				break;
+			case Button5:
+				cycle_next(); // mouse wheel down
+				break;
 		}
 	}
 	else
 	{
+		// pass event on
+		XAllowEvents(dsply, ReplayPointer, CurrentTime);
 		if (e->button == Button1)
 		{
 			c = find_client(e->window, FRAME);
@@ -171,29 +180,13 @@ static void handle_button_press(XButtonEvent *e)
 				check_focus(c);
 				if (e->y < BARHEIGHT() && c != fullscreen_client)
 				{
-					// eat event
-					XAllowEvents(dsply, SyncPointer, CurrentTime);
 					handle_windowbar_click(e, c);
-				}
-				else
-				{
-					// pass event on
-					XAllowEvents(dsply, ReplayPointer, CurrentTime);
 				}
 			}
 		}
-		else
+		else if (e->button == Button3)
 		{
-			if (e->button == Button3)
-			{
-				// pass event on
-				XAllowEvents(dsply, ReplayPointer, CurrentTime);
-				rclick_root();
-			}
-			{
-				// pass event on
-				XAllowEvents(dsply, ReplayPointer, CurrentTime);
-			}
+			rclick_root();
 		}
 	}
 }

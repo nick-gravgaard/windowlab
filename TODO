@@ -1,0 +1,4 @@
+TODO
+
+* add EWMH support (back port it from aewm?)
+* allow right clicks on client windows to show WindowLab's menubar as well as being passed to the client

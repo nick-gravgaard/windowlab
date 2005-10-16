@@ -25,15 +25,18 @@ static int get_incsize(Client *, unsigned int *, unsigned int *, Rect *, int);
 
 void raise_lower(Client *c)
 {
-	if (c == topmost_client)
+	if (c != NULL)
 	{
-		lower_win(c);
-		topmost_client = NULL; // lazy but amiwm does similar
-	}
-	else
-	{
-		raise_win(c);
-		topmost_client = c;
+		if (c == topmost_client)
+		{
+			lower_win(c);
+			topmost_client = NULL; // lazy but amiwm does similar
+		}
+		else
+		{
+			raise_win(c);
+			topmost_client = c;
+		}
 	}
 }
 
@@ -42,30 +45,36 @@ void raise_lower(Client *c)
 
 void hide(Client *c)
 {
-	if (!c->hidden)
+	if (c != NULL)
 	{
-		c->ignore_unmap++;
-		c->hidden = 1;
-		if (c == topmost_client)
+		if (!c->hidden)
 		{
-			topmost_client = NULL;
+			c->ignore_unmap++;
+			c->hidden = 1;
+			if (c == topmost_client)
+			{
+				topmost_client = NULL;
+			}
+			XUnmapWindow(dsply, c->frame);
+			XUnmapWindow(dsply, c->window);
+			set_wm_state(c, IconicState);
+			check_focus(get_prev_focused());
 		}
-		XUnmapWindow(dsply, c->frame);
-		XUnmapWindow(dsply, c->window);
-		set_wm_state(c, IconicState);
-		check_focus(get_prev_focused());
 	}
 }
 
 void unhide(Client *c)
 {
-	if (c->hidden)
+	if (c != NULL)
 	{
-		c->hidden = 0;
-		topmost_client = c;
-		XMapWindow(dsply, c->window);
-		XMapRaised(dsply, c->frame);
-		set_wm_state(c, NormalState);
+		if (c->hidden)
+		{
+			c->hidden = 0;
+			topmost_client = c;
+			XMapWindow(dsply, c->window);
+			XMapRaised(dsply, c->frame);
+			set_wm_state(c, NormalState);
+		}
 	}
 }
 

@@ -7,27 +7,22 @@ WHAT IS WINDOWLAB?
 
 WindowLab is a small and simple window manager of novel design.
 
-It's click-to-focus but not raise-on-focus and has a window resizing mechanism that allows one or many edges of a window to be changed in one action. WindowLab maintains the illusion of direct manipulation by constraining the mouse pointer when appropriate, ie when a window cannot be dragged any further in one direction. The pointer is also constrained vertically (effectively making the target menu items infinitely tall according to Fitts's law) when it's in the menubar to reduce pointing time.
+It has a click-to-focus but not raise-on-focus policy, a window resizing mechanism that allows one or many edges of a window to be changed in one action, and an innovative menubar that shares the same part of the screen as the taskbar. Window titlebars are prevented from going off the edge of the screen by constraining the mouse pointer, and when appropriate the pointer is also constrained to the taskbar/menubar in order to make target menu items easier to hit.
 
 
 
 WHY USE WINDOWLAB?
 
-* It allows the focused window to be below other windows that you still need to look at (click-to-focus but not raise-on-focus) without using convoluted Windows style always-on-top modes
-
-* One or many edges of a window can be changed in one action without having to click on thin window borders. As with much in WindowLab this allows faster use with less accuracy
-
-* It's very quick and easy to launch an application from the menu - it's easier to slam the pointer to the top of the screen and then make small adjustments to hit the target then it is to use a Windows style hierarchical "start" menu or a Blackbox style popup menu, and by constraining the pointer to the menu bar you can be less accurate (and thus faster) because once the pointer is in the menu bar you don't have to worry about vertical movements
-
-* You can quickly access a window and bring it to the front by clicking on it in the taskbar - this solves the only problem with the click-to-focus but not raise-on-focus model - having to slide partially obscured windows around to get to their toggle-depth buttons
-
-* When you have many windows open and lose track of which window you want next you can click on a taskbar item, and if it's not the right one, slide the pointer over the other items in the taskbar (with the mouse button still depressed) to see the other windows. As with the menubar, the pointer's constrained to the taskbar so that you can make faster and less careful mouse movements. With many windows open this is faster than alt-tabbing in Windows (although WindowLab does have a similar keyboard shortcut in Alt + F9/F10) and some Mac OS X users have told me that it beats Exposé too
-
-* Constraining windows titlebars to the screen makes it feel snappier and more responsive - try flinging a window around the screen. This also means that you'll never have only a tiny part of a window remaining on screen
+	* It allows the focused window to be below other windows that you still need to look at (click-to-focus but not raise-on-focus) without using a convoluted Windows style always-on-top mode
+	* One or many edges of a window can be changed in one action without having to click on thin window borders. As with much in WindowLab this allows faster use with less accuracy
+	* It's very quick and easy to launch an application from the menu - it's easier to slam the pointer to the top of the screen and then make small adjustments to hit the target then it is to use a Windows style hierarchical "start" menu or a Blackbox style popup menu, and by constraining the pointer to the menu bar you can be less accurate (and thus faster) because once the pointer is in the menu bar you don't have to worry about vertical movements
+	* You can quickly access a window and bring it to the front by clicking on it in the taskbar - this solves the only problem with the click-to-focus but not raise-on-focus model - having to slide partially obscured windows around to get to their toggle-depth buttons
+	* When you have many windows open and lose track of which window you want next you can click on a taskbar item, and if it's not the right one, slide the pointer over the other items in the taskbar (with the mouse button still depressed) to see the other windows. As with the menubar, the pointer's constrained to the taskbar so that you can make faster and less careful mouse movements. With many windows open this is faster than CoolSwitch (alt-tabbing) in Windows (although WindowLab does have a similar keyboard shortcut in alt-tab/alt-q) and some Mac OS X users have told me that it beats Exposé too
+	* Constraining windows titlebars to the screen makes it feel snappier and more responsive - try flinging a window around the screen. This also means that you'll never have only a tiny part of a window remaining on screen
 
 
 
-WHERE CAN I GET IT?
+WHERE CAN I GET WINDOWLAB?
 
 The latest version of WindowLab is held at http://nickgravgaard.com/windowlab/
 
@@ -45,7 +40,7 @@ WindowLab is Free Software and has been released under the GPL. Please see the L
 
 
 
-HOW DO I INSTALL IT?
+HOW DO I INSTALL WINDOWLAB?
 
 Before compiling, check the default (DEF_foo) options in windowlab.h, and the defines in the Makefile. DEF_FONT is of particular interest; make sure that it is defined to something that exists on your system. You can turn -DSHAPE off if you don't have the Shape extension, and -DMWM_HINTS on if you have the Lesstif or Motif headers installed.
 
@@ -57,43 +52,40 @@ If you use FreeBSD, you can get WindowLab from /usr/ports/x11-wm/windowlab/
 
 
 
-HOW DO I USE IT?
+HOW DO I USE WINDOWLAB?
 
-WindowLab places a taskbar at the top of the screen and adds a bar to the top of each window. These bars consist of a draggable area, and three icons on the right hand side. When clicked, these icons:
+WindowLab places a taskbar at the top of the screen and adds a titlebar to the top of each window. These titlebars consist of a draggable area, and three icons on the right hand side. When left clicked, these icons:
 
-* hide the window
+	* hide the window
+	* toggle the window's Z order Amiga style (if it's not at the front, bring it to the front, otherwise send it to the back)
+	* close the window
 
-* toggle the windows Z order Amiga style (if it's not at the front, bring it to the front, otherwise send it to the back)
+Another way of toggling a window's Z order (depth) is by double left clicking on the draggable part of its titlebar.
 
-* close the window
+Windows' titlebars are prevented from leaving the screen and cannot overlap the taskbar.
 
-Window titlebars must always be fully on-screen and cannot overlap the taskbar at the top of the screen.
+The taskbar should list all windows currently in use. Left clicking on a window's taskbar item will give that window focus and toggle its Z order (depth).
 
-The taskbar should list all windows currently in use. Clicking on a windows taskbar item will give that window focus and act as a click on that windows middle-gadget - ie toggle that windows Z order (depth).
-
-To resize the active window hold down alt and push against the windows edges with a mouse button down.
+To resize the active window hold down alt and push against the window's edges with the left mouse button down.
 
 If you right click outside a client window, WindowLab's taskbar becomes a menubar. Releasing the right mouse button over a selected menu item will start a corresponding external program. WindowLab will look in each of the following files in turn for definitions of the menu labels and commands:
 
-~/.windowlab/windowlab.menurc
-../etc/windowlab.menurc (from the directory containing the executable)
-/etc/X11/windowlab/windowlab.menurc
+	* ~/.windowlab/windowlab.menurc
+	* ../etc/windowlab.menurc (from the directory containing the executable)
+	* /etc/X11/windowlab/windowlab.menurc
 
-Each line in the menurc file should have the menu label, a colon, and then the corresponding command, ie:
+Each line in the menurc file should have the menu label, a colon, and then the corresponding command, eg:
 
 The GIMP:gimp
 
-WindowLab positions new windows (that don't specify their location) according to the coordinates of the mouse - the top-left hand corner of a new window is set to the location of the mouse pointer (if necessary the window will be moved to ensure that all of it is on the screen).
+New windows (that don't specify their location) are positioned according to the coordinates of the mouse - the top-left hand corner of a new window is set to the location of the mouse pointer (if necessary the window will be moved to ensure that all of it is on the screen).
 
 WindowLab has the following keyboard controls. Hold down alt and press:
 
-* tab to give focus to the previous window
-
-* q to give focus to the next window
-
-* F11 to toggle fullscreen mode on and off for non transient windows
-
-* F12 to toggle the windows depth. This is the same as pressing a windows middle button
+	* tab to give focus to the previous window
+	* q to give focus to the next window
+	* F11 to toggle fullscreen mode on and off for non transient windows
+	* F12 to toggle the windows depth. This is the same as left clicking a window's middle icon
 
 
 
@@ -118,13 +110,9 @@ I also wanted windows to be able to act like screens on the Amiga (where the tit
 TIPS AND TRICKS
 
 * It is not the window manager's job to set the root window's pointer cursor or background image but you can use "xsetroot -cursor_name top_left_arrow" to set the pointer and xv, xloadimage or xpmroot to set a background image.
-
 * WindowLab does not have virtual desktops, but you can use vdesk, a command-line driven virtual workspace manager that I've been told works acceptably. This can be combined with a separate application launcher (or WindowLab's built-in menubar) to give most of the functionality needed.
-
 * If you are locked into the menubar and want to get out of it, click the left mouse button
-
 * Use Alt + F11 to toggle fullscreen mode on before watching video applications
-
 * Chris Turkel (zizban (at) adelphia (dot) net) managed to get WindowLab working on Solaris 10 x86. You can get his notes at http://nickgravgaard.com/windowlab/solaris.txt
 
 If you know any other tips for use with WindowLab, please get in contact with me so that I can list them here.

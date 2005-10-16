@@ -32,7 +32,7 @@ void get_menuitems(void)
 {
 	unsigned int i, button_startx = 0;
 	FILE *menufile = NULL;
-	char menurcpath[PATH_MAX];
+	char menurcpath[PATH_MAX], *c;
 	extern int errno;
 
 	menuitems = malloc(MAX_MENUITEMS_SIZE);
@@ -51,8 +51,14 @@ void get_menuitems(void)
 			menurcpath[0] = '.';
 			menurcpath[1] = '\0';
 		}
-		*(strrchr(menurcpath, '/')) = '\0';
-		*(strrchr(menurcpath, '/')) = '\0';
+		if ((c = strrchr(menurcpath, '/')) != NULL)
+		{
+			*c = '\0';
+		}
+		if ((c = strrchr(menurcpath, '/')) != NULL)
+		{
+			*c = '\0';
+		}
 		strncat(menurcpath, "/etc/windowlab.menurc", PATH_MAX);
 #ifdef DEBUG
 		printf("trying to open: %s\n", menurcpath);
@@ -71,7 +77,7 @@ void get_menuitems(void)
 		while ((!feof(menufile)) && (!ferror(menufile)))
 		{
 			char menustr[STR_SIZE];
-			strcpy(menustr, "/0");
+			strcpy(menustr, "\0");
 			fgets(menustr, STR_SIZE, menufile);
 			if (strlen(menustr) > 0)
 			{
