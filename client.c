@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2005 Nick Gravgaard
+ * Copyright (c) 2001-2006 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/windowlab/
  *
@@ -15,10 +15,9 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include <X11/Xmd.h>
 #include "windowlab.h"
 
 Client *find_client(Window w, int mode)
@@ -35,7 +34,7 @@ Client *find_client(Window w, int mode)
 			c = c->next;
 		}
 	}
-	else //WINDOW
+	else // WINDOW
 	{
 		while (c != NULL)
 		{
@@ -49,7 +48,7 @@ Client *find_client(Window w, int mode)
 	return NULL;
 }
 
-/* Attempt to follow the ICCCM by explicity specifying 32 bits for
+/* Attempt to follow the ICCCM by explicitly specifying 32 bits for
  * this property. Does this goof up on 64 bit systems? */
 
 void set_wm_state(Client *c, int state)
@@ -240,7 +239,7 @@ void redraw(Client *c)
  * left corner of the window when there is no WM needs to match up
  * with the top left of our fram once we manage it, and likewise with
  * SouthWest and the bottom right (these are the only values I ever
- * use, but the others should be obvious.) Our titlebar is on the top
+ * use, but the others should be obvious). Our titlebar is on the top
  * so we only have to adjust in the first case. */
 
 void gravitate(Client *c, int multiplier)
@@ -337,7 +336,7 @@ void check_focus(Client *c)
 Client *get_prev_focused(void)
 {
 	Client *c = head_client;
-	Client *prev_focused = NULL;
+	Client *prev_focused = head_client; // return head_client if nothing else has been given focus earlier
 	unsigned int highest = 0;
 	while (c != NULL)
 	{

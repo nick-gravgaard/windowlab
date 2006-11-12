@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2005 Nick Gravgaard
+ * Copyright (c) 2001-2006 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/windowlab/
  *
@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 #include "windowlab.h"
@@ -136,16 +136,12 @@ void make_new_client(Window w)
 		}
 	}
 
-/*
-	if(!c->hidden) // make the new visible window the focused one
+	// if no client has focus give focus to the new client
+	if (focused_client == NULL)
 	{
 		check_focus(c);
-		if (focused_client == NULL)
-		{
-			focused_client = c; // check every time? This should only be done at the start
-		}
+		focused_client = c;
 	}
-*/
 
 	XSync(dsply, False);
 	XUngrabServer(dsply);
@@ -153,7 +149,7 @@ void make_new_client(Window w)
 	redraw_taskbar();
 }
 
-/* This one does -not- free the data coming back from Xlib; it just
+/* This one does *not* free the data coming back from Xlib; it just
  * sends back the pointer to what was allocated. */
 
 #ifdef MWM_HINTS
@@ -164,7 +160,7 @@ static PropMwmHints *get_mwm_hints(Window w)
 	unsigned long items_read, items_left;
 	unsigned char *data;
 
-	if (XGetWindowProperty(dsply, w, mwm_hints, 0L, 20L, False, mwm_hints, &real_type, &real_format, &items_read, &items_left, &data) == Success && items_read >= PROP_MOTIF_WM_HINTS_ELEMENTS)
+	if (XGetWindowProperty(dsply, w, mwm_hints, 0L, 20L, False, mwm_hints, &real_type, &real_format, &items_read, &items_left, &data) == Success && items_read >= PROP_MWM_HINTS_ELEMENTS)
 	{
 		return (PropMwmHints *)data;
 	}

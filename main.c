@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2005 Nick Gravgaard
+ * Copyright (c) 2001-2006 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/windowlab/
  *
@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 #include <string.h>
@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 		OPT_STR("-display", opt_display)
 		if (strcmp(argv[i], "-about") == 0)
 		{
-			printf("WindowLab " VERSION " (" RELEASEDATE "), Copyright (c) 2001-2005 Nick Gravgaard\nWindowLab comes with ABSOLUTELY NO WARRANTY.\nThis is free software, and you are welcome to redistribute it\nunder certain conditions; view the LICENCE file for details.\n");
+			printf("WindowLab " VERSION " (" RELEASEDATE "), Copyright (c) 2001-2006 Nick Gravgaard\nWindowLab comes with ABSOLUTELY NO WARRANTY.\nThis is free software, and you are welcome to redistribute it\nunder certain conditions; view the LICENCE file for details.\n");
 			exit(0);
 		}
 		// shouldn't get here; must be a bad option
@@ -106,7 +106,7 @@ int main(int argc, char **argv)
 	make_taskbar();
 	scan_wins();
 	do_event_loop();
-	return 1; //just another brick in the -Wall
+	return 1; // just another brick in the -Wall
 }
 
 static void scan_wins(void)
@@ -204,8 +204,7 @@ static void setup_display(void)
 
 	resize_curs = XCreateFontCursor(dsply, XC_fleur);
 
-	/* find out which modifier is NumLock - we'll use this when grabbing
-	 * every combination of modifiers we can think of */
+	/* find out which modifier is NumLock - we'll use this when grabbing every combination of modifiers we can think of */
 	modmap = XGetModifierMapping(dsply);
 	for (i = 0; i < 8; i++)
 	{

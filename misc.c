@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2005 Nick Gravgaard
+ * Copyright (c) 2001-2006 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/windowlab/
  *
@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 #include <stdarg.h>
@@ -40,17 +40,34 @@ void err(const char *fmt, ...)
 
 void fork_exec(char *cmd)
 {
+	char *envshell, *envshellname;
 	pid_t pid = fork();
 
 	switch (pid)
 	{
-		case 0:
+  		case 0:
 			setsid();
-			execlp("/bin/sh", "sh", "-c", cmd, NULL);
+			envshell = getenv("SHELL");
+			if (envshell == NULL)
+			{
+				envshell = "/bin/sh";
+			}
+			envshellname = strrchr(envshell, '/');
+			if (envshellname == NULL)
+			{
+				envshellname = envshell;
+			}
+			else
+			{
+				*envshellname++;
+			}
+			execlp(envshell, envshellname, "-c", cmd, NULL);
 			err("exec failed, cleaning up child");
 			exit(1);
+			break;
 		case -1:
 			err("can't fork");
+			break;
 	}
 }
 
@@ -134,6 +151,10 @@ void fix_position(Client *c)
 	int xmax = DisplayWidth(dsply, screen);
 	int ymax = DisplayHeight(dsply, screen);
 	int titlebarheight;
+
+#ifdef DEBUG
+	fprintf(stderr, "fix_position(): client was (%d, %d)-(%d, %d)\n", c->x, c->y, c->x + c->width, c->y + c->height);
+#endif
 	
 	titlebarheight = (fullscreen_client == c) ? 0 : BARHEIGHT();
 
@@ -172,6 +193,10 @@ void fix_position(Client *c)
 	{
 		c->y = (ymax - c->height) - BARHEIGHT();
 	}
+
+#ifdef DEBUG
+	fprintf(stderr, "fix_position(): client is (%d, %d)-(%d, %d)\n", c->x, c->y, c->x + c->width, c->y + c->height);
+#endif
 
 	c->x -= BORDERWIDTH(c);
 	c->y -= BORDERWIDTH(c);
@@ -345,9 +370,15 @@ static void quit_nicely(void)
 	}
 	XFree(wins);
 
-	XFreeFont(dsply, font);
+	if (font)
+	{
+		XFreeFont(dsply, font);
+	}
 #ifdef XFT
-	XftFontClose(dsply, xftfont);
+	if (xftfont)
+	{
+		XftFontClose(dsply, xftfont);
+	}
 #endif
 	XFreeCursor(dsply, resize_curs);
 	XFreeGC(dsply, border_gc);

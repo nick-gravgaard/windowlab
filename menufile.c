@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2005 Nick Gravgaard
+ * Copyright (c) 2001-2006 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/windowlab/
  *
@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 #include "windowlab.h"
@@ -35,7 +35,7 @@ void get_menuitems(void)
 	char menurcpath[PATH_MAX], *c;
 	extern int errno;
 
-	menuitems = malloc(MAX_MENUITEMS_SIZE);
+	menuitems = (MenuItem *)malloc(MAX_MENUITEMS_SIZE);
 	memset(menuitems, '\0', MAX_MENUITEMS_SIZE);
 
 	snprintf(menurcpath, sizeof menurcpath, "%s/.windowlab/windowlab.menurc", getenv("HOME"));
@@ -76,19 +76,17 @@ void get_menuitems(void)
 		num_menuitems = 0;
 		while ((!feof(menufile)) && (!ferror(menufile)))
 		{
-			char menustr[STR_SIZE];
-			strcpy(menustr, "\0");
+			char menustr[STR_SIZE] = "";
 			fgets(menustr, STR_SIZE, menufile);
-			if (strlen(menustr) > 0)
+			if (strlen(menustr) != 0)
 			{
 				if (menustr[0] != '#')
 				{
-					char labelstr[STR_SIZE];
-					char commandstr[STR_SIZE];
+					char labelstr[STR_SIZE], commandstr[STR_SIZE];
 					if (parseline(menustr, labelstr, commandstr))
 					{
-						menuitems[num_menuitems].label = malloc(strlen(labelstr) + 1);
-						menuitems[num_menuitems].command = malloc(strlen(commandstr) + 1);
+						menuitems[num_menuitems].label = (char *)malloc(strlen(labelstr) + 1);
+						menuitems[num_menuitems].command = (char *)malloc(strlen(commandstr) + 1);
 						strcpy(menuitems[num_menuitems].label, labelstr);
 						strcpy(menuitems[num_menuitems].command, commandstr);
 						num_menuitems++;
@@ -101,15 +99,15 @@ void get_menuitems(void)
 	else
 	{
 		// one menu item - xterm
-		err("can't find ~/.windowlab/windowlab.menurc, %s or " DEF_MENURC "\n", menurcpath);
-		menuitems[0].command = malloc(strlen(NO_MENU_COMMAND) + 1);
+		err("can't find ~/.windowlab/windowlab.menurc, %s or %s\n", menurcpath, DEF_MENURC);
+		menuitems[0].command = (char *)malloc(strlen(NO_MENU_COMMAND) + 1);
 		strcpy(menuitems[0].command, NO_MENU_COMMAND);
-		menuitems[0].label = malloc(strlen(NO_MENU_LABEL) + 1);
+		menuitems[0].label = (char *)malloc(strlen(NO_MENU_LABEL) + 1);
 		strcpy(menuitems[0].label, NO_MENU_LABEL);
 		num_menuitems = 1;
 	}
 
-	menuitems = realloc((void *)menuitems, MAX_MENUITEMS_SIZE);
+	menuitems = (MenuItem *)realloc((void *)menuitems, MAX_MENUITEMS_SIZE);
 
 	for (i = 0; i < num_menuitems; i++)
 	{

@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2005 Nick Gravgaard
+ * Copyright (c) 2001-2006 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/windowlab/
  *
@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 #include "windowlab.h"
@@ -40,8 +40,7 @@ void raise_lower(Client *c)
 	}
 }
 
-/* Increment ignore_unmap here and decrement it in handle_unmap_event in
- * events.c */
+/* increment ignore_unmap here and decrement it in handle_unmap_event in events.c */
 
 void hide(Client *c)
 {
@@ -300,11 +299,11 @@ void resize(Client *c, int x, int y)
 	XMapRaised(dsply, resizebar_win);
 
 #ifdef XFT
-	// temporarily swap drawables in order to draw on the resize windows XFT context
+	// temporarily swap drawables in order to draw on the resize window's XFT context
 	XftDrawChange(c->xftdraw, (Drawable) resizebar_win);
 #endif
 
-	// hide real windows frame
+	// hide real window's frame
 	XUnmapWindow(dsply, c->frame);
 
 	do
@@ -469,7 +468,7 @@ void resize(Client *c, int x, int y)
 	XMoveResizeWindow(dsply, c->frame, c->x, c->y - BARHEIGHT(), c->width, c->height + BARHEIGHT());
 	XResizeWindow(dsply, c->window, c->width, c->height);
 
-	// unhide real windows frame
+	// unhide real window's frame
 	XMapWindow(dsply, c->frame);
 
 	XSetInputFocus(dsply, c->window, RevertToNone, CurrentTime);
@@ -586,6 +585,7 @@ void write_titletext(Client *c, Window bar_win)
 	if (!c->trans && c->name != NULL)
 	{
 #ifdef XFT
+		(void) bar_win; // fixes a warning
 		XftDrawString8(c->xftdraw, &xft_detail, xftfont, SPACE, SPACE + xftfont->ascent, (unsigned char *)c->name, strlen(c->name));
 #else
 		XDrawString(dsply, bar_win, text_gc, SPACE, SPACE + font->ascent, c->name, strlen(c->name));

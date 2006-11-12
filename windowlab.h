@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2005 Nick Gravgaard
+ * Copyright (c) 2001-2006 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/windowlab/
  *
@@ -15,32 +15,66 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 #ifndef WINDOWLAB_H
 #define WINDOWLAB_H
 
-#define VERSION "1.33"
-#define RELEASEDATE "2005-10-16"
+#define VERSION "1.34"
+#define RELEASEDATE "2006-11-12"
 
 #include <errno.h>
 #include <limits.h>
+#include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 #include <unistd.h>
 #include <X11/Xlib.h>
+#include <X11/Xmd.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 #ifdef SHAPE
 #include <X11/extensions/shape.h>
 #endif
-#ifdef MWM_HINTS
-#include <Xm/MwmUtil.h>
-#endif
 #ifdef XFT
 #include <X11/Xft/Xft.h>
+#endif
+
+#ifdef MWM_HINTS
+// These definitions are taken from LessTif 0.95.0's MwmUtil.h.
+
+#define MWM_HINTS_FUNCTIONS (1L << 0)
+#define MWM_HINTS_DECORATIONS (1L << 1)
+#define MWM_HINTS_INPUT_MODE (1L << 2)
+#define MWM_HINTS_STATUS (1L << 3)
+
+#define MWM_DECOR_ALL (1L << 0)
+#define MWM_DECOR_BORDER (1L << 1)
+#define MWM_DECOR_RESIZEH (1L << 2)
+#define MWM_DECOR_TITLE (1L << 3)
+#define MWM_DECOR_MENU (1L << 4)
+#define MWM_DECOR_MINIMIZE (1L << 5)
+#define MWM_DECOR_MAXIMIZE (1L << 6)
+
+#define _XA_MWM_HINTS "_MOTIF_WM_HINTS"
+
+#define PROP_MWM_HINTS_ELEMENTS	5
+
+typedef struct PropMwmHints
+{
+	CARD32 flags;
+	CARD32 functions;
+	CARD32 decorations;
+	INT32 inputMode;
+	CARD32 status;
+} PropMwmHints;
+#endif
+
+#ifndef PATH_MAX
+#define PATH_MAX 4096
 #endif
 
 // here are the default settings - change to suit your taste
@@ -138,7 +172,7 @@
 #define REMAP 1
 
 // stuff for the menu file
-#define MAX_MENUITEMS_SIZE sizeof(MenuItem) * 64
+#define MAX_MENUITEMS_SIZE (sizeof(MenuItem) * 64)
 #define STR_SIZE 128
 #define NO_MENU_LABEL "xterm"
 #define NO_MENU_COMMAND "xterm"
@@ -159,11 +193,9 @@
  * ignore_unmap. This way our unmap event handler can tell when it
  * isn't supposed to do anything. */
 
-typedef struct _Client Client;
-
-struct _Client
+typedef struct Client
 {
-	Client *next;
+	struct Client *next;
 	char *name;
 	XSizeHints *size;
 	Window window, frame, trans;
@@ -183,24 +215,20 @@ struct _Client
 #ifdef XFT
 	XftDraw *xftdraw;
 #endif
-};
+} Client;
 
-typedef struct _Rect Rect;
-
-struct _Rect
+typedef struct Rect
 {
 	int x, y;
 	int width, height;
-};
+} Rect;
 
-typedef struct _MenuItem MenuItem;
-
-struct _MenuItem
+typedef struct MenuItem
 {
 	char *command, *label;
 	int x;
 	int width;
-};
+} MenuItem;
 
 // Below here are (mainly generated with cproto) declarations and prototypes for each file.
 

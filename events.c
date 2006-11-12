@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2005 Nick Gravgaard
+ * Copyright (c) 2001-2006 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/windowlab/
  *
@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 #include <X11/Xatom.h>
@@ -153,17 +153,17 @@ static void handle_button_press(XButtonEvent *e)
 	{
 		switch (e->button)
 		{
-			case Button1:
+			case Button1: // left mouse button
 				lclick_taskbar(e->x);
 				break;
-			case Button3:
+			case Button3: // right mouse button
 				rclick_taskbar(e->x);
 				break;
 			case Button4: // mouse wheel up
 				cycle_previous();
 				break;
-			case Button5:
-				cycle_next(); // mouse wheel down
+			case Button5: // mouse wheel down
+				cycle_next();
 				break;
 		}
 	}
@@ -306,7 +306,7 @@ static void draw_button(Client *c, GC *detail_gc, GC *background_gc, unsigned in
  * For clients we manage, we need to fiddle with the frame and the
  * client window, and for unmanaged windows we have to pass along
  * everything unchanged. Thankfully, we can reuse (a) the
- * XWindowChanges struct and (c) the code to configure the client
+ * XWindowChanges struct and (b) the code to configure the client
  * window in both cases.
  *
  * Most of the assignments here are going to be garbage, but only the
@@ -400,7 +400,7 @@ static void handle_configure_request(XConfigureRequestEvent *e)
 	XConfigureWindow(dsply, e->window, e->value_mask, &wc);
 }
 
-/* Two possiblilies if a client is asking to be mapped. One is that
+/* Two possibilities if a client is asking to be mapped. One is that
  * it's a new window, so we handle that if it isn't in our clients
  * list anywhere. The other is that it already exists and wants to
  * de-iconify, which is simple to take care of. */

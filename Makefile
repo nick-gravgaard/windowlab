@@ -4,13 +4,23 @@
 DEFINES += -DSHAPE
 EXTRA_LIBS += -lXext
 
+# Set this to the hardcoded location of all files if it's not /
+PREFIX =
+
+# Set this to the location of the X installation you want to compile against
+XROOT = /usr/X11R6
+
+# Set this to the location of the global configuration files
+SYSCONFDIR = $(PREFIX)/etc/X11/windowlab
+
 # Information about the location of the menurc file
 ifndef MENURC
-MENURC = /etc/X11/windowlab/windowlab.menurc
+MENURC = $(SYSCONFDIR)/windowlab.menurc
 endif
+
 DEFINES += -DDEF_MENURC="\"$(MENURC)\""
 
-# Uncomment to add MWM hints supports (needs Lesstif headers)
+# Uncomment to add MWM hints support
 #DEFINES += -DMWM_HINTS
 
 # Uncomment to add freetype support (requires XFree86 4.0.2 or later)
@@ -22,9 +32,6 @@ DEFINES += -DDEF_MENURC="\"$(MENURC)\""
 # Uncomment for debugging info (abandon all hope, ye who enter here)
 #DEFINES += -DDEBUG
 
-# Set this to the location of the X installation you want to compile against
-XROOT = /usr/X11R6
-
 # --------------------------------------------------------------------
 
 CC = gcc
@@ -32,9 +39,9 @@ ifndef CFLAGS
 CFLAGS = -g -O2 -Wall -W
 endif
 
-BINDIR = $(DESTDIR)$(XROOT)/bin
-MANDIR = $(DESTDIR)$(XROOT)/man/man1
-CFGDIR = $(DESTDIR)/etc/X11/windowlab
+BINDIR = $(DESTDIR)$(PREFIX)$(XROOT)/bin
+MANDIR = $(DESTDIR)$(PREFIX)$(XROOT)/man/man1
+CFGDIR = $(DESTDIR)$(SYSCONFDIR)
 INCLUDES = -I$(XROOT)/include $(EXTRA_INC)
 LDPATH = -L$(XROOT)/lib
 LIBS = -lX11 $(EXTRA_LIBS)
@@ -54,7 +61,7 @@ $(OBJS): %.o: %.c $(HEADERS)
 
 install: all
 	mkdir -p $(BINDIR) && install -m 755 -s $(PROG) $(BINDIR)
-	mkdir -p $(MANDIR) && install -m 644 $(MANPAGE) $(MANDIR) && gzip -9vf $(MANDIR)/$(MANPAGE)
+	mkdir -p $(MANDIR) && install -m 644 $(MANPAGE) $(MANDIR) && gzip -9vfn $(MANDIR)/$(MANPAGE)
 	mkdir -p $(CFGDIR) && cp -i windowlab.menurc $(CFGDIR)/windowlab.menurc && chmod 644 $(CFGDIR)/windowlab.menurc
 
 clean:
