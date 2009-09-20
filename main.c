@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2006 Nick Gravgaard
+ * Copyright (c) 2001-2009 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/windowlab/
  *
@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 		OPT_STR("-display", opt_display)
 		if (strcmp(argv[i], "-about") == 0)
 		{
-			printf("WindowLab " VERSION " (" RELEASEDATE "), Copyright (c) 2001-2006 Nick Gravgaard\nWindowLab comes with ABSOLUTELY NO WARRANTY.\nThis is free software, and you are welcome to redistribute it\nunder certain conditions; view the LICENCE file for details.\n");
+			printf("WindowLab " VERSION " (" RELEASEDATE "), Copyright (c) 2001-2009 Nick Gravgaard\nWindowLab comes with ABSOLUTELY NO WARRANTY.\nThis is free software, and you are welcome to redistribute it\nunder certain conditions; view the LICENCE file for details.\n");
 			exit(0);
 		}
 		// shouldn't get here; must be a bad option

@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2006 Nick Gravgaard
+ * Copyright (c) 2001-2009 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/windowlab/
  *
@@ -336,8 +336,9 @@ void check_focus(Client *c)
 Client *get_prev_focused(void)
 {
 	Client *c = head_client;
-	Client *prev_focused = head_client; // return head_client if nothing else has been given focus earlier
+	Client *prev_focused = NULL;
 	unsigned int highest = 0;
+
 	while (c != NULL)
 	{
 		if (!c->hidden && c->focus_order > highest)

@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2006 Nick Gravgaard
+ * Copyright (c) 2001-2009 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/windowlab/
  *
@@ -73,6 +73,9 @@ void fork_exec(char *cmd)
 
 void sig_handler(int signal)
 {
+	pid_t pid;
+	int status;
+
 	switch (signal)
 	{
 		case SIGINT:
@@ -81,7 +84,17 @@ void sig_handler(int signal)
 			quit_nicely();
 			break;
 		case SIGCHLD:
-			wait(NULL);
+			while ((pid = waitpid(-1, &status, WNOHANG)) != 0)
+			{
+				if ((pid == -1) && (errno != EINTR))
+				{
+					break;
+				}
+				else
+				{
+					continue;
+				}
+			}
 			break;
 	}
 }
