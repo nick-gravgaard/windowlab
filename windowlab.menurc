@@ -1,13 +1,14 @@
 # make sure each line ends in LF not CRLF!
 xterm:xterm
-GVIM:gvim
-Xffm:xffm /
-Mozilla:mozilla
-Gaim:gaim
-X-Chat:xchat
-XMMS:xmms
-xv:xv
-The GIMP:gimp
+gedit:gedit
+Nautilus:nautilus
+Firefox:firefox
+Pidgin:pidgin
+XChat:xchat
+Rhythmbox:rhythmbox
+Totem:totem
+GIMP:gimp
 Edit menu:gvim /etc/X11/windowlab/windowlab.menurc
 About:windowlab -about | xmessage -file -
+Reload:pkill -HUP windowlab
 Quit:skill windowlab

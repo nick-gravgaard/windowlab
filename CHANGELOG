@@ -1,3 +1,11 @@
+1.36 (2009-10-01)
+
+* rewrote the inherited licences part of the readme file to take into account 9wm's switch to the MIT licence
+* updated the menu options
+* integrated more changes from Mats Erik Andersson:
+	* added a simple mechanism which updates the menu in the running instance of WindowLab
+
+
 1.35 (2009-09-20)
 
 * integrated changes from Mats Erik Andersson (thanks!):

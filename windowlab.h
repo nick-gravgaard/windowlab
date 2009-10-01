@@ -21,8 +21,8 @@
 #ifndef WINDOWLAB_H
 #define WINDOWLAB_H
 
-#define VERSION "1.35"
-#define RELEASEDATE "2009-09-20"
+#define VERSION "1.36"
+#define RELEASEDATE "2009-10-01"
 
 #include <errno.h>
 #include <limits.h>

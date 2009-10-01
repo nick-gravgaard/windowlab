@@ -80,8 +80,11 @@ void sig_handler(int signal)
 	{
 		case SIGINT:
 		case SIGTERM:
-		case SIGHUP:
 			quit_nicely();
+			break;
+		case SIGHUP:
+			free_menuitems();
+			get_menuitems();
 			break;
 		case SIGCHLD:
 			while ((pid = waitpid(-1, &status, WNOHANG)) != 0)
