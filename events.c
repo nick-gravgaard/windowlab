@@ -493,6 +493,7 @@ static void handle_property_change(XPropertyEvent *e)
 				if (c->name)
 				{
 					XFree(c->name);
+					c->name = NULL;
 				}
 				XFetchName(dsply, c->window, &c->name);
 				redraw(c);

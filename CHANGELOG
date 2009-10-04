@@ -1,3 +1,9 @@
+1.37 (2009-10-04)
+
+* integrated a change from Campbell Barton (thanks!):
+	* fixed a bug which was freeing clients' names twice
+
+
 1.36 (2009-10-01)
 
 * rewrote the inherited licences part of the readme file to take into account 9wm's switch to the MIT licence
