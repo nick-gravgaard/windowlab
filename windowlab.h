@@ -21,8 +21,8 @@
 #ifndef WINDOWLAB_H
 #define WINDOWLAB_H
 
-#define VERSION "1.37"
-#define RELEASEDATE "2009-10-04"
+#define VERSION "1.38"
+#define RELEASEDATE "2009-11-14"
 
 #include <errno.h>
 #include <limits.h>
@@ -172,7 +172,8 @@ typedef struct PropMwmHints
 #define REMAP 1
 
 // stuff for the menu file
-#define MAX_MENUITEMS_SIZE (sizeof(MenuItem) * 64)
+#define MAX_MENUITEMS 24
+#define MAX_MENUITEMS_SIZE (sizeof(MenuItem) * MAX_MENUITEMS)
 #define STR_SIZE 128
 #define NO_MENU_LABEL "xterm"
 #define NO_MENU_COMMAND "xterm"
@@ -322,6 +323,7 @@ extern void redraw_taskbar(void);
 extern float get_button_width(void);
 
 // menufile.c
+extern int do_menuitems;
 extern MenuItem* menuitems;
 extern unsigned int num_menuitems;
 extern void get_menuitems(void);

@@ -1,3 +1,11 @@
+1.38 (2009-11-14)
+
+* integrated more changes from Mats Erik Andersson:
+	* makefile made more flexible
+	* signal handler for SIGHUP now just sets a semaphore, and reloading of menu resources happens in the event loop
+	* fixed problems found by auditing the code with Flawfinder
+
+
 1.37 (2009-10-04)
 
 * integrated a change from Campbell Barton (thanks!):

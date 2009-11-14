@@ -59,7 +59,8 @@ void fork_exec(char *cmd)
 			}
 			else
 			{
-				*envshellname++;
+				/* move to the character after the slash */
+				envshellname++;
 			}
 			execlp(envshell, envshellname, "-c", cmd, NULL);
 			err("exec failed, cleaning up child");
@@ -83,8 +84,7 @@ void sig_handler(int signal)
 			quit_nicely();
 			break;
 		case SIGHUP:
-			free_menuitems();
-			get_menuitems();
+			do_menuitems = 1;
 			break;
 		case SIGCHLD:
 			while ((pid = waitpid(-1, &status, WNOHANG)) != 0)

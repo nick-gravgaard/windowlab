@@ -20,6 +20,9 @@
 
 #include "windowlab.h"
 
+/* a semaphor activated by SIGHUP */
+int do_menuitems;
+
 static int parseline(char *, char *, char *);
 
 MenuItem *menuitems = NULL;
@@ -36,30 +39,41 @@ void get_menuitems(void)
 	extern int errno;
 
 	menuitems = (MenuItem *)malloc(MAX_MENUITEMS_SIZE);
-	memset(menuitems, '\0', MAX_MENUITEMS_SIZE);
+	if (menuitems == NULL)
+	{
+		err("Unable to allocate menu items array.");
+		return;
+	}
+	memset(menuitems, 0, MAX_MENUITEMS_SIZE);
 
-	snprintf(menurcpath, sizeof menurcpath, "%s/.windowlab/windowlab.menurc", getenv("HOME"));
+	snprintf(menurcpath, sizeof(menurcpath), "%s/.windowlab/windowlab.menurc", getenv("HOME"));
 #ifdef DEBUG
 	printf("trying to open: %s\n", menurcpath);
 #endif
 	if ((menufile = fopen(menurcpath, "r")) == NULL)
 	{
+		ssize_t len;
 		// get location of the executable
-		if (readlink("/proc/self/exe", menurcpath, PATH_MAX) == -1)
+		if ((len = readlink("/proc/self/exe", menurcpath, PATH_MAX - 1)) == -1)
 		{
 			err("readlink() /proc/self/exe failed: %s\n", strerror(errno));
 			menurcpath[0] = '.';
 			menurcpath[1] = '\0';
 		}
-		if ((c = strrchr(menurcpath, '/')) != NULL)
+		else
 		{
-			*c = '\0';
+			/* insert a null byte to end the file path correctly */
+			menurcpath[len] = '\0';
 		}
 		if ((c = strrchr(menurcpath, '/')) != NULL)
 		{
 			*c = '\0';
 		}
-		strncat(menurcpath, "/etc/windowlab.menurc", PATH_MAX);
+		if ((c = strrchr(menurcpath, '/')) != NULL)
+		{
+			*c = '\0';
+		}
+		strncat(menurcpath, "/etc/windowlab.menurc", PATH_MAX - strlen(menurcpath) - 1);
 #ifdef DEBUG
 		printf("trying to open: %s\n", menurcpath);
 #endif
@@ -74,15 +88,16 @@ void get_menuitems(void)
 	if (menufile != NULL)
 	{
 		num_menuitems = 0;
-		while ((!feof(menufile)) && (!ferror(menufile)))
+		while ((!feof(menufile)) && (!ferror(menufile)) && (num_menuitems < MAX_MENUITEMS))
 		{
 			char menustr[STR_SIZE] = "";
 			fgets(menustr, STR_SIZE, menufile);
 			if (strlen(menustr) != 0)
 			{
+				/* TODO: allow for leading whitespace? */
 				if (menustr[0] != '#')
 				{
-					char labelstr[STR_SIZE], commandstr[STR_SIZE];
+					char labelstr[STR_SIZE] = "", commandstr[STR_SIZE] = "";
 					if (parseline(menustr, labelstr, commandstr))
 					{
 						menuitems[num_menuitems].label = (char *)malloc(strlen(labelstr) + 1);
@@ -107,8 +122,6 @@ void get_menuitems(void)
 		num_menuitems = 1;
 	}
 
-	menuitems = (MenuItem *)realloc((void *)menuitems, MAX_MENUITEMS_SIZE);
-
 	for (i = 0; i < num_menuitems; i++)
 	{
 		menuitems[i].x = button_startx;
@@ -120,6 +133,8 @@ void get_menuitems(void)
 #endif
 		button_startx += menuitems[i].width + 1;
 	}
+	/* menu items have been built */
+	do_menuitems = 0;
 }
 
 int parseline(char *menustr, char *labelstr, char *commandstr)
@@ -134,19 +149,13 @@ int parseline(char *menustr, char *labelstr, char *commandstr)
 	if (ptemp != NULL)
 	{
 		strcpy(labelstr, ptemp);
+		ptemp = strtok(NULL, "\n");
 		if (ptemp != NULL)
 		{
-			ptemp = strtok(NULL, ":");
-			if (ptemp != NULL)
-			{
-				strcpy(commandstr, ptemp);
-			}
-			else
-			{
-				success = 0;
-			}
+			/* TODO: if ptemp only contains whitespace this item should set success to 0 */
+			strcpy(commandstr, ptemp);
 		}
-		else
+		else /* applies if RHS of ':' is an empty string */
 		{
 			success = 0;
 		}

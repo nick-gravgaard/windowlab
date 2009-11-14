@@ -5,13 +5,22 @@ DEFINES += -DSHAPE
 EXTRA_LIBS += -lXext
 
 # Set this to the hardcoded location of all files if it's not /
-PREFIX =
+PREFIX = /usr/local
+
+# Set this to the directory, below PREFIX, where man pages 
+# are expected. Below this directory, the target "install"
+# will put "windowlab.1x" in section "man1".
+MANBASE = /man
 
 # Set this to the location of the X installation you want to compile against
 XROOT = /usr/X11R6
 
+# Some flexibility for configuration location
+CONFPREFIX = $(PREFIX)
+CONFDIR = /etc/X11/windowlab
+
 # Set this to the location of the global configuration files
-SYSCONFDIR = $(PREFIX)/etc/X11/windowlab
+SYSCONFDIR = $(CONFPREFIX)$(CONFDIR)
 
 # Information about the location of the menurc file
 ifndef MENURC
@@ -39,8 +48,8 @@ ifndef CFLAGS
 CFLAGS = -g -O2 -Wall -W
 endif
 
-BINDIR = $(DESTDIR)$(PREFIX)$(XROOT)/bin
-MANDIR = $(DESTDIR)$(PREFIX)$(XROOT)/man/man1
+BINDIR = $(DESTDIR)$(PREFIX)/bin
+MANDIR = $(DESTDIR)$(PREFIX)$(MANBASE)/man1
 CFGDIR = $(DESTDIR)$(SYSCONFDIR)
 INCLUDES = -I$(XROOT)/include $(EXTRA_INC)
 LDPATH = -L$(XROOT)/lib

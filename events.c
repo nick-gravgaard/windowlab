@@ -52,6 +52,13 @@ void do_event_loop(void)
 #ifdef DEBUG
 		show_event(ev);
 #endif
+		/* check to see if menu rebuild has been requested */
+		if (do_menuitems)
+		{
+			free_menuitems();
+			get_menuitems();
+		}
+
 		switch (ev.type)
 		{
 			case KeyPress:
