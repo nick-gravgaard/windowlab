@@ -20,7 +20,7 @@
 
 #include "windowlab.h"
 
-/* a semaphor activated by SIGHUP */
+// semaphor activated by SIGHUP
 int do_menuitems;
 
 static int parseline(char *, char *, char *);
@@ -62,7 +62,7 @@ void get_menuitems(void)
 		}
 		else
 		{
-			/* insert a null byte to end the file path correctly */
+			// insert null to end the file path properly
 			menurcpath[len] = '\0';
 		}
 		if ((c = strrchr(menurcpath, '/')) != NULL)
@@ -94,11 +94,15 @@ void get_menuitems(void)
 			fgets(menustr, STR_SIZE, menufile);
 			if (strlen(menustr) != 0)
 			{
-				/* TODO: allow for leading whitespace? */
-				if (menustr[0] != '#')
+				char *pmenustr = menustr;
+				while (pmenustr[0] == ' ' || pmenustr[0] == '\t')
+				{
+					pmenustr++;
+				}
+				if (pmenustr[0] != '#')
 				{
 					char labelstr[STR_SIZE] = "", commandstr[STR_SIZE] = "";
-					if (parseline(menustr, labelstr, commandstr))
+					if (parseline(pmenustr, labelstr, commandstr))
 					{
 						menuitems[num_menuitems].label = (char *)malloc(strlen(labelstr) + 1);
 						menuitems[num_menuitems].command = (char *)malloc(strlen(commandstr) + 1);
@@ -133,16 +137,22 @@ void get_menuitems(void)
 #endif
 		button_startx += menuitems[i].width + 1;
 	}
-	/* menu items have been built */
+	// menu items have been built
 	do_menuitems = 0;
 }
 
 int parseline(char *menustr, char *labelstr, char *commandstr)
 {
-	int success = 1;
+	int success = 0;
 	int menustrlen = strlen(menustr);
 	char *ptemp = NULL;
 	char *menustrcpy = (char *)malloc(menustrlen + 1);
+
+	if (menustrcpy == NULL)
+	{
+		return 0;
+	}
+
 	strcpy(menustrcpy, menustr);
 	ptemp = strtok(menustrcpy, ":");
 
@@ -150,14 +160,17 @@ int parseline(char *menustr, char *labelstr, char *commandstr)
 	{
 		strcpy(labelstr, ptemp);
 		ptemp = strtok(NULL, "\n");
-		if (ptemp != NULL)
+		if (ptemp != NULL) // right of ':' is not empty
 		{
-			/* TODO: if ptemp only contains whitespace this item should set success to 0 */
-			strcpy(commandstr, ptemp);
-		}
-		else /* applies if RHS of ':' is an empty string */
-		{
-			success = 0;
+			while (*ptemp == ' ' || *ptemp == '\t')
+			{
+				ptemp++;
+			}
+			if (*ptemp != '\0' && *ptemp != '\r' && *ptemp != '\n')
+			{
+				strcpy(commandstr, ptemp);
+				success = 1;
+			}
 		}
 	}
 	if (menustrcpy != NULL)
