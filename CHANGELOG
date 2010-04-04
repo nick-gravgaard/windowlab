@@ -1,3 +1,9 @@
+1.40 (2010-04-04)
+
+* integrated a change from Simon Engelsman (thanks!):
+	* XNextEvent() was replaced by interruptible_XNextEvent() function in do_event_loop()
+
+
 1.39 (2009-12-27)
 
 * integrated more changes from Mats Erik Andersson:

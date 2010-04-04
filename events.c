@@ -1,5 +1,5 @@
 /* WindowLab - an X11 window manager
- * Copyright (c) 2001-2009 Nick Gravgaard
+ * Copyright (c) 2001-2010 Nick Gravgaard
  * me at nickgravgaard.com
  * http://nickgravgaard.com/windowlab/
  *
@@ -39,6 +39,8 @@ static void handle_expose_event(XExposeEvent *);
 static void handle_shape_change(XShapeEvent *);
 #endif
 
+static int interruptible_XNextEvent(XEvent *event);
+
 /* We may want to put in some sort of check for unknown events at some
  * point. TWM has an interesting and different way of doing this... */
 
@@ -48,7 +50,7 @@ void do_event_loop(void)
 
 	for (;;)
 	{
-		XNextEvent(dsply, &ev);
+		interruptible_XNextEvent(&ev);
 #ifdef DEBUG
 		show_event(ev);
 #endif
@@ -616,3 +618,41 @@ static void handle_shape_change(XShapeEvent *e)
 	}
 }
 #endif
+
+/* interruptibleXNextEvent() was originally taken from Blender's source code
+ * and came with the following copyright notice: */
+
+/* Copyright (c) Mark J. Kilgard, 1994, 1995, 1996. */
+
+/* This program is freely distributable without licensing fees
+ * and is provided without guarantee or warrantee expressed or
+ * implied. This program is -not- in the public domain. */
+
+/* Unlike XNextEvent, if a signal arrives, interruptibleXNextEvent will
+ * return zero. */
+
+static int interruptible_XNextEvent(XEvent *event)
+{
+	fd_set fds;
+	int rc;
+	int dsply_fd = ConnectionNumber(dsply);
+	for (;;)
+	{
+		if (XPending(dsply))
+		{
+			XNextEvent(dsply, event);
+			return 1;
+		}
+		FD_ZERO(&fds);
+		FD_SET(dsply_fd, &fds);
+		rc = select(dsply_fd + 1, &fds, NULL, NULL, NULL);
+		if (rc < 0)
+		{
+			if (errno == EINTR)
+			{
+				return 0;
+			}
+			return 1;
+		}
+	}
+}
