@@ -1,6 +1,21 @@
 # WindowLab
 
+## Rethinking the window manager
+
 Copyright (c) 2001 Nick Gravgaard
+
+![WindowLab screenshot](screenshot.png)
+
+
+> ... thank you for creating such a wonderful WM as WindowLab. It's so extremely clean and simple and fast and easy, just what I was looking for.
+>
+> ... I must say, I'm very impressed. It has a lot of new implementations of features which tend to be rather stalely implememented in other 'new' windowmanagers.
+>
+> Your window manager rocks ...
+>
+> Having worked with it a little bit, I can honestly say that WindowLab is a great application. It's fast and responsive, and building the menu is simple, fast, and very straightforward. Congratulations on creating such an excellent product!
+>
+> I just downloaded, compiled and installed your excellent window manager. Its cleanness, innovation and attractive appearance blew me away. When I switched to linux two years ago, this is what I imagined it would be like: fast and clean.
 
 
 ## Description
