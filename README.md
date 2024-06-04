@@ -37,12 +37,12 @@ It has a click-to-focus but not raise-on-focus policy, a window resizing mechani
 
 ## Latest version
 
-The latest version of WindowLab is held at https://github.com/nickgravgaard/windowlab
+The latest version of WindowLab is held at https://github.com/nick-gravgaard/windowlab
 
 
 ## Author
 
-WindowLab was written by Nick Gravgaard (http://nickgravgaard.com)
+WindowLab was written by Nick Gravgaard (https://nick-gravgaard.com)
 
 
 ## Licence
